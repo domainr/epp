@@ -1,9 +1,9 @@
 package epp
 
-// Login authenticates and authorizes an EPP session.
+// LoginMessage authenticates and authorizes an EPP session.
 // Supply a non-empty value in NewPassword to change the password for subsequent sessions.
 type LoginMessage struct {
-	Message
+	XMLName     struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 	ClientID    string   `xml:"command>login>clID"`
 	Password    string   `xml:"command>login>pw"`
 	NewPassword string   `xml:"command>login>newPW,omitempty"`

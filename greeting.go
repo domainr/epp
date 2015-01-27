@@ -2,11 +2,11 @@ package epp
 
 import "errors"
 
-// Hello represents a client <hello> (request for <greeting>).
+// HelloMessage represents a client <hello> (request for <greeting>).
 // https://tools.ietf.org/html/rfc5730#section-2.3
 type HelloMessage struct {
-	Message
-	Hello struct{} `xml:"hello"`
+	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
+	Hello   struct{} `xml:"hello"`
 }
 
 // <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><hello/></epp>

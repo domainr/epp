@@ -1,10 +1,10 @@
 package epp
 
-// DomainCheck represents an EPP <domain:check> command.
+// DomainCheckMessage represents an EPP <domain:check> command.
 // https://tools.ietf.org/html/rfc5730#section-2.9.2.1
 type DomainCheckMessage struct {
-	Message
-	Check struct {
+	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
+	Check   struct {
 		XMLNamespace DomainNamespace `xml:"xmlns:domain,attr"`
 		Domains      []string        `xml:"domain:check>domain:name"`
 	} `xml:"command>check"`

@@ -9,7 +9,7 @@ import (
 
 // ResponseMessage represents an EPP response message.
 type ResponseMessage struct {
-	Message
+	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 	Results []Result `xml:"response>result"`
 	Queue   *struct {
 		ID    int  `xml:"id,attr"`
@@ -28,11 +28,6 @@ var (
 	ErrMalformedResponse = errors.New("EPP message contained a malformed <response> element")
 	ErrMissingResult     = errors.New("EPP response did not contain any valid <result> elements")
 )
-
-// Message should be embedded in other structs for XML serialization.
-type Message struct {
-	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
-}
 
 // Result represents an EPP server <result> element.
 type Result struct {
