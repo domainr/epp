@@ -5,7 +5,7 @@ import "errors"
 // Hello represents a client <hello> (request for <greeting>).
 // https://tools.ietf.org/html/rfc5730#section-2.3
 type HelloMessage struct {
-	MessageNamespace
+	Message
 	Hello struct{} `xml:"hello"`
 }
 
