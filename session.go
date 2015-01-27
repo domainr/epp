@@ -67,6 +67,6 @@ func (c *Conn) Login(clientID, password, newPassword string) (err error) {
 	if err != nil {
 		return
 	}
-	_, err = c.ReadResponse()
-	return err
+	rmsg := ResponseMessage{}
+	return c.ReadResponse(&rmsg)
 }

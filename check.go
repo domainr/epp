@@ -58,12 +58,13 @@ func (c *Conn) CheckDomain(domains ...string) (dcr *DomainCheckResponse, err err
 	if err != nil {
 		return
 	}
-	r, err := c.ReadResponse()
+	rmsg := ResponseMessage{}
+	err = c.ReadResponse(&rmsg)
 	if err != nil {
 		return
 	}
-	if r.DomainCheck == nil {
+	if rmsg.DomainCheck == nil {
 		return nil, ErrMalformedResponse
 	}
-	return r.DomainCheck, nil
+	return rmsg.DomainCheck, nil
 }

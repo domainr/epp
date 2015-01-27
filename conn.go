@@ -81,13 +81,19 @@ func (c *Conn) WriteDataUnit(p []byte) error {
 
 // ReadResponse reads a single EPP response message. It returns an error
 // if the EPP message does not contain a valid response or contains an error.
-func (c *Conn) ReadResponse() (res *Response, err error) {
-	msg := Msg{}
-	err = c.ReadMsg(&msg)
+func (c *Conn) ReadResponse(rmsg *ResponseMessage) error {
+	err := c.ReadMsg(rmsg)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return msg.GetResponse()
+	if len(rmsg.Results) == 0 {
+		return ErrMissingResult
+	}
+	r := rmsg.Results[0]
+	if r.IsError() {
+		return r
+	}
+	return nil
 }
 
 // ReadMsg reads a single EPP message from c and parses the XML into msg.

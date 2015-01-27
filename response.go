@@ -3,34 +3,19 @@ package epp
 import "errors"
 
 // Response represents an EPP <response> element.
-type Response struct {
-	Results []Result `xml:"result"`
+type ResponseMessage struct {
+	MessageNamespace
+	Results []Result `xml:"response>result"`
 	Queue   *struct {
 		ID    int  `xml:"id,attr"`
 		Count int  `xml:"count,attr"`
 		Time  Time `xml:"qDate"`
-	} `xml:"msgQ"`
-	TxnID       string `xml:"trID>clTRID"`
-	ServerTxnID string `xml:"trID>svTRID"`
+	} `xml:"response>msgQ"`
+	TxnID       string `xml:"response>trID>clTRID"`
+	ServerTxnID string `xml:"response>trID>svTRID"`
 
 	// Individual response types. Set to nil if not present in response message.
-	DomainCheck *DomainCheckResponse `xml:"resData>chkData"`
-}
-
-// GetResponse returns a response from an EPP msg or an error if
-// the message doesn’t contain a valid response.
-func (msg *Msg) GetResponse() (*Response, error) {
-	switch {
-	case msg.Response == nil:
-		return nil, ErrMissingResponse
-	case len(msg.Response.Results) == 0:
-		return nil, ErrMissingResult
-	}
-	r := msg.Response.Results[0]
-	if r.IsError() {
-		return nil, r
-	}
-	return msg.Response, nil
+	DomainCheck *DomainCheckResponse `xml:"response>resData>chkData"`
 }
 
 var (
