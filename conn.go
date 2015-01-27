@@ -6,9 +6,7 @@ import (
 	"encoding/xml"
 	"io"
 	"net"
-	"os"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/wsxiaoys/terminal/color"
 )
 
@@ -59,7 +57,7 @@ func (c *Conn) WriteMsg(msg Message) error {
 	if err != nil {
 		return err
 	}
-	// color.Printf("@{|}<!-- REQUEST -->\n%s\n", string(data))
+	color.Printf("@{|}<!-- REQUEST -->\n%s\n\n", string(data))
 	return c.WriteDataUnit(data)
 }
 
@@ -98,12 +96,12 @@ func (c *Conn) ReadMsg(msg Message) error {
 	if err != nil {
 		return err
 	}
-	color.Printf("@{c}<!-- RESPONSE -->\n%s", string(data))
+	color.Printf("@{c}<!-- RESPONSE -->\n%s\n\n", string(data))
 	err = xml.Unmarshal(data, msg)
 	if err != nil {
 		return err
 	}
-	color.Fprintf(os.Stderr, "@{y}%s\n", spew.Sprintf("%+v", msg))
+	// color.Fprintf(os.Stderr, "@{y}%s\n", spew.Sprintf("%+v", msg))
 	return nil
 }
 
