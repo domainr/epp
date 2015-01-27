@@ -54,7 +54,7 @@ func newConn(conn net.Conn) (*Conn, error) {
 }
 
 // WriteMsg serializes msg into XML and writes it to c.
-func (c *Conn) WriteMsg(msg *Msg) error {
+func (c *Conn) WriteMsg(msg Message) error {
 	data, err := xml.Marshal(msg)
 	if err != nil {
 		return err
@@ -93,7 +93,7 @@ func (c *Conn) ReadResponse() (res *Response, err error) {
 }
 
 // ReadMsg reads a single EPP message from c and parses the XML into msg.
-func (c *Conn) ReadMsg(msg *Msg) error {
+func (c *Conn) ReadMsg(msg Message) error {
 	data, err := c.ReadDataUnit()
 	if err != nil {
 		return err
