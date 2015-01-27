@@ -4,13 +4,16 @@ import "errors"
 
 // Hello represents a client <hello> (request for <greeting>).
 // https://tools.ietf.org/html/rfc5730#section-2.3
-type Hello struct{}
+type HelloMessage struct {
+	MessageNamespace
+	Hello struct{} `xml:"hello"`
+}
 
 // <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><hello/></epp>
 
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
 func (c *Conn) Hello() (err error) {
-	msg := Msg{Hello: &Hello{}}
+	msg := HelloMessage{}
 	err = c.WriteMsg(&msg)
 	if err != nil {
 		return
@@ -69,20 +72,25 @@ type Greeting struct {
 	} `xml:"dcp"`
 }
 
+type GreetingMessage struct {
+	MessageNamespace
+	Greeting Greeting `xml:"greeting"`
+}
+
 // A ErrMissingGreeting is reported when a <greeting> message is expected but not found.
 var ErrMissingGreeting = errors.New("expected <greeting> message in EPP message, but none found")
 
 // readGreeting reads a <greeting> message from the EPP server.
 // It stores the last-read <greeting> message on the connection,
 func (c *Conn) readGreeting() (err error) {
-	rmsg := Msg{}
+	rmsg := GreetingMessage{}
 	err = c.ReadMsg(&rmsg)
 	if err != nil {
 		return
 	}
-	if rmsg.Greeting == nil {
+	if rmsg.Greeting.ServerName == "" {
 		return ErrMissingGreeting
 	}
-	c.Greeting = rmsg.Greeting
+	c.Greeting = &rmsg.Greeting
 	return
 }

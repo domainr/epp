@@ -9,7 +9,6 @@ import (
 // Command represents an EPP <command> element.
 type Command struct {
 	// Individual EPP commands.
-	Login       *Login
 	DomainCheck *DomainCheck
 
 	// TxnID is a unique transaction ID for this command.
