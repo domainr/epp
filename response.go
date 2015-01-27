@@ -2,7 +2,7 @@ package epp
 
 import "errors"
 
-// Response represents an EPP <response> element.
+// ResponseMessage represents an EPP response message.
 type ResponseMessage struct {
 	MessageNamespace
 	Results []Result `xml:"response>result"`
@@ -15,11 +15,11 @@ type ResponseMessage struct {
 	ServerTxnID string `xml:"response>trID>svTRID"`
 
 	// Individual response types. Set to nil if not present in response message.
+	Greeting    *Greeting            `xml:"greeting"`
 	DomainCheck *DomainCheckResponse `xml:"response>resData>chkData"`
 }
 
 var (
-	ErrMissingResponse   = errors.New("EPP message did not contain a valid <response> element")
 	ErrMalformedResponse = errors.New("EPP message contained a malformed <response> element")
 	ErrMissingResult     = errors.New("EPP response did not contain any valid <result> elements")
 )

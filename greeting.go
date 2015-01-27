@@ -72,25 +72,20 @@ type Greeting struct {
 	} `xml:"dcp"`
 }
 
-type GreetingMessage struct {
-	MessageNamespace
-	Greeting Greeting `xml:"greeting"`
-}
-
 // A ErrMissingGreeting is reported when a <greeting> message is expected but not found.
 var ErrMissingGreeting = errors.New("expected <greeting> message in EPP message, but none found")
 
 // readGreeting reads a <greeting> message from the EPP server.
 // It stores the last-read <greeting> message on the connection,
 func (c *Conn) readGreeting() (err error) {
-	rmsg := GreetingMessage{}
+	rmsg := ResponseMessage{}
 	err = c.ReadMsg(&rmsg)
 	if err != nil {
 		return
 	}
-	if rmsg.Greeting.ServerName == "" {
+	if rmsg.Greeting == nil {
 		return ErrMissingGreeting
 	}
-	c.Greeting = &rmsg.Greeting
+	c.Greeting = rmsg.Greeting
 	return
 }

@@ -97,13 +97,13 @@ func (c *Conn) ReadResponse(rmsg *ResponseMessage) error {
 }
 
 // ReadMsg reads a single EPP message from c and parses the XML into msg.
-func (c *Conn) ReadMsg(msg Message) error {
+func (c *Conn) ReadMsg(rmsg *ResponseMessage) error {
 	data, err := c.ReadDataUnit()
 	if err != nil {
 		return err
 	}
 	color.Printf("@{c}<!-- RESPONSE -->\n%s\n\n", string(data))
-	err = xml.Unmarshal(data, msg)
+	err = xml.Unmarshal(data, rmsg)
 	if err != nil {
 		return err
 	}
