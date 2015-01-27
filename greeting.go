@@ -2,9 +2,9 @@ package epp
 
 import "errors"
 
-// HelloMessage represents a client <hello> (request for <greeting>).
+// Hello represents a client <hello> (request for <greeting>).
 // https://tools.ietf.org/html/rfc5730#section-2.3
-type HelloMessage struct {
+type Hello struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 	Hello   struct{} `xml:"hello"`
 }
@@ -13,7 +13,7 @@ type HelloMessage struct {
 
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
 func (c *Conn) Hello() (err error) {
-	msg := HelloMessage{}
+	msg := Hello{}
 	err = c.WriteMessage(&msg)
 	if err != nil {
 		return
@@ -78,8 +78,8 @@ var ErrMissingGreeting = errors.New("expected <greeting> message in EPP message,
 // readGreeting reads a <greeting> message from the EPP server.
 // It stores the last-read <greeting> message on the connection,
 func (c *Conn) readGreeting() (err error) {
-	rmsg := ResponseMessage{}
-	err = c.ReadMessage(&rmsg)
+	rmsg := Response{}
+	err = c.ReadResponse(&rmsg)
 	if err != nil {
 		return
 	}

@@ -1,8 +1,8 @@
 package epp
 
-// LoginMessage authenticates and authorizes an EPP session.
+// Login authenticates and authorizes an EPP session.
 // Supply a non-empty value in NewPassword to change the password for subsequent sessions.
-type LoginMessage struct {
+type Login struct {
 	XMLName     struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 	ClientID    string   `xml:"command>login>clID"`
 	Password    string   `xml:"command>login>pw"`
@@ -39,7 +39,7 @@ type LoginMessage struct {
 
 // Login initializes an authenticated EPP session.
 func (c *Conn) Login(clientID, password, newPassword string) (err error) {
-	msg := LoginMessage{
+	msg := Login{
 		ClientID:    clientID,
 		Password:    password,
 		NewPassword: newPassword,
@@ -67,6 +67,6 @@ func (c *Conn) Login(clientID, password, newPassword string) (err error) {
 	if err != nil {
 		return
 	}
-	rmsg := ResponseMessage{}
+	rmsg := Response{}
 	return c.ReadResponse(&rmsg)
 }

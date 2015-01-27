@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-// ResponseMessage represents an EPP response message.
-type ResponseMessage struct {
+// Response represents an EPP response message.
+type Response struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 	Results []Result `xml:"response>result"`
 	Queue   *struct {
