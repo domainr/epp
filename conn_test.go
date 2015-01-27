@@ -13,8 +13,9 @@ const (
 )
 
 func BenchmarkDialTLS(b *testing.B) {
+	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		_, err := DialTLS(TestAddr)
+		_, err := DialTLS(TestAddr, &tls.Config{})
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -22,6 +23,7 @@ func BenchmarkDialTLS(b *testing.B) {
 }
 
 func BenchmarkDialTLSAndLogin(b *testing.B) {
+	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		c, err := DialTLS(TestAddr, &tls.Config{})
 		if err != nil {

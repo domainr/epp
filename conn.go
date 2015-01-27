@@ -4,9 +4,9 @@ import (
 	"crypto/tls"
 	"encoding/binary"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"net"
-	"strconv"
 	"sync/atomic"
 
 	"github.com/wsxiaoys/terminal/color"
@@ -124,5 +124,5 @@ func (c *Conn) ReadDataUnit() (data []byte, err error) {
 }
 
 func (c *Conn) id() string {
-	return strconv.FormatUint(atomic.AddUint64(&c.txnID, 1), 16)
+	return fmt.Sprintf("%016x", atomic.AddUint64(&c.txnID, 1))
 }
