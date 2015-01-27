@@ -54,7 +54,7 @@ type DomainCheckResponse struct {
 func (c *Conn) CheckDomain(domains ...string) (dcr *DomainCheckResponse, err error) {
 	msg := DomainCheckMessage{TxnID: newTxnID()}
 	msg.Check.Domains = domains
-	err = c.WriteMsg(&msg)
+	err = c.WriteMessage(&msg)
 	if err != nil {
 		return
 	}

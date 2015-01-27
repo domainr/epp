@@ -14,7 +14,7 @@ type HelloMessage struct {
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
 func (c *Conn) Hello() (err error) {
 	msg := HelloMessage{}
-	err = c.WriteMsg(&msg)
+	err = c.WriteMessage(&msg)
 	if err != nil {
 		return
 	}
@@ -79,7 +79,7 @@ var ErrMissingGreeting = errors.New("expected <greeting> message in EPP message,
 // It stores the last-read <greeting> message on the connection,
 func (c *Conn) readGreeting() (err error) {
 	rmsg := ResponseMessage{}
-	err = c.ReadMsg(&rmsg)
+	err = c.ReadMessage(&rmsg)
 	if err != nil {
 		return
 	}

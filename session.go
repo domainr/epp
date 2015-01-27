@@ -63,7 +63,7 @@ func (c *Conn) Login(clientID, password, newPassword string) (err error) {
 		msg.Objects = c.Greeting.ServiceMenu.Objects
 		msg.Extensions = c.Greeting.ServiceMenu.Extensions
 	}
-	err = c.WriteMsg(&msg)
+	err = c.WriteMessage(&msg)
 	if err != nil {
 		return
 	}
