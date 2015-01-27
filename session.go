@@ -38,18 +38,7 @@ type Login struct {
 
 // Login initializes an authenticated EPP session.
 func (c *Conn) Login(clientID, password, newPassword string) (err error) {
-	msg := Msg{Command: NewCommand(c.login(clientID, password, newPassword))}
-	err = c.WriteMsg(&msg)
-	if err != nil {
-		return
-	}
-	_, err = c.ReadResponse()
-	return err
-}
-
-// login initializes a <login> command.
-func (c *Conn) login(clientID, password, newPassword string) *Login {
-	cmd := &Login{
+	login := Login{
 		ClientID:    clientID,
 		Password:    password,
 		NewPassword: newPassword,
@@ -60,17 +49,24 @@ func (c *Conn) login(clientID, password, newPassword string) *Login {
 		// FIXME: find the highest protocol version?
 		// Do any EPP servers send anything other than 1.0?
 		if len(c.Greeting.ServiceMenu.Versions) > 0 {
-			cmd.Version = c.Greeting.ServiceMenu.Versions[0]
+			login.Version = c.Greeting.ServiceMenu.Versions[0]
 		}
 		// FIXME: look for a particular language?
 		// Do any EPP servers send anything other than “en”?
 		if len(c.Greeting.ServiceMenu.Languages) > 0 {
-			cmd.Language = c.Greeting.ServiceMenu.Languages[0]
+			login.Language = c.Greeting.ServiceMenu.Languages[0]
 		}
 		// FIXME: we currently just echo back what’s reported by the server.
 		// We may or may not use any of these in a given session. Optimization opportunity?
-		cmd.Objects = c.Greeting.ServiceMenu.Objects
-		cmd.Extensions = c.Greeting.ServiceMenu.Extensions
+		login.Objects = c.Greeting.ServiceMenu.Objects
+		login.Extensions = c.Greeting.ServiceMenu.Extensions
 	}
-	return cmd
+	cmd := Command{Login: &login}
+	msg := Msg{Command: &cmd}
+	err = c.WriteMsg(&msg)
+	if err != nil {
+		return
+	}
+	_, err = c.ReadResponse()
+	return err
 }
