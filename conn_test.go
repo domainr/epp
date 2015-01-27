@@ -1,6 +1,9 @@
 package epp
 
-import "testing"
+import (
+	"crypto/tls"
+	"testing"
+)
 
 const (
 	// https://wiki.hexonet.net/wiki/Domain_API
@@ -20,7 +23,7 @@ func BenchmarkDialTLS(b *testing.B) {
 
 func BenchmarkDialTLSAndLogin(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		c, err := DialTLS(TestAddr)
+		c, err := DialTLS(TestAddr, &tls.Config{})
 		if err != nil {
 			b.Fatal(err)
 		}
