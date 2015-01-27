@@ -5,9 +5,6 @@ package epp
 type Msg struct {
 	MessageNamespace
 
-	// Request elements. Leave nil if unused.
-	Command *Command `xml:"command"`
-
 	// Response elements. Will be nil if not present in response message.
 	Response *Response `xml:"response"`
 }
