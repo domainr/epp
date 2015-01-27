@@ -52,7 +52,7 @@ type DomainCheckResponse struct {
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
 func (c *Conn) CheckDomain(domains ...string) (dcr *DomainCheckResponse, err error) {
-	msg := DomainCheckMessage{TxnID: newTxnID()}
+	msg := DomainCheckMessage{TxnID: c.id()}
 	msg.Check.Domains = domains
 	err = c.WriteMessage(&msg)
 	if err != nil {

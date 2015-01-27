@@ -6,6 +6,8 @@ import (
 	"encoding/xml"
 	"io"
 	"net"
+	"strconv"
+	"sync/atomic"
 
 	"github.com/wsxiaoys/terminal/color"
 )
@@ -18,7 +20,7 @@ type Conn struct {
 	Greeting *Greeting
 
 	net.Conn
-	reqID uint64
+	txnID uint64
 }
 
 // Dial connects to an EPP server via TCP.
@@ -129,4 +131,8 @@ func (c *Conn) ReadDataUnit() (data []byte, err error) {
 		return data, io.ErrNoProgress
 	}
 	return data, nil
+}
+
+func (c *Conn) id() string {
+	return strconv.FormatUint(atomic.AddUint64(&c.txnID, 1), 16)
 }

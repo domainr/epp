@@ -45,7 +45,7 @@ func (c *Conn) Login(clientID, password, newPassword string) (err error) {
 		NewPassword: newPassword,
 		Version:     "1.0",
 		Language:    "en",
-		TxnID:       newTxnID(),
+		TxnID:       c.id(),
 	}
 	if c.Greeting != nil {
 		// FIXME: find the highest protocol version?

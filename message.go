@@ -4,8 +4,6 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"strconv"
-	"sync/atomic"
 	"time"
 )
 
@@ -75,11 +73,4 @@ func (t *Time) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	}
 	*t = Time{parse}
 	return nil
-}
-
-// Unique transaction IDs.
-var txnID = uint64(time.Now().Unix())
-
-func newTxnID() string {
-	return strconv.FormatUint(atomic.AddUint64(&txnID, 1), 16)
 }
