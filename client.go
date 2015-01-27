@@ -1,6 +1,7 @@
 package epp
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"sync"
 )
@@ -10,12 +11,12 @@ const MaxConnections = 20
 
 // Client allows concurrent access to an EPP server up to MaxConnections.
 type Client struct {
-	addr     string
-	clientID string
-	password string
-	useTLS   bool
-	pool     *sync.Pool
-	limiter  Limiter
+	addr      string
+	clientID  string
+	password  string
+	tlsConfig *tls.Config
+	pool      *sync.Pool
+	limiter   Limiter
 }
 
 // A Limiter acts as a semaphore to limit concurrency of a Client.
@@ -27,14 +28,14 @@ func (l Limiter) Done()        { <-l }
 
 // NewClient returns a new EPP Client for addr, authenticated with clientID and password.
 // The returned client is safe for concurrent use.
-func NewClient(addr, clientID, password string, useTLS bool) (*Client, error) {
+func NewClient(addr, clientID, password string, cfg *tls.Config) (*Client, error) {
 	c := &Client{
-		addr:     addr,
-		clientID: clientID,
-		password: password,
-		useTLS:   useTLS,
-		pool:     &sync.Pool{},
-		limiter:  NewLimiter(MaxConnections),
+		addr:      addr,
+		clientID:  clientID,
+		password:  password,
+		tlsConfig: cfg,
+		pool:      &sync.Pool{},
+		limiter:   NewLimiter(MaxConnections),
 	}
 	return c, nil
 }
@@ -73,8 +74,8 @@ func (c *Client) getFreeConn() (*Conn, error) {
 
 // Create and authenticate a new connection to the EPP server.
 func (c *Client) dial() (conn *Conn, err error) {
-	if c.useTLS {
-		conn, err = DialTLS(c.addr)
+	if c.tlsConfig != nil {
+		conn, err = DialTLS(c.addr, c.tlsConfig)
 	} else {
 		conn, err = Dial(c.addr)
 	}

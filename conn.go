@@ -35,8 +35,8 @@ func Dial(addr string) (*Conn, error) {
 
 // DialTLS connects to an EPP server via TLS.
 // Returns an error if unable to connect, including certificate mismatch errors.
-func DialTLS(addr string) (*Conn, error) {
-	conn, err := tls.Dial("tcp", addr, nil)
+func DialTLS(addr string, cfg *tls.Config) (*Conn, error) {
+	conn, err := tls.Dial("tcp", addr, cfg)
 	if err != nil {
 		return nil, err
 	}
