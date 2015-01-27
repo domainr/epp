@@ -51,16 +51,16 @@ func (c Client) MarshalJSON() ([]byte, error) {
 }
 
 // CheckDomain checks the domains.
-func (c *Client) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
+func (c *Client) CheckDomain(domains ...string) (*DomainCheck, error) {
 	c.limiter.Start()
 	defer c.limiter.Done()
 	conn, err := c.getFreeConn()
 	if err != nil {
 		return nil, err
 	}
-	dcr, err := conn.CheckDomain(domains...)
+	dc, err := conn.CheckDomain(domains...)
 	c.release(conn, err)
-	return dcr, err
+	return dc, err
 }
 
 // Get an EPP connection or create one.

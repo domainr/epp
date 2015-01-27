@@ -20,8 +20,8 @@ type ResponseMessage struct {
 	ServerTxnID string `xml:"response>trID>svTRID"`
 
 	// Individual response types. Set to nil if not present in response message.
-	Greeting    *Greeting            `xml:"greeting"`
-	DomainCheck *DomainCheckResponse `xml:"response>resData>chkData"`
+	Greeting    *Greeting    `xml:"greeting"`
+	DomainCheck *DomainCheck `xml:"response>resData>chkData"`
 }
 
 var (

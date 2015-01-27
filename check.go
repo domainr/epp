@@ -5,8 +5,8 @@ package epp
 type DomainCheckMessage struct {
 	Message
 	Check struct {
-		DomainNamespace DomainNamespace `xml:"xmlns:domain,attr"`
-		Domains         []string        `xml:"domain:check>domain:name"`
+		XMLNamespace DomainNamespace `xml:"xmlns:domain,attr"`
+		Domains      []string        `xml:"domain:check>domain:name"`
 	} `xml:"command>check"`
 	TxnID string `xml:"command>clTRID"`
 }
@@ -30,8 +30,8 @@ func (n DomainNamespace) MarshalText() (text []byte, err error) {
 	return []byte("urn:ietf:params:xml:ns:domain-1.0"), nil
 }
 
-// DomainCheckResponse represents the output of the EPP <domain:check> command.
-type DomainCheckResponse struct {
+// DomainCheck represents the output of the EPP <domain:check> command.
+type DomainCheck struct {
 	Results []struct {
 		Domain struct {
 			Domain      string `xml:",chardata"`
@@ -51,7 +51,7 @@ type DomainCheckResponse struct {
 // </resData>
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
-func (c *Conn) CheckDomain(domains ...string) (dcr *DomainCheckResponse, err error) {
+func (c *Conn) CheckDomain(domains ...string) (dc *DomainCheck, err error) {
 	msg := DomainCheckMessage{TxnID: c.id()}
 	msg.Check.Domains = domains
 	err = c.WriteMessage(&msg)
