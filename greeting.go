@@ -10,11 +10,11 @@ type Hello struct {
 }
 
 // <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><hello/></epp>
+var hello = Hello{}
 
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
 func (c *Conn) Hello() (err error) {
-	msg := Hello{}
-	err = c.WriteMessage(&msg)
+	err = c.WriteMessage(&hello)
 	if err != nil {
 		return
 	}
@@ -78,7 +78,7 @@ var ErrMissingGreeting = errors.New("expected <greeting> message in EPP message,
 // readGreeting reads a <greeting> message from the EPP server.
 // It stores the last-read <greeting> message on the connection,
 func (c *Conn) readGreeting() (err error) {
-	rmsg := Response{}
+	var rmsg Response
 	err = c.ReadResponse(&rmsg)
 	if err != nil {
 		return

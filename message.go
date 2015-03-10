@@ -57,15 +57,13 @@ type Time struct {
 	time.Time
 }
 
-// UnmarshalXML implements a custom XML unmarshaler.
+// UnmarshalXML implements a custom XML unmarshaler that ignores time parsing errors.
 // http://stackoverflow.com/a/25015260
 func (t *Time) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var v string
 	d.DecodeElement(&v, &start)
-	parse, err := time.Parse(time.RFC3339, v)
-	if err != nil {
-		return nil
+	if parse, err := time.Parse(time.RFC3339, v); err == nil {
+		*t = Time{parse}
 	}
-	*t = Time{parse}
 	return nil
 }

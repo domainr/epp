@@ -15,7 +15,7 @@ import (
 // Conn represents a single connection to an EPP server.
 // This implementation is not safe for concurrent use.
 type Conn struct {
-	// Greeting holds the last recieved greeting message from the server,
+	// Greeting holds the last received greeting message from the server,
 	// indicating server name, status, data policy and capabilities.
 	Greeting *Greeting
 
