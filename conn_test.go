@@ -21,6 +21,14 @@ func dial(t *testing.T) net.Conn {
 	return conn
 }
 
+func login(t *testing.T) *Conn {
+	c, err := NewConn(dial(t))
+	st.Assert(t, err, nil)
+	err = c.Login(user, password, "")
+	st.Assert(t, err, nil)
+	return c
+}
+
 func TestNewConn(t *testing.T) {
 	c, err := NewConn(dial(t))
 	st.Expect(t, err, nil)
