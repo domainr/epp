@@ -13,12 +13,12 @@ type Hello struct {
 var hello = Hello{}
 
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
-func (c *Conn) Hello() (err error) {
-	err = c.WriteMessage(&hello)
+func (c *Conn) Hello() (*Greeting, error) {
+	err := c.WriteMessage(&hello)
 	if err != nil {
-		return
+		return nil, err
 	}
-	return c.readGreeting()
+	return c.ReadGreeting()
 }
 
 // Greeting is an EPP response that represents server status and capabilities.
@@ -75,17 +75,16 @@ type Greeting struct {
 // A ErrMissingGreeting is reported when a <greeting> message is expected but not found.
 var ErrMissingGreeting = errors.New("expected <greeting> message in EPP message, but none found")
 
-// readGreeting reads a <greeting> message from the EPP server.
-// It stores the last-read <greeting> message on the connection,
-func (c *Conn) readGreeting() (err error) {
+// ReadGreeting reads a <greeting> message from the EPP server.
+// Performed automatically during a Handshake or Hello command.
+func (c *Conn) ReadGreeting() (*Greeting, error) {
 	var rmsg Response
-	err = c.ReadResponse(&rmsg)
+	err := c.ReadResponse(&rmsg)
 	if err != nil {
-		return
+		return nil, err
 	}
 	if rmsg.Greeting == nil {
-		return ErrMissingGreeting
+		return nil, ErrMissingGreeting
 	}
-	c.Greeting = rmsg.Greeting
-	return
+	return rmsg.Greeting, nil
 }

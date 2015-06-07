@@ -1,7 +1,6 @@
 package epp
 
 import (
-	"crypto/tls"
 	"encoding/binary"
 	"encoding/xml"
 	"fmt"
@@ -23,34 +22,14 @@ type Conn struct {
 	txnID uint64
 }
 
-// Dial connects to an EPP server via TCP.
-// Returns an error if unable to connect, including certificate mismatch errors.
-func Dial(addr string) (*Conn, error) {
-	conn, err := net.Dial("tcp", addr)
-	if err != nil {
-		return nil, err
-	}
-	return newConn(conn)
-}
-
-// DialTLS connects to an EPP server via TLS.
-// Returns an error if unable to connect, including certificate mismatch errors.
-func DialTLS(addr string, cfg *tls.Config) (*Conn, error) {
-	conn, err := tls.Dial("tcp", addr, cfg)
-	if err != nil {
-		return nil, err
-	}
-	return newConn(conn)
-}
-
-func newConn(conn net.Conn) (*Conn, error) {
+// NewConn initializes an epp.Conn from a net.Conn and performs the EPP
+// handshake. It reads and stores the initial EPP <greeting> message.
+// https://tools.ietf.org/html/rfc5730#section-2.4
+func NewConn(conn net.Conn) (*Conn, error) {
 	c := &Conn{Conn: conn}
-	err := c.readGreeting()
-	if err != nil {
-		c.Close()
-		return nil, err
-	}
-	return c, nil
+	var err error
+	c.Greeting, err = c.ReadGreeting()
+	return c, err
 }
 
 // WriteMessage serializes msg into XML and writes it to c.
