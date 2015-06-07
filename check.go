@@ -1,8 +1,8 @@
 package epp
 
-// DomainCheckCommand represents an EPP <domain:check> command.
+// domainCheckRequest represents an EPP <domain:check> command.
 // https://tools.ietf.org/html/rfc5730#section-2.9.2.1
-type DomainCheckCommand struct {
+type domainCheckRequest struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 	Check   struct {
 		XMLNamespace DomainNamespace `xml:"xmlns:domain,attr"`
@@ -52,7 +52,7 @@ type DomainCheck struct {
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
 func (c *Conn) CheckDomain(domains ...string) (dc *DomainCheck, err error) {
-	req := DomainCheckCommand{TxnID: c.id()}
+	req := domainCheckRequest{TxnID: c.id()}
 	req.Check.Domains = domains
 	err = c.WriteRequest(&req)
 	if err != nil {
