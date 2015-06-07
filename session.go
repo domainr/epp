@@ -4,7 +4,7 @@ package epp
 // Supply a non-empty value in NewPassword to change the password for subsequent sessions.
 type loginRequest struct {
 	XMLName     struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
-	ClientID    string   `xml:"command>login>clID"`
+	User        string   `xml:"command>login>clID"`
 	Password    string   `xml:"command>login>pw"`
 	NewPassword string   `xml:"command>login>newPW,omitempty"`
 	Version     string   `xml:"command>login>options>version"`
@@ -38,9 +38,9 @@ type loginRequest struct {
 // </epp>
 
 // Login initializes an authenticated EPP session.
-func (c *Conn) Login(clientID, password, newPassword string) (err error) {
+func (c *Conn) Login(user, password, newPassword string) (err error) {
 	req := loginRequest{
-		ClientID:    clientID,
+		User:        user,
 		Password:    password,
 		NewPassword: newPassword,
 		Version:     "1.0",
