@@ -32,9 +32,9 @@ func NewConn(conn net.Conn) (*Conn, error) {
 	return c, err
 }
 
-// WriteMessage serializes msg into XML and writes it to c.
-func (c *Conn) WriteMessage(msg interface{}) error {
-	data, err := xml.Marshal(msg)
+// WriteRequest serializes req into XML and writes it to c.
+func (c *Conn) WriteRequest(req interface{}) error {
+	data, err := xml.Marshal(req)
 	if err != nil {
 		return err
 	}
@@ -60,21 +60,21 @@ func (c *Conn) WriteDataUnit(p []byte) error {
 	return err
 }
 
-// ReadResponse reads a single EPP message from c and parses the XML into msg.
-// It returns an error if the EPP message contains an error result.
-func (c *Conn) ReadResponse(rmsg *Response) error {
+// ReadResponse reads a single EPP response from c and parses the XML into req.
+// It returns an error if the EPP response contains an error result.
+func (c *Conn) ReadResponse(res *Response) error {
 	data, err := c.ReadDataUnit()
 	if err != nil {
 		return err
 	}
 	color.Printf("@{c}<!-- RESPONSE -->\n%s\n\n", string(data))
-	err = xml.Unmarshal(data, rmsg)
+	err = xml.Unmarshal(data, res)
 	if err != nil {
 		return err
 	}
-	// color.Fprintf(os.Stderr, "@{y}%s\n", spew.Sprintf("%+v", msg))
-	if len(rmsg.Results) != 0 {
-		r := rmsg.Results[0]
+	// color.Fprintf(os.Stderr, "@{y}%s\n", spew.Sprintf("%+v", req))
+	if len(res.Results) != 0 {
+		r := res.Results[0]
 		if r.IsError() {
 			return r
 		}

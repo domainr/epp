@@ -14,7 +14,7 @@ var hello = Hello{}
 
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
 func (c *Conn) Hello() (*Greeting, error) {
-	err := c.WriteMessage(&hello)
+	err := c.WriteRequest(&hello)
 	if err != nil {
 		return nil, err
 	}
@@ -78,13 +78,13 @@ var ErrMissingGreeting = errors.New("expected <greeting> message in EPP message,
 // ReadGreeting reads a <greeting> message from the EPP server.
 // Performed automatically during a Handshake or Hello command.
 func (c *Conn) ReadGreeting() (*Greeting, error) {
-	var rmsg Response
-	err := c.ReadResponse(&rmsg)
+	var res Response
+	err := c.ReadResponse(&res)
 	if err != nil {
 		return nil, err
 	}
-	if rmsg.Greeting == nil {
+	if res.Greeting == nil {
 		return nil, ErrMissingGreeting
 	}
-	return rmsg.Greeting, nil
+	return res.Greeting, nil
 }

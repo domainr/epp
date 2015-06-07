@@ -39,7 +39,7 @@ type Login struct {
 
 // Login initializes an authenticated EPP session.
 func (c *Conn) Login(clientID, password, newPassword string) (err error) {
-	msg := Login{
+	req := Login{
 		ClientID:    clientID,
 		Password:    password,
 		NewPassword: newPassword,
@@ -51,22 +51,22 @@ func (c *Conn) Login(clientID, password, newPassword string) (err error) {
 		// FIXME: find the highest protocol version?
 		// Do any EPP servers send anything other than 1.0?
 		if len(c.Greeting.ServiceMenu.Versions) > 0 {
-			msg.Version = c.Greeting.ServiceMenu.Versions[0]
+			req.Version = c.Greeting.ServiceMenu.Versions[0]
 		}
 		// FIXME: look for a particular language?
 		// Do any EPP servers send anything other than “en”?
 		if len(c.Greeting.ServiceMenu.Languages) > 0 {
-			msg.Language = c.Greeting.ServiceMenu.Languages[0]
+			req.Language = c.Greeting.ServiceMenu.Languages[0]
 		}
 		// FIXME: we currently just echo back what’s reported by the server.
 		// We may or may not use any of these in a given session. Optimization opportunity?
-		msg.Objects = c.Greeting.ServiceMenu.Objects
-		msg.Extensions = c.Greeting.ServiceMenu.Extensions
+		req.Objects = c.Greeting.ServiceMenu.Objects
+		req.Extensions = c.Greeting.ServiceMenu.Extensions
 	}
-	err = c.WriteMessage(&msg)
+	err = c.WriteRequest(&req)
 	if err != nil {
 		return
 	}
-	rmsg := Response{}
-	return c.ReadResponse(&rmsg)
+	res := Response{}
+	return c.ReadResponse(&res)
 }
