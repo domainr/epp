@@ -91,12 +91,12 @@ func (c *Conn) ReadDataUnit() (data []byte, err error) {
 	if err != nil {
 		return
 	}
-	data = make([]byte, s)
+	data = make([]byte, s-4)
 	n, err := c.Conn.Read(data)
 	if err != nil {
 		return
 	}
-	if 4+n != int(s) {
+	if n != len(data) {
 		return data, io.ErrNoProgress
 	}
 	return data, nil
