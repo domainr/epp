@@ -27,8 +27,10 @@ type DomainNamespace struct{}
 
 // MarshalText returns a byte slice for the xmlns:xsi attribute.
 func (n DomainNamespace) MarshalText() (text []byte, err error) {
-	return []byte("urn:ietf:params:xml:ns:domain-1.0"), nil
+	return domainNamespace, nil
 }
+
+var domainNamespace = []byte("urn:ietf:params:xml:ns:domain-1.0")
 
 // DomainCheck represents the output of the EPP <domain:check> command.
 type DomainCheck struct {

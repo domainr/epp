@@ -47,18 +47,20 @@ func (c *Conn) WriteRequest(req interface{}) error {
 // of the data unit (message + 4 byte header), in network (big-endian) order.
 // http://www.ietf.org/rfc/rfc4934.txt
 func (c *Conn) WriteDataUnit(p []byte) error {
-	s := uint32(4 + len(xml.Header) + len(p))
+	s := uint32(4 + len(xmlHeader) + len(p))
 	err := binary.Write(c.Conn, binary.BigEndian, s)
 	if err != nil {
 		return err
 	}
-	_, err = c.Conn.Write([]byte(xml.Header))
+	_, err = c.Conn.Write(xmlHeader)
 	if err != nil {
 		return err
 	}
 	_, err = c.Conn.Write(p)
 	return err
 }
+
+var xmlHeader = []byte(xml.Header)
 
 // ReadResponse reads a single EPP response from c and parses the XML into req.
 // It returns an error if the EPP response contains an error result.
