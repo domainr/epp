@@ -7,8 +7,6 @@ import (
 	"io"
 	"net"
 	"sync/atomic"
-
-	"github.com/wsxiaoys/terminal/color"
 )
 
 // Conn represents a single connection to an EPP server.
@@ -38,7 +36,7 @@ func (c *Conn) WriteRequest(req interface{}) error {
 	if err != nil {
 		return err
 	}
-	color.Printf("@{|}<!-- REQUEST -->\n%s\n\n", string(data))
+	logRequest(data)
 	return c.WriteDataUnit(data)
 }
 
@@ -69,7 +67,7 @@ func (c *Conn) ReadResponse(res *Response) error {
 	if err != nil {
 		return err
 	}
-	color.Printf("@{c}<!-- RESPONSE -->\n%s\n\n", string(data))
+	logResponse(data)
 	err = xml.Unmarshal(data, res)
 	if err != nil {
 		return err
