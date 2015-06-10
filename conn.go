@@ -32,7 +32,7 @@ func NewConn(conn net.Conn) (*Conn, error) {
 
 // WriteRequest serializes req into XML and writes it to c.
 func (c *Conn) WriteRequest(req interface{}) error {
-	data, err := xml.Marshal(req)
+	data, err := Marshal(req)
 	if err != nil {
 		return err
 	}
@@ -68,18 +68,7 @@ func (c *Conn) ReadResponse(res *Response) error {
 		return err
 	}
 	logResponse(data)
-	err = xml.Unmarshal(data, res)
-	if err != nil {
-		return err
-	}
-	// color.Fprintf(os.Stderr, "@{y}%s\n", spew.Sprintf("%+v", req))
-	if len(res.Results) != 0 {
-		r := res.Results[0]
-		if r.IsError() {
-			return r
-		}
-	}
-	return nil
+	return Unmarshal(data, res)
 }
 
 // ReadDataUnit reads a single EPP message from c.

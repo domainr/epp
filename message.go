@@ -7,6 +7,29 @@ import (
 	"time"
 )
 
+// Marshal encodes an EPP request or message into XML,
+// returning any errors that occur.
+func Marshal(msg interface{}) ([]byte, error) {
+	return xml.Marshal(msg)
+}
+
+// Unmarshal decodes an EPP XML response into res,
+// returning any errors.
+func Unmarshal(data []byte, res *Response) error {
+	err := xml.Unmarshal(data, res)
+	if err != nil {
+		return err
+	}
+	// color.Fprintf(os.Stderr, "@{y}%s\n", spew.Sprintf("%+v", req))
+	if len(res.Results) != 0 {
+		r := res.Results[0]
+		if r.IsError() {
+			return r
+		}
+	}
+	return nil
+}
+
 // Response represents an EPP response message.
 type Response struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
