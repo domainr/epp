@@ -30,21 +30,44 @@ func Unmarshal(data []byte, res *Response) error {
 	return nil
 }
 
-// Response represents an EPP response message.
-type Response struct {
+// Message represents a single EPP message.
+type Message struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
-	Results []Result `xml:"response>result"`
+
+	// Subordinate message types. Set to nil if not present in message.
+	Response *Response2 `xml:"response,omitempty"`
+	Greeting *Greeting  `xml:"greeting,omitempty"`
+}
+
+// Response represents an EPP response message.
+type Response2 struct {
+	XMLName struct{} `xml:"response"`
+	Results []Result `xml:"result"`
 	Queue   *struct {
 		ID    int  `xml:"id,attr"`
 		Count int  `xml:"count,attr"`
 		Time  Time `xml:"qDate"`
-	} `xml:"response>msgQ"`
-	TxnID       string `xml:"response>trID>clTRID"`
-	ServerTxnID string `xml:"response>trID>svTRID"`
+	} `xml:"msgQ,omitempty"`
+	TxnID       string       `xml:"trID>clTRID"`
+	ServerTxnID string       `xml:"trID>svTRID"`
+	DomainCheck *DomainCheck `xml:"resData>chkData,omitempty"`
+}
+
+// Response represents an EPP response message.
+type Response struct {
+	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
+	Results []Result `xml:"response>result,omitempty"`
+	Queue   *struct {
+		ID    int  `xml:"id,attr"`
+		Count int  `xml:"count,attr"`
+		Time  Time `xml:"qDate"`
+	} `xml:"response>msgQ,omitempty"`
+	TxnID       string `xml:"response>trID>clTRID,omitempty"`
+	ServerTxnID string `xml:"response>trID>svTRID,omitempty"`
 
 	// Individual response types. Set to nil if not present in response message.
-	Greeting    *Greeting    `xml:"greeting"`
-	DomainCheck *DomainCheck `xml:"response>resData>chkData"`
+	Greeting    *Greeting    `xml:"greeting,omitempty"`
+	DomainCheck *DomainCheck `xml:"response>resData>chkData,omitempty"`
 }
 
 var (
