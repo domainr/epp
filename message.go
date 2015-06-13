@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"time"
 )
 
 // Marshal encodes an EPP request or message into XML,
@@ -96,20 +95,4 @@ func (r Result) IsFatal() bool {
 // Error() implements the error interface.
 func (r Result) Error() string {
 	return fmt.Sprintf("EPP result code %d: %s", r.Code, r.Message)
-}
-
-// Time represents EPP date-time values.
-type Time struct {
-	time.Time
-}
-
-// UnmarshalXML implements a custom XML unmarshaler that ignores time parsing errors.
-// http://stackoverflow.com/a/25015260
-func (t *Time) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	var v string
-	d.DecodeElement(&v, &start)
-	if parse, err := time.Parse(time.RFC3339, v); err == nil {
-		*t = Time{parse}
-	}
-	return nil
 }
