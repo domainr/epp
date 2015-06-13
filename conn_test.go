@@ -21,6 +21,9 @@ func init() {
 }
 
 func dial(t *testing.T) net.Conn {
+	if testing.Short() {
+		t.Skip("network-dependent")
+	}
 	conn, err := tls.Dial("tcp", addr, nil)
 	st.Assert(t, err, nil)
 	return conn
