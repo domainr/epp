@@ -9,7 +9,7 @@ import (
 )
 
 func TestTime(t *testing.T) {
-	var x = []byte(`<example><when>2015-05-19T06:34:21.1Z</when></example>`)
+	x := []byte(`<example><when>2015-05-19T06:34:21.1Z</when></example>`)
 	var y struct {
 		XMLName struct{} `xml:"example"`
 		When    Time     `xml:"when"`
