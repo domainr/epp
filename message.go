@@ -36,9 +36,9 @@ type message struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 
 	// Message types. Set to nil if not present in message.
-	Hello    *hello
-	Command  *command
-	Response *response
+	Hello    *hello    `xml:"hello"`
+	Command  *command  `xml:"command,omitempty"`
+	Response *response `xml:"response,omitempty"`
 	Greeting *Greeting `xml:"greeting,omitempty"`
 }
 
@@ -46,17 +46,13 @@ type message struct {
 
 // hello represents an initial EPP hello request.
 // <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><hello/></epp>
-type hello struct {
-	XMLName struct{} `xml:"hello"`
-}
+type hello struct{}
 
 // command represents an EPP command wrapper.
 type command struct {
-	XMLName struct{} `xml:"command,omitempty"`
-
 	// Command types. Set to nil if not present in message.
-	Login *login
-	Check *check
+	Login *login `xml:"login,omitempty"`
+	Check *check `xml:"check"`
 
 	// TxnID represents a unique client ID for this transaction.
 	TxnID string `xml:"clTRID"`
@@ -65,7 +61,6 @@ type command struct {
 // loginCommand authenticates and authorizes an EPP session.
 // Supply a non-empty value in NewPassword to change the password for subsequent sessions.
 type login struct {
-	XMLName     struct{} `xml:"login,omitempty"`
 	User        string   `xml:"clID"`
 	Password    string   `xml:"pw"`
 	NewPassword string   `xml:"newPW,omitempty"`
@@ -76,12 +71,10 @@ type login struct {
 }
 
 type check struct {
-	XMLName     struct{}     `xml:"check"`
 	DomainCheck *domainCheck `xml:"urn:ietf:params:xml:ns:domain-1.0 check,omitempty"`
 }
 
 type domainCheck struct {
-	XMLName struct{} `xml:"urn:ietf:params:xml:ns:domain-1.0 check,omitempty"`
 	// DomainNS domainNS `xml:"xmlns:domain,attr"`
 	Domains []string `xml:"name"`
 }
@@ -90,9 +83,8 @@ type domainCheck struct {
 
 // response represents an EPP response message.
 type response struct {
-	XMLName      struct{}      `xml:"response,omitempty"`
 	Results      []Result      `xml:"result"`
-	Queue        *Queue        `xml:"msgQ,omitempty"`
+	Queue        *queue        `xml:"msgQ,omitempty"`
 	TxnID        string        `xml:"trID>clTRID"`
 	ServerTxnID  string        `xml:"trID>svTRID"`
 	ResponseData *responseData `xml:"resData,omitempty"`
@@ -100,9 +92,8 @@ type response struct {
 
 // Result represents an EPP server <result> element.
 type Result struct {
-	XMLName struct{} `xml:"result"`
-	Code    int      `xml:"code,attr"`
-	Message string   `xml:"msg"`
+	Code    int    `xml:"code,attr"`
+	Message string `xml:"msg"`
 }
 
 // IsError determines whether an EPP status code is an error.
@@ -122,22 +113,19 @@ func (r Result) Error() string {
 	return fmt.Sprintf("EPP result code %d: %s", r.Code, r.Message)
 }
 
-// Queue represents an EPP command queue.
-type Queue struct {
-	XMLName struct{} `xml:"msgQ,omitempty"`
-	ID      int      `xml:"id,attr"`
-	Count   int      `xml:"count,attr"`
-	Time    Time     `xml:"qDate"`
+// queue represents an EPP command queue.
+type queue struct {
+	ID    int  `xml:"id,attr"`
+	Count int  `xml:"count,attr"`
+	Time  Time `xml:"qDate"`
 }
 
 // responseData represents an EPP <resData> element.
 type responseData struct {
-	XMLName         struct{}         `xml:"resData"`
 	DomainCheckData *domainCheckData `xml:"urn:ietf:params:xml:ns:domain-1.0 chkData,omitempty"`
 }
 
 type domainCheckData struct {
-	XMLName struct{} `xml:"urn:ietf:params:xml:ns:domain-1.0 chkData,omitempty"`
 	Results []struct {
 		Domain struct {
 			Domain      string `xml:",chardata"`
@@ -146,16 +134,6 @@ type domainCheckData struct {
 		Reason string `xml:"reason"`
 	} `xml:"cd"`
 }
-
-// domainNS type exists solely to emit an xmlns:domain attribute.
-type domainNS struct{}
-
-// MarshalText returns a byte slice for the xmlns:domain attribute.
-func (n domainNS) MarshalText() (text []byte, err error) {
-	return nsDomain, nil
-}
-
-var nsDomain = []byte("urn:ietf:params:xml:ns:domain-1.0")
 
 var (
 	// ErrResponseNotFound is returned when the EPP XML does not contain a <response> tag.
