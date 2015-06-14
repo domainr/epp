@@ -38,7 +38,6 @@ func TestUnmarshal(t *testing.T) {
 	var msg Message
 	err := xml.Unmarshal(x, &msg)
 	st.Expect(t, err, nil)
-	t.Logf("Message: %+v\n", &msg)
 	st.Reject(t, msg.Greeting, nil)
 	st.Expect(t, msg.Greeting.ServerName, "Example EPP server epp.example.com")
 	tt, _ := time.Parse(time.RFC3339, "2000-06-08T22:00:00.0Z")

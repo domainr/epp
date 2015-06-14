@@ -58,17 +58,19 @@ func (c *Conn) WriteDataUnit(p []byte) error {
 	return err
 }
 
+// xmlHeader is a byte-slice representation of the
+// standard XML header. Declared as a global to relieve GC pressure.
 var xmlHeader = []byte(xml.Header)
 
-// ReadResponse reads a single EPP response from c and parses the XML into req.
+// ReadMessage reads a single EPP response from c and parses the XML into req.
 // It returns an error if the EPP response contains an error result.
-func (c *Conn) ReadResponse(res *Response) error {
+func (c *Conn) ReadMessage(msg *Message) error {
 	data, err := c.ReadDataUnit()
 	if err != nil {
 		return err
 	}
 	logResponse(data)
-	return Unmarshal(data, res)
+	return Unmarshal(data, msg)
 }
 
 // ReadDataUnit reads a single EPP message from c.
@@ -91,6 +93,7 @@ func (c *Conn) ReadDataUnit() (data []byte, err error) {
 	return data, nil
 }
 
+// id returns a zero-padded 16-character hex uint64 transaction ID.
 func (c *Conn) id() string {
 	return fmt.Sprintf("%016x", atomic.AddUint64(&c.txnID, 1))
 }

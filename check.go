@@ -60,13 +60,14 @@ func (c *Conn) CheckDomain(domains ...string) (dc *DomainCheck, err error) {
 	if err != nil {
 		return
 	}
-	res := Response{}
-	err = c.ReadResponse(&res)
+	msg := Message{}
+	err = c.ReadMessage(&msg)
 	if err != nil {
 		return
 	}
-	if res.DomainCheck == nil {
-		return nil, ErrMalformedResponse
+	res := msg.Response
+	if res == nil || res.DomainCheck == nil {
+		return nil, ErrResponseMalformed
 	}
 	return res.DomainCheck, nil
 }

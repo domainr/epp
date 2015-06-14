@@ -13,14 +13,16 @@ func Marshal(msg interface{}) ([]byte, error) {
 }
 
 // Unmarshal decodes an EPP XML response into res,
-// returning any errors.
-func Unmarshal(data []byte, res *Response) error {
-	err := xml.Unmarshal(data, res)
+// returning any errors, including any EPP errors
+// received in the response message.
+func Unmarshal(data []byte, msg *Message) error {
+	err := xml.Unmarshal(data, msg)
 	if err != nil {
 		return err
 	}
 	// color.Fprintf(os.Stderr, "@{y}%s\n", spew.Sprintf("%+v", req))
-	if len(res.Results) != 0 {
+	res := msg.Response
+	if res != nil && len(res.Results) > 0 {
 		r := res.Results[0]
 		if r.IsError() {
 			return r
@@ -34,12 +36,12 @@ type Message struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 
 	// Subordinate message types. Set to nil if not present in message.
-	Response *Response2 `xml:"response,omitempty"`
-	Greeting *Greeting  `xml:"greeting,omitempty"`
+	Response *Response `xml:"response,omitempty"`
+	Greeting *Greeting `xml:"greeting,omitempty"`
 }
 
 // Response represents an EPP response message.
-type Response2 struct {
+type Response struct {
 	XMLName struct{} `xml:"response"`
 	Results []Result `xml:"result"`
 	Queue   *struct {
@@ -53,7 +55,7 @@ type Response2 struct {
 }
 
 // Response represents an EPP response message.
-type Response struct {
+type ResponseOld struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 	Results []Result `xml:"response>result,omitempty"`
 	Queue   *struct {
@@ -70,8 +72,9 @@ type Response struct {
 }
 
 var (
-	ErrMalformedResponse = errors.New("EPP message contained a malformed <response> element")
-	ErrMissingResult     = errors.New("EPP response did not contain any valid <result> elements")
+	ErrResponseNotFound  = errors.New("<response> element not found")
+	ErrResponseMalformed = errors.New("malformed <response> element")
+	ErrResultNotFound    = errors.New("<result> element not found")
 )
 
 // Result represents an EPP server <result> element.

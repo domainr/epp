@@ -72,19 +72,19 @@ type Greeting struct {
 	} `xml:"dcp"`
 }
 
-// A ErrMissingGreeting is reported when a <greeting> message is expected but not found.
-var ErrMissingGreeting = errors.New("expected <greeting> message in EPP message, but none found")
+// A ErrGreetingNotFound is reported when a <greeting> message is expected but not found.
+var ErrGreetingNotFound = errors.New("missing <greeting> message")
 
 // ReadGreeting reads a <greeting> message from the EPP server.
 // Performed automatically during a Handshake or Hello command.
 func (c *Conn) ReadGreeting() (*Greeting, error) {
-	var res Response
-	err := c.ReadResponse(&res)
+	var msg Message
+	err := c.ReadMessage(&msg)
 	if err != nil {
 		return nil, err
 	}
-	if res.Greeting == nil {
-		return nil, ErrMissingGreeting
+	if msg.Greeting == nil {
+		return nil, ErrGreetingNotFound
 	}
-	return res.Greeting, nil
+	return msg.Greeting, nil
 }
