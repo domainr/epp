@@ -17,7 +17,6 @@ func TestTime(t *testing.T) {
 
 	err := xml.Unmarshal(x, &y)
 	st.Expect(t, err, nil)
-	t.Logf("%#v\n", &y)
 	tt, _ := time.Parse(time.RFC3339, "2015-05-19T06:34:21.1Z")
 	st.Expect(t, y.When, Time{tt})
 	z, err := xml.Marshal(&y)
