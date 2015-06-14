@@ -49,5 +49,6 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheck, error) {
 	return &dc, nil
 }
 
-// FIXME: backwards compatibility
+// DomainCheck exists for backwards compatibility.
+// FIXME: remove/improve this.
 type DomainCheck domainCheckData
