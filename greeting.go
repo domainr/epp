@@ -2,11 +2,11 @@ package epp
 
 import "errors"
 
-var msgHello = Message{Hello: &hello{}}
+var msgHello = message{Hello: &hello{}}
 
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
 func (c *Conn) Hello() (*Greeting, error) {
-	err := c.WriteMessage(&msgHello)
+	err := c.writeMessage(&msgHello)
 	if err != nil {
 		return nil, err
 	}
@@ -75,8 +75,8 @@ var ErrGreetingNotFound = errors.New("missing <greeting> message")
 // ReadGreeting reads a <greeting> message from the EPP server.
 // Performed automatically during a Handshake or Hello command.
 func (c *Conn) ReadGreeting() (*Greeting, error) {
-	var msg Message
-	err := c.ReadMessage(&msg)
+	var msg message
+	err := c.readMessage(&msg)
 	if err != nil {
 		return nil, err
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/nbio/st"
 )
 
-func logMarshal(t *testing.T, msg *Message) {
+func logMarshal(t *testing.T, msg *message) {
 	x, err := Marshal(&msg)
 	st.Expect(t, err, nil)
 	t.Logf("<!-- MARSHALED -->\n%s\n", string(x))
@@ -42,7 +42,7 @@ func TestUnmarshalGreeting(t *testing.T) {
 	</greeting>
 </epp>`)
 
-	var msg Message
+	var msg message
 	err := xml.Unmarshal(x, &msg)
 	st.Expect(t, err, nil)
 	st.Reject(t, msg.Greeting, nil)
@@ -97,7 +97,7 @@ func TestUnmarshalCheckDomainResponse(t *testing.T) {
 	</response>
 </epp>`)
 
-	var msg Message
+	var msg message
 	err := Unmarshal(x, &msg)
 	st.Expect(t, err, nil)
 	st.Reject(t, msg.Response, nil)

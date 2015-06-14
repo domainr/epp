@@ -30,8 +30,8 @@ func NewConn(conn net.Conn) (*Conn, error) {
 	return c, err
 }
 
-// WriteMessage serializes msg into XML and writes it to c.
-func (c *Conn) WriteMessage(msg *Message) error {
+// writeMessage serializes msg into XML and writes it to c.
+func (c *Conn) writeMessage(msg *message) error {
 	data, err := Marshal(msg)
 	if err != nil {
 		return err
@@ -62,9 +62,9 @@ func (c *Conn) WriteDataUnit(p []byte) error {
 // standard XML header. Declared as a global to relieve GC pressure.
 var xmlHeader = []byte(xml.Header)
 
-// ReadMessage reads a single EPP response from c and parses the XML into req.
+// readMessage reads a single EPP response from c and parses the XML into req.
 // It returns an error if the EPP response contains an error result.
-func (c *Conn) ReadMessage(msg *Message) error {
+func (c *Conn) readMessage(msg *message) error {
 	data, err := c.ReadDataUnit()
 	if err != nil {
 		return err

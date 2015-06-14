@@ -15,7 +15,7 @@ func Marshal(msg interface{}) ([]byte, error) {
 // Unmarshal decodes an EPP XML response into res,
 // returning any errors, including any EPP errors
 // received in the response message.
-func Unmarshal(data []byte, msg *Message) error {
+func Unmarshal(data []byte, msg *message) error {
 	err := xml.Unmarshal(data, msg)
 	if err != nil {
 		return err
@@ -31,14 +31,14 @@ func Unmarshal(data []byte, msg *Message) error {
 	return nil
 }
 
-// Message represents a single EPP message.
-type Message struct {
+// message represents a single EPP message.
+type message struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 
 	// Message types. Set to nil if not present in message.
 	Hello    *hello
 	Command  *command
-	Response *Response
+	Response *response
 	Greeting *Greeting `xml:"greeting,omitempty"`
 }
 
@@ -88,15 +88,14 @@ type domainCheck struct {
 
 // EPP responses
 
-// Response represents an EPP response message.
-type Response struct {
+// response represents an EPP response message.
+type response struct {
 	XMLName      struct{}      `xml:"response,omitempty"`
 	Results      []Result      `xml:"result"`
 	Queue        *Queue        `xml:"msgQ,omitempty"`
 	TxnID        string        `xml:"trID>clTRID"`
 	ServerTxnID  string        `xml:"trID>svTRID"`
 	ResponseData *responseData `xml:"resData,omitempty"`
-	// DomainCheck  *DomainCheck  `xml:"resData>chkData,omitempty"`
 }
 
 // Result represents an EPP server <result> element.

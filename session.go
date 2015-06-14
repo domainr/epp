@@ -25,7 +25,7 @@ package epp
 
 // Login initializes an authenticated EPP session.
 func (c *Conn) Login(user, password, newPassword string) (err error) {
-	req := Message{
+	req := message{
 		Command: &command{
 			Login: &login{
 				User:        user,
@@ -53,10 +53,10 @@ func (c *Conn) Login(user, password, newPassword string) (err error) {
 		req.Command.Login.Objects = c.Greeting.ServiceObjects
 		req.Command.Login.Extensions = c.Greeting.ServiceExtensions
 	}
-	err = c.WriteMessage(&req)
+	err = c.writeMessage(&req)
 	if err != nil {
 		return
 	}
-	msg := Message{}
-	return c.ReadMessage(&msg)
+	msg := message{}
+	return c.readMessage(&msg)
 }
