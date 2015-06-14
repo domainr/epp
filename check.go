@@ -21,7 +21,7 @@ package epp
 // </resData>
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
-func (c *Conn) CheckDomain(domains ...string) (dc *DomainCheckData, err error) {
+func (c *Conn) CheckDomain(domains ...string) (*DomainCheck, error) {
 	req := message{
 		Command: &command{
 			Check: &check{
@@ -32,18 +32,22 @@ func (c *Conn) CheckDomain(domains ...string) (dc *DomainCheckData, err error) {
 			TxnID: c.id(),
 		},
 	}
-	err = c.writeMessage(&req)
+	err := c.writeMessage(&req)
 	if err != nil {
-		return
+		return nil, err
 	}
 	msg := message{}
 	err = c.readMessage(&msg)
 	if err != nil {
-		return
+		return nil, err
 	}
 	res := msg.Response
 	if res == nil || res.ResponseData == nil || res.ResponseData.DomainCheckData == nil {
 		return nil, ErrResponseMalformed
 	}
-	return res.ResponseData.DomainCheckData, nil
+	dc := DomainCheck(*res.ResponseData.DomainCheckData)
+	return &dc, nil
 }
+
+// FIXME: backwards compatibility
+type DomainCheck domainCheckData

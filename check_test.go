@@ -30,5 +30,5 @@ func TestConnCheck(t *testing.T) {
 
 	dc, err = c.CheckDomain("--dmnr-test--.com")
 	st.Reject(t, err, nil)
-	st.Expect(t, dc, (*DomainCheckData)(nil))
+	st.Expect(t, dc, (*DomainCheck)(nil))
 }
