@@ -1,28 +1,5 @@
 package epp
 
-// <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
-//   <command>
-//     <login>
-//       <clID>ClientX</clID>
-//       <pw>foo-BAR2</pw>
-//       <newPW>bar-FOO2</newPW>
-//       <options>
-//         <version>1.0</version>
-//         <lang>en</lang>
-//       </options>
-//       <svcs>
-//         <objURI>urn:ietf:params:xml:ns:obj1</objURI>
-//         <objURI>urn:ietf:params:xml:ns:obj2</objURI>
-//         <objURI>urn:ietf:params:xml:ns:obj3</objURI>
-//         <svcExtension>
-//           <extURI>http://custom/obj1ext-1.0</extURI>
-//         </svcExtension>
-//       </svcs>
-//     </login>
-//     <clTRID>ABC-12345</clTRID>
-//   </command>
-// </epp>
-
 // Login initializes an authenticated EPP session.
 func (c *Conn) Login(user, password, newPassword string) (err error) {
 	req := message{

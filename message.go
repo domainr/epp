@@ -37,9 +37,9 @@ type message struct {
 
 	// Message types. Set to nil if not present in message.
 	Hello    *hello    `xml:"hello"`
+	Greeting *Greeting `xml:"greeting,omitempty"`
 	Command  *command  `xml:"command,omitempty"`
 	Response *response `xml:"response,omitempty"`
-	Greeting *Greeting `xml:"greeting,omitempty"`
 }
 
 // EPP requests
@@ -87,7 +87,7 @@ type response struct {
 	Queue        *queue        `xml:"msgQ,omitempty"`
 	TxnID        string        `xml:"trID>clTRID"`
 	ServerTxnID  string        `xml:"trID>svTRID"`
-	ResponseData *responseData `xml:"resData,omitempty"`
+	ResponseData *responseData `xml:"resData,omitempty"` // FIXME: remove this level of indirection?
 }
 
 // Result represents an EPP server <result> element.
@@ -125,6 +125,7 @@ type responseData struct {
 	DomainCheckData *domainCheckData `xml:"urn:ietf:params:xml:ns:domain-1.0 chkData,omitempty"`
 }
 
+// domainCheckData represents an EPP <domain:chkData> element.
 type domainCheckData struct {
 	Results []struct {
 		Domain struct {
