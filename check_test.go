@@ -12,7 +12,7 @@ func init() {
 }
 
 func TestConnCheck(t *testing.T) {
-	c := login(t)
+	c := testLogin(t)
 
 	dc, err := c.CheckDomain("google.com")
 	st.Expect(t, err, nil)

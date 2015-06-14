@@ -30,21 +30,21 @@ func NewConn(conn net.Conn) (*Conn, error) {
 	return c, err
 }
 
-// WriteRequest serializes req into XML and writes it to c.
-func (c *Conn) WriteRequest(req interface{}) error {
-	data, err := Marshal(req)
+// writeMessage serializes msg into XML and writes it to c.
+func (c *Conn) writeMessage(msg *message) error {
+	data, err := marshal(msg)
 	if err != nil {
 		return err
 	}
 	logRequest(data)
-	return c.WriteDataUnit(data)
+	return c.writeDataUnit(data)
 }
 
-// WriteDataUnit writes a slice of bytes to c.
+// writeDataUnit writes a slice of bytes to c.
 // Bytes written are prefixed with 32-bit header specifying the total size
 // of the data unit (message + 4 byte header), in network (big-endian) order.
 // http://www.ietf.org/rfc/rfc4934.txt
-func (c *Conn) WriteDataUnit(p []byte) error {
+func (c *Conn) writeDataUnit(p []byte) error {
 	s := uint32(4 + len(xmlHeader) + len(p))
 	err := binary.Write(c.Conn, binary.BigEndian, s)
 	if err != nil {
@@ -58,23 +58,25 @@ func (c *Conn) WriteDataUnit(p []byte) error {
 	return err
 }
 
+// xmlHeader is a byte-slice representation of the
+// standard XML header. Declared as a global to relieve GC pressure.
 var xmlHeader = []byte(xml.Header)
 
-// ReadResponse reads a single EPP response from c and parses the XML into req.
+// readMessage reads a single EPP response from c and parses the XML into req.
 // It returns an error if the EPP response contains an error result.
-func (c *Conn) ReadResponse(res *Response) error {
-	data, err := c.ReadDataUnit()
+func (c *Conn) readMessage(msg *message) error {
+	data, err := c.readDataUnit()
 	if err != nil {
 		return err
 	}
 	logResponse(data)
-	return Unmarshal(data, res)
+	return unmarshal(data, msg)
 }
 
-// ReadDataUnit reads a single EPP message from c.
+// readDataUnit reads a single EPP message from c.
 // It returns the bytes read and/or an error.
 // FIXME: allocate a single buffer per Conn to reduce GC pressure?
-func (c *Conn) ReadDataUnit() (data []byte, err error) {
+func (c *Conn) readDataUnit() (data []byte, err error) {
 	var s uint32
 	err = binary.Read(c.Conn, binary.BigEndian, &s)
 	if err != nil {
@@ -91,6 +93,7 @@ func (c *Conn) ReadDataUnit() (data []byte, err error) {
 	return data, nil
 }
 
+// id returns a zero-padded 16-character hex uint64 transaction ID.
 func (c *Conn) id() string {
 	return fmt.Sprintf("%016x", atomic.AddUint64(&c.txnID, 1))
 }

@@ -1,16 +1,5 @@
 package epp
 
-// domainCheckRequest represents an EPP <domain:check> command.
-// https://tools.ietf.org/html/rfc5730#section-2.9.2.1
-type domainCheckRequest struct {
-	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
-	Check   struct {
-		XMLNamespace DomainNamespace `xml:"xmlns:domain,attr"`
-		Domains      []string        `xml:"domain:check>domain:name"`
-	} `xml:"command>check"`
-	TxnID string `xml:"command>clTRID"`
-}
-
 // <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
 //   <command>
 //     <check>
@@ -22,27 +11,6 @@ type domainCheckRequest struct {
 //   </command>
 // </epp>
 
-// The DomainNamespace type exists solely to emit an XML attribute.
-type DomainNamespace struct{}
-
-// MarshalText returns a byte slice for the xmlns:xsi attribute.
-func (n DomainNamespace) MarshalText() (text []byte, err error) {
-	return domainNamespace, nil
-}
-
-var domainNamespace = []byte("urn:ietf:params:xml:ns:domain-1.0")
-
-// DomainCheck represents the output of the EPP <domain:check> command.
-type DomainCheck struct {
-	Results []struct {
-		Domain struct {
-			Domain      string `xml:",chardata"`
-			IsAvailable bool   `xml:"avail,attr"`
-		} `xml:"name"`
-		Reason string `xml:"reason"`
-	} `xml:"cd"`
-}
-
 // <resData>
 //  <domain:chkData xmlns:domain="urn:ietf:params:xml:ns:domain-1.0" xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd">
 //   <domain:cd>
@@ -53,20 +21,34 @@ type DomainCheck struct {
 // </resData>
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
-func (c *Conn) CheckDomain(domains ...string) (dc *DomainCheck, err error) {
-	req := domainCheckRequest{TxnID: c.id()}
-	req.Check.Domains = domains
-	err = c.WriteRequest(&req)
+func (c *Conn) CheckDomain(domains ...string) (*DomainCheck, error) {
+	req := message{
+		Command: &command{
+			Check: &check{
+				DomainCheck: &domainCheck{
+					Domains: domains,
+				},
+			},
+			TxnID: c.id(),
+		},
+	}
+	err := c.writeMessage(&req)
 	if err != nil {
-		return
+		return nil, err
 	}
-	res := Response{}
-	err = c.ReadResponse(&res)
+	msg := message{}
+	err = c.readMessage(&msg)
 	if err != nil {
-		return
+		return nil, err
 	}
-	if res.DomainCheck == nil {
-		return nil, ErrMalformedResponse
+	res := msg.Response
+	if res == nil || res.ResponseData == nil || res.ResponseData.DomainCheckData == nil {
+		return nil, ErrResponseMalformed
 	}
-	return res.DomainCheck, nil
+	dc := DomainCheck(*res.ResponseData.DomainCheckData)
+	return &dc, nil
 }
+
+// DomainCheck exists for backwards compatibility.
+// FIXME: remove/improve this.
+type DomainCheck domainCheckData
