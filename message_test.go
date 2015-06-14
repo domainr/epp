@@ -8,6 +8,12 @@ import (
 	"github.com/nbio/st"
 )
 
+func logMarshal(t *testing.T, msg *Message) {
+	x, err := Marshal(&msg)
+	st.Expect(t, err, nil)
+	t.Logf("<!-- MARSHALED -->\n%s\n", string(x))
+}
+
 func TestUnmarshalGreeting(t *testing.T) {
 	x := []byte(`<?xml version="1.0" encoding="utf-8"?>
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
@@ -43,6 +49,15 @@ func TestUnmarshalGreeting(t *testing.T) {
 	st.Expect(t, msg.Greeting.ServerName, "Example EPP server epp.example.com")
 	tt, _ := time.Parse(time.RFC3339, "2000-06-08T22:00:00.0Z")
 	st.Expect(t, msg.Greeting.ServerTime, Time{tt})
+	st.Expect(t, msg.Greeting.ServiceMenu.Objects[0], "urn:ietf:params:xml:ns:obj1")
+	st.Expect(t, msg.Greeting.ServiceMenu.Objects[1], "urn:ietf:params:xml:ns:obj2")
+	st.Expect(t, msg.Greeting.ServiceMenu.Objects[2], "urn:ietf:params:xml:ns:obj3")
+	st.Expect(t, msg.Greeting.ServiceMenu.Extensions[0], "http://custom/obj1ext-1.0")
+	st.Expect(t, msg.Greeting.DCP.Access.None, (*struct{})(nil))
+	st.Reject(t, msg.Greeting.DCP.Access.All, (*struct{})(nil))
+	st.Reject(t, msg.Greeting.DCP.Statement[0].Purpose.Admin, (*struct{})(nil))
+	st.Expect(t, msg.Greeting.DCP.Statement[0].Purpose.Other, (*struct{})(nil))
+	logMarshal(t, &msg)
 }
 
 func TestUnmarshalCheckDomainResponse(t *testing.T) {
@@ -85,8 +100,5 @@ func TestUnmarshalCheckDomainResponse(t *testing.T) {
 	err := Unmarshal(x, &msg)
 	st.Expect(t, err, nil)
 	st.Reject(t, msg.Response, nil)
-
-	y, err := Marshal(&msg)
-	st.Expect(t, err, nil)
-	t.Logf("Message: %s\n", string(y))
+	logMarshal(t, &msg)
 }
