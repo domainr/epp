@@ -40,18 +40,18 @@ func (c *Conn) Login(user, password, newPassword string) (err error) {
 	if c.Greeting != nil {
 		// FIXME: find the highest protocol version?
 		// Do any EPP servers send anything other than 1.0?
-		if len(c.Greeting.ServiceMenu.Versions) > 0 {
-			req.Command.Login.Version = c.Greeting.ServiceMenu.Versions[0]
+		if len(c.Greeting.ServiceVersions) > 0 {
+			req.Command.Login.Version = c.Greeting.ServiceVersions[0]
 		}
 		// FIXME: look for a particular language?
 		// Do any EPP servers send anything other than “en”?
-		if len(c.Greeting.ServiceMenu.Languages) > 0 {
-			req.Command.Login.Language = c.Greeting.ServiceMenu.Languages[0]
+		if len(c.Greeting.ServiceLanguages) > 0 {
+			req.Command.Login.Language = c.Greeting.ServiceLanguages[0]
 		}
 		// FIXME: we currently just echo back what’s reported by the server.
 		// We may or may not use any of these in a given session. Optimization opportunity?
-		req.Command.Login.Objects = c.Greeting.ServiceMenu.Objects
-		req.Command.Login.Extensions = c.Greeting.ServiceMenu.Extensions
+		req.Command.Login.Objects = c.Greeting.ServiceObjects
+		req.Command.Login.Extensions = c.Greeting.ServiceExtensions
 	}
 	err = c.WriteMessage(&req)
 	if err != nil {
