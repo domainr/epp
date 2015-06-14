@@ -2,19 +2,11 @@ package epp
 
 import "errors"
 
-// Hello represents a client <hello> (request for <greeting>).
-// https://tools.ietf.org/html/rfc5730#section-2.3
-type Hello struct {
-	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
-	Hello   struct{} `xml:"hello"`
-}
-
-// <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><hello/></epp>
-var hello = Hello{}
+var msgHello = Message{Hello: &hello{}}
 
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
 func (c *Conn) Hello() (*Greeting, error) {
-	err := c.WriteMessage(&hello)
+	err := c.WriteMessage(&msgHello)
 	if err != nil {
 		return nil, err
 	}

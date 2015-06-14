@@ -31,7 +31,7 @@ func NewConn(conn net.Conn) (*Conn, error) {
 }
 
 // WriteMessage serializes msg into XML and writes it to c.
-func (c *Conn) WriteMessage(msg interface{}) error {
+func (c *Conn) WriteMessage(msg *Message) error {
 	data, err := Marshal(msg)
 	if err != nil {
 		return err

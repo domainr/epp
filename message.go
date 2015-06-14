@@ -35,10 +35,19 @@ func Unmarshal(data []byte, msg *Message) error {
 type Message struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 
-	// Messages types. Set to nil if not present in message.
+	// Message types. Set to nil if not present in message.
+	Hello    *hello
 	Command  *command
 	Response *Response
 	Greeting *Greeting `xml:"greeting,omitempty"`
+}
+
+// EPP requests
+
+// hello represents an initial EPP hello request.
+// <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><hello/></epp>
+type hello struct {
+	XMLName struct{} `xml:"hello"`
 }
 
 // command represents an EPP command wrapper.
@@ -47,6 +56,7 @@ type command struct {
 
 	// Command types. Set to nil if not present in message.
 	Login *login
+	Check *check
 
 	// TxnID represents a unique client ID for this transaction.
 	TxnID string `xml:"clTRID"`
@@ -64,6 +74,19 @@ type login struct {
 	Objects     []string `xml:"svcs>objURI"`
 	Extensions  []string `xml:"svcs>svcExtension>extURI,omitempty"`
 }
+
+type check struct {
+	XMLName     struct{}     `xml:"check"`
+	DomainCheck *domainCheck `xml:"urn:ietf:params:xml:ns:domain-1.0 check,omitempty"`
+}
+
+type domainCheck struct {
+	XMLName struct{} `xml:"urn:ietf:params:xml:ns:domain-1.0 check,omitempty"`
+	// DomainNS domainNS `xml:"xmlns:domain,attr"`
+	Domains []string `xml:"name"`
+}
+
+// EPP responses
 
 // Response represents an EPP response message.
 type Response struct {
@@ -115,6 +138,7 @@ type responseData struct {
 }
 
 type DomainCheckData struct {
+	XMLName struct{} `xml:"urn:ietf:params:xml:ns:domain-1.0 chkData,omitempty"`
 	Results []struct {
 		Domain struct {
 			Domain      string `xml:",chardata"`
