@@ -2,10 +2,16 @@ package epp
 
 import "encoding/xml"
 
+// Bool represents a bool that can be serialized to XML.
+// True: <tag>
+// False: (no tag)
 type Bool bool
 
 var (
-	True  = Bool(true)
+	// True is a Bool of value true.
+	True = Bool(true)
+
+	// False is a Bool of value false.
 	False = Bool(false)
 )
 
@@ -18,7 +24,7 @@ func (b *Bool) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	return nil
 }
 
-// UnmarshalXML impements the xml.Unmarshaler interface.
+// MarshalXML impements the xml.Marshaler interface.
 // Any tag present with this type = true.
 func (b Bool) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	if b {

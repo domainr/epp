@@ -5,6 +5,7 @@ import (
 	"io"
 )
 
+// DebugLogger is an io.Writer. Set to enable logging of EPP message XML.
 var DebugLogger io.Writer
 
 func logRequest(xml []byte) {

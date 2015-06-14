@@ -105,19 +105,19 @@ type Result struct {
 	Message string   `xml:"msg"`
 }
 
-// IsError() determines whether an EPP status code is an error.
+// IsError determines whether an EPP status code is an error.
 // https://tools.ietf.org/html/rfc5730#section-3
 func (r Result) IsError() bool {
 	return r.Code >= 2000
 }
 
-// IsFatal() determines whether an EPP status code is a fatal response, and the connection should be closed.
+// IsFatal determines whether an EPP status code is a fatal response, and the connection should be closed.
 // https://tools.ietf.org/html/rfc5730#section-3
 func (r Result) IsFatal() bool {
 	return r.Code >= 2500
 }
 
-// Error() implements the error interface.
+// Error implements the error interface.
 func (r Result) Error() string {
 	return fmt.Sprintf("EPP result code %d: %s", r.Code, r.Message)
 }
@@ -133,10 +133,10 @@ type Queue struct {
 // responseData represents an EPP <resData> element.
 type responseData struct {
 	XMLName         struct{}         `xml:"resData"`
-	DomainCheckData *DomainCheckData `xml:"urn:ietf:params:xml:ns:domain-1.0 chkData,omitempty"`
+	DomainCheckData *domainCheckData `xml:"urn:ietf:params:xml:ns:domain-1.0 chkData,omitempty"`
 }
 
-type DomainCheckData struct {
+type domainCheckData struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:domain-1.0 chkData,omitempty"`
 	Results []struct {
 		Domain struct {
@@ -158,7 +158,12 @@ func (n domainNS) MarshalText() (text []byte, err error) {
 var nsDomain = []byte("urn:ietf:params:xml:ns:domain-1.0")
 
 var (
-	ErrResponseNotFound  = errors.New("<response> element not found")
+	// ErrResponseNotFound is returned when the EPP XML does not contain a <response> tag.
+	ErrResponseNotFound = errors.New("<response> element not found")
+
+	// ErrResponseMalformed is returned when the EPP XML contains a malformed <response> tag.
 	ErrResponseMalformed = errors.New("malformed <response> element")
-	ErrResultNotFound    = errors.New("<result> element not found")
+
+	// ErrResultNotFound is returned when the EPP XML does not contain any <result> tags.
+	ErrResultNotFound = errors.New("<result> element not found")
 )
