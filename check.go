@@ -56,7 +56,7 @@ type DomainCheck struct {
 func (c *Conn) CheckDomain(domains ...string) (dc *DomainCheck, err error) {
 	req := domainCheckRequest{TxnID: c.id()}
 	req.Check.Domains = domains
-	err = c.WriteRequest(&req)
+	err = c.WriteMessage(&req)
 	if err != nil {
 		return
 	}

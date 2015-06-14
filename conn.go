@@ -30,9 +30,9 @@ func NewConn(conn net.Conn) (*Conn, error) {
 	return c, err
 }
 
-// WriteRequest serializes req into XML and writes it to c.
-func (c *Conn) WriteRequest(req interface{}) error {
-	data, err := Marshal(req)
+// WriteMessage serializes msg into XML and writes it to c.
+func (c *Conn) WriteMessage(msg interface{}) error {
+	data, err := Marshal(msg)
 	if err != nil {
 		return err
 	}

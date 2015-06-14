@@ -14,7 +14,7 @@ var hello = Hello{}
 
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
 func (c *Conn) Hello() (*Greeting, error) {
-	err := c.WriteRequest(&hello)
+	err := c.WriteMessage(&hello)
 	if err != nil {
 		return nil, err
 	}
