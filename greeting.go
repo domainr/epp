@@ -28,12 +28,12 @@ type Greeting struct {
 
 // DCPAccess defines the data collection policy for an EPP server.
 type DCPAccess struct {
-	All              *struct{} `xml:"all"`
-	None             *struct{} `xml:"none"`
-	Null             *struct{} `xml:"null"`
-	Personal         *struct{} `xml:"personal"`
-	PersonalAndOther *struct{} `xml:"personalAndOther"`
-	Other            *struct{} `xml:"other"`
+	All              Bool `xml:"all"`
+	None             Bool `xml:"none"`
+	Null             Bool `xml:"null"`
+	Personal         Bool `xml:"personal"`
+	PersonalAndOther Bool `xml:"personalAndOther"`
+	Other            Bool `xml:"other"`
 }
 
 // DCPStatement defines the data collection policy
@@ -42,30 +42,30 @@ type DCPAccess struct {
 // https://tools.ietf.org/html/rfc5730#section-2.4
 type DCPStatement struct {
 	Purpose struct {
-		Admin        *struct{} `xml:"admin"`
-		Contact      *struct{} `xml:"contact"`
-		Provisioning *struct{} `xml:"prov"`
-		Other        *struct{} `xml:"other"`
+		Admin        Bool `xml:"admin"`
+		Contact      Bool `xml:"contact"`
+		Provisioning Bool `xml:"prov"`
+		Other        Bool `xml:"other"`
 	} `xml:"purpose"`
 	Recipient struct {
-		Other *struct{} `xml:"other"`
+		Other Bool `xml:"other"`
 		Ours  *struct {
 			Recipient string `xml:"recDesc"`
 		} `xml:"ours"`
-		Public    *struct{} `xml:"public"`
-		Same      *struct{} `xml:"same"`
-		Unrelated *struct{} `xml:"unrelated"`
+		Public    Bool `xml:"public"`
+		Same      Bool `xml:"same"`
+		Unrelated Bool `xml:"unrelated"`
 	} `xml:"recipient"`
 	Retention struct {
-		Business   *struct{} `xml:"business"`
-		Indefinite *struct{} `xml:"indefinite"`
-		Legal      *struct{} `xml:"legal"`
-		None       *struct{} `xml:"none"`
-		Stated     *struct{} `xml:"stated"`
+		Business   Bool `xml:"business"`
+		Indefinite Bool `xml:"indefinite"`
+		Legal      Bool `xml:"legal"`
+		None       Bool `xml:"none"`
+		Stated     Bool `xml:"stated"`
 	} `xml:"retention"`
 	Expiry *struct {
-		Absolute *struct{} `xml:"absolute"`
-		Relative *struct{} `xml:"relative"`
+		Absolute Bool `xml:"absolute"`
+		Relative Bool `xml:"relative"`
 	} `xml:"expiry"`
 }
 

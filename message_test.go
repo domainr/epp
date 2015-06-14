@@ -53,10 +53,11 @@ func TestUnmarshalGreeting(t *testing.T) {
 	st.Expect(t, msg.Greeting.ServiceObjects[1], "urn:ietf:params:xml:ns:obj2")
 	st.Expect(t, msg.Greeting.ServiceObjects[2], "urn:ietf:params:xml:ns:obj3")
 	st.Expect(t, msg.Greeting.ServiceExtensions[0], "http://custom/obj1ext-1.0")
-	st.Expect(t, msg.Greeting.DCPAccess.None, (*struct{})(nil))
-	st.Reject(t, msg.Greeting.DCPAccess.All, (*struct{})(nil))
-	st.Reject(t, msg.Greeting.DCPStatements[0].Purpose.Admin, (*struct{})(nil))
-	st.Expect(t, msg.Greeting.DCPStatements[0].Purpose.Other, (*struct{})(nil))
+	st.Expect(t, msg.Greeting.DCPAccess.None, False)
+	st.Expect(t, msg.Greeting.DCPAccess.All, True)
+	st.Expect(t, msg.Greeting.DCPStatements[0].Purpose.Admin, True)
+	st.Expect(t, msg.Greeting.DCPStatements[0].Purpose.Provisioning, True)
+	st.Expect(t, msg.Greeting.DCPStatements[0].Purpose.Other, False)
 	logMarshal(t, &msg)
 }
 
