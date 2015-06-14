@@ -35,7 +35,10 @@ func Unmarshal(data []byte, msg *Message) error {
 type Message struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 
-	// Subordinate message types. Set to nil if not present in message.
+	// Request types. Set to nil if not present in message.
+	LoginCommand *loginCommand `xml:"command"`
+
+	// Responses types. Set to nil if not present in message.
 	Response *Response `xml:"response,omitempty"`
 	Greeting *Greeting `xml:"greeting,omitempty"`
 }
@@ -52,23 +55,6 @@ type Response struct {
 	TxnID       string       `xml:"trID>clTRID"`
 	ServerTxnID string       `xml:"trID>svTRID"`
 	DomainCheck *DomainCheck `xml:"resData>chkData,omitempty"`
-}
-
-// Response represents an EPP response message.
-type ResponseOld struct {
-	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
-	Results []Result `xml:"response>result,omitempty"`
-	Queue   *struct {
-		ID    int  `xml:"id,attr"`
-		Count int  `xml:"count,attr"`
-		Time  Time `xml:"qDate"`
-	} `xml:"response>msgQ,omitempty"`
-	TxnID       string `xml:"response>trID>clTRID,omitempty"`
-	ServerTxnID string `xml:"response>trID>svTRID,omitempty"`
-
-	// Individual response types. Set to nil if not present in response message.
-	Greeting    *Greeting    `xml:"greeting,omitempty"`
-	DomainCheck *DomainCheck `xml:"response>resData>chkData,omitempty"`
 }
 
 var (
