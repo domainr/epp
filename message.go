@@ -45,16 +45,19 @@ type Message struct {
 
 // Response represents an EPP response message.
 type Response struct {
-	XMLName struct{} `xml:"response"`
-	Results []Result `xml:"result"`
-	Queue   *struct {
-		ID    int  `xml:"id,attr"`
-		Count int  `xml:"count,attr"`
-		Time  Time `xml:"qDate"`
-	} `xml:"msgQ,omitempty"`
+	XMLName     struct{}     `xml:"response,omitempty"`
+	Results     []Result     `xml:"result"`
+	Queue       *Queue       `xml:"msgQ,omitempty"`
 	TxnID       string       `xml:"trID>clTRID"`
 	ServerTxnID string       `xml:"trID>svTRID"`
 	DomainCheck *DomainCheck `xml:"resData>chkData,omitempty"`
+}
+
+type Queue struct {
+	XMLName struct{} `xml:"msgQ,omitempty"`
+	ID      int      `xml:"id,attr"`
+	Count   int      `xml:"count,attr"`
+	Time    Time     `xml:"qDate"`
 }
 
 var (
@@ -65,8 +68,9 @@ var (
 
 // Result represents an EPP server <result> element.
 type Result struct {
-	Code    int    `xml:"code,attr"`
-	Message string `xml:"msg"`
+	XMLName struct{} `xml:"result"`
+	Code    int      `xml:"code,attr"`
+	Message string   `xml:"msg"`
 }
 
 // IsError() determines whether an EPP status code is an error.

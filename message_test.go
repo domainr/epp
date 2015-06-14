@@ -8,8 +8,9 @@ import (
 	"github.com/nbio/st"
 )
 
-func TestUnmarshal(t *testing.T) {
-	x := []byte(`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+func TestUnmarshalGreeting(t *testing.T) {
+	x := []byte(`<?xml version="1.0" encoding="utf-8"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
 	<greeting>
 		<svID>Example EPP server epp.example.com</svID>
 		<svDate>2000-06-08T22:00:00.0Z</svDate>
@@ -42,4 +43,46 @@ func TestUnmarshal(t *testing.T) {
 	st.Expect(t, msg.Greeting.ServerName, "Example EPP server epp.example.com")
 	tt, _ := time.Parse(time.RFC3339, "2000-06-08T22:00:00.0Z")
 	st.Expect(t, msg.Greeting.ServerTime, Time{tt})
+}
+
+func TestUnmarshalCheckDomainResponse(t *testing.T) {
+	x := []byte(`<?xml version="1.0" encoding="utf-8"?>
+<epp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd" xmlns="urn:ietf:params:xml:ns:epp-1.0">
+	<response>
+		<result code="1000">
+			<msg>Command completed successfully</msg>
+		</result>
+		<resData>
+			<domain:chkData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd" xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+				<domain:cd>
+					<domain:name avail="1">good.memorial</domain:name>
+				</domain:cd>
+			</domain:chkData>
+		</resData>
+		<extension>
+			<charge:chkData xmlns:charge="http://www.unitedtld.com/epp/charge-1.0">
+				<charge:cd>
+					<charge:name>good.memorial</charge:name>
+					<charge:set>
+						<charge:category name="BBB+">premium</charge:category>
+						<charge:type>price</charge:type>
+						<charge:amount command="create">100.00</charge:amount>
+						<charge:amount command="renew">100.00</charge:amount>
+						<charge:amount command="transfer">100.00</charge:amount>
+						<charge:amount command="update" name="restore">50.00</charge:amount>
+					</charge:set>
+				</charge:cd>
+			</charge:chkData>
+		</extension>
+		<trID>
+			<clTRID>0000000000000002</clTRID>
+			<svTRID>83fa5767-5624-4be5-9e54-0b3a52f9de5b:1</svTRID>
+		</trID>
+	</response>
+</epp>`)
+
+	var msg Message
+	err := Unmarshal(x, &msg)
+	st.Expect(t, err, nil)
+	st.Reject(t, msg.Response, nil)
 }
