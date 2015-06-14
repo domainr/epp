@@ -32,7 +32,7 @@ func NewConn(conn net.Conn) (*Conn, error) {
 
 // writeMessage serializes msg into XML and writes it to c.
 func (c *Conn) writeMessage(msg *message) error {
-	data, err := Marshal(msg)
+	data, err := marshal(msg)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (c *Conn) readMessage(msg *message) error {
 		return err
 	}
 	logResponse(data)
-	return Unmarshal(data, msg)
+	return unmarshal(data, msg)
 }
 
 // readDataUnit reads a single EPP message from c.

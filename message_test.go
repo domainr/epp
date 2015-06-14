@@ -1,7 +1,6 @@
 package epp
 
 import (
-	"encoding/xml"
 	"testing"
 	"time"
 
@@ -9,7 +8,7 @@ import (
 )
 
 func logMarshal(t *testing.T, msg *message) {
-	x, err := Marshal(&msg)
+	x, err := marshal(&msg)
 	st.Expect(t, err, nil)
 	t.Logf("<!-- MARSHALED -->\n%s\n", string(x))
 }
@@ -43,7 +42,7 @@ func TestUnmarshalGreeting(t *testing.T) {
 </epp>`)
 
 	var msg message
-	err := xml.Unmarshal(x, &msg)
+	err := unmarshal(x, &msg)
 	st.Expect(t, err, nil)
 	st.Reject(t, msg.Greeting, nil)
 	st.Expect(t, msg.Greeting.ServerName, "Example EPP server epp.example.com")
@@ -98,7 +97,7 @@ func TestUnmarshalCheckDomainResponse(t *testing.T) {
 </epp>`)
 
 	var msg message
-	err := Unmarshal(x, &msg)
+	err := unmarshal(x, &msg)
 	st.Expect(t, err, nil)
 	st.Reject(t, msg.Response, nil)
 	logMarshal(t, &msg)

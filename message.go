@@ -6,16 +6,16 @@ import (
 	"fmt"
 )
 
-// Marshal encodes an EPP request or message into XML,
+// marshal encodes an EPP request or message into XML,
 // returning any errors that occur.
-func Marshal(msg interface{}) ([]byte, error) {
+func marshal(msg interface{}) ([]byte, error) {
 	return xml.Marshal(msg)
 }
 
-// Unmarshal decodes an EPP XML response into res,
+// unmarshal decodes an EPP XML response into res,
 // returning any errors, including any EPP errors
 // received in the response message.
-func Unmarshal(data []byte, msg *message) error {
+func unmarshal(data []byte, msg *message) error {
 	err := xml.Unmarshal(data, msg)
 	if err != nil {
 		return err
