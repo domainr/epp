@@ -5,8 +5,8 @@ package epp
 type domainCheckRequest struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 	Check   struct {
-		XMLNamespace DomainNamespace `xml:"xmlns:domain,attr"`
-		Domains      []string        `xml:"domain:check>domain:name"`
+		DomainNS domainNS `xml:"xmlns:domain,attr"`
+		Domains  []string `xml:"domain:check>domain:name"`
 	} `xml:"command>check"`
 	TxnID string `xml:"command>clTRID"`
 }
@@ -21,16 +21,6 @@ type domainCheckRequest struct {
 //     <clTRID>ABC-12345</clTRID>
 //   </command>
 // </epp>
-
-// The DomainNamespace type exists solely to emit an XML attribute.
-type DomainNamespace struct{}
-
-// MarshalText returns a byte slice for the xmlns:xsi attribute.
-func (n DomainNamespace) MarshalText() (text []byte, err error) {
-	return domainNamespace, nil
-}
-
-var domainNamespace = []byte("urn:ietf:params:xml:ns:domain-1.0")
 
 // DomainCheck represents the output of the EPP <domain:check> command.
 type DomainCheck struct {
@@ -53,7 +43,7 @@ type DomainCheck struct {
 // </resData>
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
-func (c *Conn) CheckDomain(domains ...string) (dc *DomainCheck, err error) {
+func (c *Conn) CheckDomain(domains ...string) (dc *DomainCheckData, err error) {
 	req := domainCheckRequest{TxnID: c.id()}
 	req.Check.Domains = domains
 	err = c.WriteMessage(&req)
@@ -66,8 +56,8 @@ func (c *Conn) CheckDomain(domains ...string) (dc *DomainCheck, err error) {
 		return
 	}
 	res := msg.Response
-	if res == nil || res.DomainCheck == nil {
+	if res == nil || res.ResponseData == nil || res.ResponseData.DomainCheckData == nil {
 		return nil, ErrResponseMalformed
 	}
-	return res.DomainCheck, nil
+	return res.ResponseData.DomainCheckData, nil
 }

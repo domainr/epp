@@ -85,4 +85,8 @@ func TestUnmarshalCheckDomainResponse(t *testing.T) {
 	err := Unmarshal(x, &msg)
 	st.Expect(t, err, nil)
 	st.Reject(t, msg.Response, nil)
+
+	y, err := Marshal(&msg)
+	st.Expect(t, err, nil)
+	t.Logf("Message: %s\n", string(y))
 }
