@@ -83,12 +83,9 @@ func (c *Conn) readDataUnit() (data []byte, err error) {
 		return
 	}
 	data = make([]byte, s-4)
-	n, err := c.Conn.Read(data)
+	_, err = io.ReadFull(c.Conn, data)
 	if err != nil {
 		return
-	}
-	if n != len(data) {
-		return data, io.ErrNoProgress
 	}
 	return data, nil
 }
