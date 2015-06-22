@@ -100,5 +100,7 @@ func TestUnmarshalCheckDomainResponse(t *testing.T) {
 	err := unmarshal(x, &msg)
 	st.Expect(t, err, nil)
 	st.Reject(t, msg.Response, nil)
+	st.Expect(t, msg.Response.ResponseData.DomainCheckData.Results[0].Domain.Domain, "good.memorial")
+	st.Expect(t, msg.Response.ResponseData.DomainCheckData.Results[0].Domain.IsAvailable, true)
 	logMarshal(t, &msg)
 }

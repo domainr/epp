@@ -83,11 +83,13 @@ type domainCheck struct {
 
 // response represents an EPP response message.
 type response struct {
-	Results      []Result      `xml:"result"`
-	Queue        *queue        `xml:"msgQ,omitempty"`
-	TxnID        string        `xml:"trID>clTRID"`
-	ServerTxnID  string        `xml:"trID>svTRID"`
-	ResponseData *responseData `xml:"resData,omitempty"` // FIXME: remove this level of indirection?
+	Results      []Result `xml:"result"`
+	Queue        *queue   `xml:"msgQ,omitempty"`
+	TxnID        string   `xml:"trID>clTRID"`
+	ServerTxnID  string   `xml:"trID>svTRID"`
+	ResponseData struct {
+		DomainCheckData *domainCheckData `xml:"urn:ietf:params:xml:ns:domain-1.0 chkData,omitempty"`
+	} `xml:"resData"`
 }
 
 // Result represents an EPP server <result> element.
@@ -118,11 +120,6 @@ type queue struct {
 	ID    int  `xml:"id,attr"`
 	Count int  `xml:"count,attr"`
 	Time  Time `xml:"qDate"`
-}
-
-// responseData represents an EPP <resData> element.
-type responseData struct {
-	DomainCheckData *domainCheckData `xml:"urn:ietf:params:xml:ns:domain-1.0 chkData,omitempty"`
 }
 
 // domainCheckData represents an EPP <domain:chkData> element.

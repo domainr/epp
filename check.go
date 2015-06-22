@@ -42,7 +42,7 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheck, error) {
 		return nil, err
 	}
 	res := msg.Response
-	if res == nil || res.ResponseData == nil || res.ResponseData.DomainCheckData == nil {
+	if res == nil || res.ResponseData.DomainCheckData == nil {
 		return nil, ErrResponseMalformed
 	}
 	dc := DomainCheck(*res.ResponseData.DomainCheckData)
