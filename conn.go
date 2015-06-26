@@ -75,7 +75,7 @@ func (c *Conn) readMessage(msg *message) error {
 	if err != nil {
 		return err
 	}
-	return c.decodeDataUnit(msg)
+	return c.decode(msg)
 }
 
 // readDataUnit reads a single EPP message from c into
@@ -100,9 +100,9 @@ func (c *Conn) readDataUnit() error {
 	return nil
 }
 
-// decodeDataUnit decodes the EPP XML message from c.buf into msg.
-// It will return any EPP protocol-level errors detected in the response.
-func (c *Conn) decodeDataUnit(msg *message) error {
+// decode decodes an EPP XML message from c.buf into msg,
+// returning any EPP protocol-level errors detected in the message.
+func (c *Conn) decode(msg *message) error {
 	c.decoder.reset()
 	err := c.decoder.Decode(msg)
 	if err != nil {

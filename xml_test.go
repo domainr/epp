@@ -9,8 +9,8 @@ import (
 )
 
 func TestReuseXMLDecoder(t *testing.T) {
-	buf := &bytes.Buffer{}
-	d := newXMLDecoder(buf)
+	buf := bytes.Buffer{}
+	d := newXMLDecoder(&buf)
 
 	v := struct {
 		XMLName struct{} `xml:"hello"`
