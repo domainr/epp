@@ -84,10 +84,14 @@ func (c *Conn) readMessage(msg *message) error {
 // call to readDataUnit.
 func (c *Conn) readDataUnit() error {
 	c.buf.Reset()
-	var s uint32
+	var s int32
 	err := binary.Read(c.Conn, binary.BigEndian, &s)
 	if err != nil {
 		return err
+	}
+	s -= 4
+	if s < 0 {
+		return io.ErrUnexpectedEOF
 	}
 	lr := io.LimitedReader{R: c.Conn, N: int64(s)}
 	n, err := c.buf.ReadFrom(&lr)
