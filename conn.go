@@ -1,6 +1,7 @@
 package epp
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -11,12 +12,14 @@ import (
 // Conn represents a single connection to an EPP server.
 // This implementation is not safe for concurrent use.
 type Conn struct {
+	net.Conn
+	buf     bytes.Buffer
+	decoder xmlDecoder
+	txnID   uint64
+
 	// Greeting holds the last received greeting message from the server,
 	// indicating server name, status, data policy and capabilities.
 	Greeting *Greeting
-
-	net.Conn
-	txnID uint64
 }
 
 // NewConn initializes an epp.Conn from a net.Conn and performs the EPP
@@ -24,6 +27,7 @@ type Conn struct {
 // https://tools.ietf.org/html/rfc5730#section-2.4
 func NewConn(conn net.Conn) (*Conn, error) {
 	c := &Conn{Conn: conn}
+	c.decoder = newXMLDecoder(&c.buf)
 	var err error
 	c.Greeting, err = c.ReadGreeting()
 	return c, err
@@ -60,29 +64,44 @@ func (c *Conn) writeDataUnit(p []byte) error {
 // readMessage reads a single EPP response from c and parses the XML into req.
 // It returns an error if the EPP response contains an error result.
 func (c *Conn) readMessage(msg *message) error {
-	data, err := c.readDataUnit()
+	err := c.readDataUnit()
 	if err != nil {
 		return err
 	}
-	logResponse(data)
-	return unmarshal(data, msg)
+	return c.decodeDataUnit(msg)
 }
 
-// readDataUnit reads a single EPP message from c.
-// It returns the bytes read and/or an error.
-// FIXME: allocate a single buffer per Conn to reduce GC pressure?
-func (c *Conn) readDataUnit() (data []byte, err error) {
+// readDataUnit reads a single EPP message from c into
+// c.buf. The bytes in c.buf are valid until the next
+// call to readDataUnit.
+func (c *Conn) readDataUnit() error {
+	c.buf.Reset()
 	var s uint32
-	err = binary.Read(c.Conn, binary.BigEndian, &s)
+	err := binary.Read(c.Conn, binary.BigEndian, &s)
 	if err != nil {
-		return
+		return err
 	}
-	data = make([]byte, s-4)
-	_, err = io.ReadFull(c.Conn, data)
+	lr := io.LimitedReader{R: c.Conn, N: int64(s)}
+	n, err := c.buf.ReadFrom(&lr)
 	if err != nil {
-		return
+		return err
 	}
-	return data, nil
+	if n != int64(s) || lr.N != 0 {
+		return io.ErrUnexpectedEOF
+	}
+	logXML("<-- READ DATA UNIT -->", c.buf.Bytes())
+	return nil
+}
+
+// decodeDataUnit decodes the EPP XML message from c.buf into msg.
+// It will return any EPP protocol-level errors detected in the response.
+func (c *Conn) decodeDataUnit(msg *message) error {
+	c.decoder.reset()
+	err := c.decoder.Decode(msg)
+	if err != nil {
+		return err
+	}
+	return detectError(msg)
 }
 
 // id returns a zero-padded 16-character hex uint64 transaction ID.
