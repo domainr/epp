@@ -29,8 +29,10 @@ func (d *decoder) reset() {
 	d.Decoder = d.saved
 }
 
-// decode decodes an EPP XML message from c.buf into msg,
+// decode decodes an EPP XML message into msg,
 // returning any EPP protocol-level errors detected in the message.
+// It resets the underlying xml.Decoder before attempting to decode
+// the input stream.
 func (d *decoder) decode(msg *message) error {
 	d.reset()
 	err := d.Decode(msg)
