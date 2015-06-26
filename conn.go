@@ -26,11 +26,18 @@ type Conn struct {
 // handshake. It reads and stores the initial EPP <greeting> message.
 // https://tools.ietf.org/html/rfc5730#section-2.4
 func NewConn(conn net.Conn) (*Conn, error) {
-	c := &Conn{Conn: conn}
-	c.decoder = newXMLDecoder(&c.buf)
+	c := newConn(conn)
 	var err error
 	c.Greeting, err = c.ReadGreeting()
 	return c, err
+}
+
+// newConn initializes an epp.Conn from a net.Conn.
+// Used internally for testing.
+func newConn(conn net.Conn) *Conn {
+	c := Conn{Conn: conn}
+	c.decoder = newXMLDecoder(&c.buf)
+	return &c
 }
 
 // writeMessage serializes msg into XML and writes it to c.
