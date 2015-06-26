@@ -2,7 +2,6 @@ package epp
 
 import (
 	"encoding/binary"
-	"encoding/xml"
 	"fmt"
 	"io"
 	"net"
@@ -57,10 +56,6 @@ func (c *Conn) writeDataUnit(p []byte) error {
 	_, err = c.Conn.Write(p)
 	return err
 }
-
-// xmlHeader is a byte-slice representation of the
-// standard XML header. Declared as a global to relieve GC pressure.
-var xmlHeader = []byte(xml.Header)
 
 // readMessage reads a single EPP response from c and parses the XML into req.
 // It returns an error if the EPP response contains an error result.
