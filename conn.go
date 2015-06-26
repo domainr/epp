@@ -14,7 +14,7 @@ import (
 type Conn struct {
 	net.Conn
 	buf     bytes.Buffer
-	decoder xmlDecoder
+	decoder decoder
 	txnID   uint64
 
 	// Greeting holds the last received greeting message from the server,
@@ -36,7 +36,7 @@ func NewConn(conn net.Conn) (*Conn, error) {
 // Used internally for testing.
 func newConn(conn net.Conn) *Conn {
 	c := Conn{Conn: conn}
-	c.decoder = newXMLDecoder(&c.buf)
+	c.decoder = newDecoder(&c.buf)
 	return &c
 }
 
@@ -75,7 +75,7 @@ func (c *Conn) readMessage(msg *message) error {
 	if err != nil {
 		return err
 	}
-	return c.decode(msg)
+	return c.decoder.decode(msg)
 }
 
 // readDataUnit reads a single EPP message from c into
@@ -98,17 +98,6 @@ func (c *Conn) readDataUnit() error {
 	}
 	logXML("<-- READ DATA UNIT -->", c.buf.Bytes())
 	return nil
-}
-
-// decode decodes an EPP XML message from c.buf into msg,
-// returning any EPP protocol-level errors detected in the message.
-func (c *Conn) decode(msg *message) error {
-	c.decoder.reset()
-	err := c.decoder.Decode(msg)
-	if err != nil {
-		return err
-	}
-	return detectError(msg)
 }
 
 // id returns a zero-padded 16-character hex uint64 transaction ID.

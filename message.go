@@ -20,10 +20,10 @@ func unmarshal(data []byte, msg *message) error {
 	if err != nil {
 		return err
 	}
-	return detectError(msg)
+	return msg.error()
 }
 
-func detectError(msg *message) error {
+func (msg *message) error() error {
 	if msg.Response == nil || len(msg.Response.Results) == 0 {
 		return nil
 	}

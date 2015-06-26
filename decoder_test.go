@@ -1,6 +1,8 @@
 package epp
 
 import (
+	"bytes"
+	"encoding/xml"
 	"testing"
 	"time"
 
@@ -13,7 +15,45 @@ func logMarshal(t *testing.T, msg *message) {
 	t.Logf("<!-- MARSHALED -->\n%s\n", string(x))
 }
 
-func TestConnDecodeGreeting(t *testing.T) {
+func TestDecoderReuse(t *testing.T) {
+	buf := bytes.Buffer{}
+	d := newDecoder(&buf)
+
+	v := struct {
+		XMLName struct{} `xml:"hello"`
+		Foo     string   `xml:"foo"`
+	}{}
+
+	buf.Reset()
+	buf.Write([]byte(`<hello><foo>foo</foo></hello>`))
+	d.reset()
+	st.Expect(t, d.InputOffset(), int64(0))
+	d.Decode(&v)
+	st.Expect(t, v.Foo, "foo")
+	st.Expect(t, d.InputOffset(), int64(29))
+
+	buf.Reset()
+	buf.Write([]byte(`<hello><foo>bar</foo></hello>`))
+	d.reset()
+	st.Expect(t, d.InputOffset(), int64(0))
+	tok, _ := d.Token()
+	se := tok.(xml.StartElement)
+	st.Expect(t, se.Name.Local, "hello")
+	tok, _ = d.Token()
+	se = tok.(xml.StartElement)
+	st.Expect(t, se.Name.Local, "foo")
+	st.Expect(t, d.InputOffset(), int64(12))
+
+	buf.Reset()
+	buf.Write([]byte(`<hello><foo>blam&lt;</foo></hello>`))
+	d.reset()
+	st.Expect(t, d.InputOffset(), int64(0))
+	d.Decode(&v)
+	st.Expect(t, v.Foo, "blam<")
+	st.Expect(t, d.InputOffset(), int64(34))
+}
+
+func TestDecoderDecodeGreeting(t *testing.T) {
 	x := []byte(`<?xml version="1.0" encoding="utf-8"?>
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
 	<greeting>
@@ -41,10 +81,9 @@ func TestConnDecodeGreeting(t *testing.T) {
 	</greeting>
 </epp>`)
 
-	c := newConn(nil)
-	c.buf.Write(x)
+	d := newDecoder(bytes.NewBuffer(x))
 	var msg message
-	err := c.decode(&msg)
+	err := d.decode(&msg)
 	st.Expect(t, err, nil)
 	st.Reject(t, msg.Greeting, nil)
 	st.Expect(t, msg.Greeting.ServerName, "Example EPP server epp.example.com")
@@ -98,8 +137,9 @@ func TestUnmarshalCheckDomainResponse(t *testing.T) {
 	</response>
 </epp>`)
 
+	d := newDecoder(bytes.NewBuffer(x))
 	var msg message
-	err := unmarshal(x, &msg)
+	err := d.decode(&msg)
 	st.Expect(t, err, nil)
 	st.Reject(t, msg.Response, nil)
 	st.Expect(t, msg.Response.ResponseData.DomainCheckData.Results[0].Domain.Domain, "good.memorial")
