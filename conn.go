@@ -35,7 +35,6 @@ func (c *Conn) writeMessage(msg *message) error {
 	if err != nil {
 		return err
 	}
-	logRequest(data)
 	return c.writeDataUnit(data)
 }
 
@@ -44,6 +43,7 @@ func (c *Conn) writeMessage(msg *message) error {
 // of the data unit (message + 4 byte header), in network (big-endian) order.
 // http://www.ietf.org/rfc/rfc4934.txt
 func (c *Conn) writeDataUnit(p []byte) error {
+	logXML("<-- WRITE DATA UNIT -->", p)
 	s := uint32(4 + len(xmlHeader) + len(p))
 	err := binary.Write(c.Conn, binary.BigEndian, s)
 	if err != nil {

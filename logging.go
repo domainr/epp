@@ -8,16 +8,9 @@ import (
 // DebugLogger is an io.Writer. Set to enable logging of EPP message XML.
 var DebugLogger io.Writer
 
-func logRequest(xml []byte) {
+func logXML(pfx string, xml []byte) {
 	if DebugLogger == nil {
 		return
 	}
-	fmt.Printf("<!-- REQUEST -->\n%s\n\n", string(xml))
-}
-
-func logResponse(xml []byte) {
-	if DebugLogger == nil {
-		return
-	}
-	fmt.Printf("<!-- RESPONSE -->\n%s\n\n", string(xml))
+	fmt.Printf("%s\n%s\n\n", pfx, string(xml))
 }
