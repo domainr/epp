@@ -1,27 +1,9 @@
 package epp
 
 import (
-	"encoding/xml"
 	"errors"
 	"fmt"
 )
-
-// marshal encodes an EPP request or message into XML,
-// returning any errors that occur.
-func marshal(msg interface{}) ([]byte, error) {
-	return xml.Marshal(msg)
-}
-
-// unmarshal decodes an EPP XML response into res,
-// returning any errors, including any EPP errors
-// received in the response message.
-func unmarshal(data []byte, msg *message) error {
-	err := xml.Unmarshal(data, msg)
-	if err != nil {
-		return err
-	}
-	return msg.error()
-}
 
 func (msg *message) error() error {
 	if msg.Response == nil || len(msg.Response.Results) == 0 {

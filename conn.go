@@ -3,6 +3,7 @@ package epp
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"net"
@@ -42,7 +43,7 @@ func newConn(conn net.Conn) *Conn {
 
 // writeMessage serializes msg into XML and writes it to c.
 func (c *Conn) writeMessage(msg *message) error {
-	data, err := marshal(msg)
+	data, err := xml.Marshal(msg)
 	if err != nil {
 		return err
 	}

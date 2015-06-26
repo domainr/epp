@@ -10,7 +10,7 @@ import (
 )
 
 func logMarshal(t *testing.T, msg *message) {
-	x, err := marshal(&msg)
+	x, err := xml.Marshal(&msg)
 	st.Expect(t, err, nil)
 	t.Logf("<!-- MARSHALED -->\n%s\n", string(x))
 }
