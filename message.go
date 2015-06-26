@@ -20,13 +20,16 @@ func unmarshal(data []byte, msg *message) error {
 	if err != nil {
 		return err
 	}
-	// color.Fprintf(os.Stderr, "@{y}%s\n", spew.Sprintf("%+v", req))
-	res := msg.Response
-	if res != nil && len(res.Results) > 0 {
-		r := res.Results[0]
-		if r.IsError() {
-			return r
-		}
+	return detectError(msg)
+}
+
+func detectError(msg *message) error {
+	if msg.Response == nil || len(msg.Response.Results) == 0 {
+		return nil
+	}
+	r := msg.Response.Results[0]
+	if r.IsError() {
+		return r
 	}
 	return nil
 }
