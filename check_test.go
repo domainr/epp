@@ -1,6 +1,7 @@
 package epp
 
 import (
+	"bytes"
 	"os"
 	"testing"
 
@@ -31,4 +32,45 @@ func TestConnCheck(t *testing.T) {
 	dc, err = c.CheckDomain("--dmnr-test--.com")
 	st.Reject(t, err, nil)
 	st.Expect(t, dc, (*DomainCheck)(nil))
+}
+
+func TestDecodeCheckDomainResponse(t *testing.T) {
+	x := []byte(`<?xml version="1.0" encoding="utf-8"?>
+<epp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd" xmlns="urn:ietf:params:xml:ns:epp-1.0">
+	<response>
+		<result code="1000">
+			<msg>Command completed successfully</msg>
+		</result>
+		<resData>
+			<domain:chkData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd" xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+				<domain:cd>
+					<domain:name avail="1">good.memorial</domain:name>
+				</domain:cd>
+			</domain:chkData>
+		</resData>
+		<extension>
+			<charge:chkData xmlns:charge="http://www.unitedtld.com/epp/charge-1.0">
+				<charge:cd>
+					<charge:name>good.memorial</charge:name>
+					<charge:set>
+						<charge:category name="BBB+">premium</charge:category>
+						<charge:type>price</charge:type>
+						<charge:amount command="create">100.00</charge:amount>
+						<charge:amount command="renew">100.00</charge:amount>
+						<charge:amount command="transfer">100.00</charge:amount>
+						<charge:amount command="update" name="restore">50.00</charge:amount>
+					</charge:set>
+				</charge:cd>
+			</charge:chkData>
+		</extension>
+		<trID>
+			<clTRID>0000000000000002</clTRID>
+			<svTRID>83fa5767-5624-4be5-9e54-0b3a52f9de5b:1</svTRID>
+		</trID>
+	</response>
+</epp>`)
+
+	d := newDecoder(bytes.NewBuffer(x))
+	_, err := decodeCheckDomainResponse(&d)
+	st.Expect(t, err, nil)
 }

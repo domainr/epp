@@ -1,5 +1,11 @@
 package epp
 
+import (
+	"encoding/xml"
+	"fmt"
+	"io"
+)
+
 // <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
 //   <command>
 //     <check>
@@ -52,3 +58,27 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheck, error) {
 // DomainCheck exists for backwards compatibility.
 // FIXME: remove/improve this.
 type DomainCheck domainCheckData
+
+func decodeCheckDomainResponse(d *decoder) (*domainCheckData, error) {
+	d.reset()
+	data := &domainCheckData{}
+	for {
+		t, err := d.Token()
+		if err != nil && err != io.EOF {
+			return nil, err
+		}
+		if t == nil {
+			break
+		}
+		switch node := t.(type) {
+		case xml.StartElement:
+			fmt.Printf("StartElement: %s %s\n", node.Name.Space, node.Name.Local)
+		case xml.EndElement:
+			fmt.Printf("EndElement: %s %s\n", node.Name.Space, node.Name.Local)
+		case xml.CharData:
+			fmt.Printf("CharData: %s\n", string(node))
+		}
+		fmt.Printf("Stack: %+v\n", d.stack)
+	}
+	return data, nil
+}
