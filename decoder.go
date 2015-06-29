@@ -57,3 +57,36 @@ func (d *Decoder) Token() (xml.Token, error) {
 	}
 	return t, err
 }
+
+type TokenHandler interface {
+	StartElement(*Decoder, xml.StartElement) error
+	EndElement(*Decoder, xml.EndElement) error
+	CharData(*Decoder, xml.CharData) error
+}
+
+func (d *Decoder) DecodeWith(h TokenHandler) error {
+	d.Reset()
+	for {
+		t, err := d.Token()
+		if err != nil && err != io.EOF {
+			return err
+		}
+		if t == nil {
+			break
+		}
+		switch node := t.(type) {
+		case xml.StartElement:
+			err = h.StartElement(d, node)
+		case xml.EndElement:
+			err = h.EndElement(d, node)
+		case xml.CharData:
+			err = h.CharData(d, node)
+		default:
+			err = nil
+		}
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
