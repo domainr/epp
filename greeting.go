@@ -12,7 +12,7 @@ func (c *Conn) Hello() (*Greeting, error) {
 	if err != nil {
 		return nil, err
 	}
-	return c.readGreeting()
+	return &c.Greeting, decodeGreeting(&c.decoder, &c.Greeting)
 }
 
 // Greeting is an EPP response that represents server status and capabilities.

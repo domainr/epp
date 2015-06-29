@@ -29,10 +29,7 @@ type Conn struct {
 // https://tools.ietf.org/html/rfc5730#section-2.4
 func NewConn(conn net.Conn) (*Conn, error) {
 	c := newConn(conn)
-	g, err := c.readGreeting()
-	if g != nil && err == nil {
-		c.Greeting = *g
-	}
+	err := decodeGreeting(&c.decoder, &c.Greeting)
 	return c, err
 }
 
