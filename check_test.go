@@ -2,15 +2,10 @@ package epp
 
 import (
 	"bytes"
-	"os"
 	"testing"
 
 	"github.com/nbio/st"
 )
-
-func init() {
-	DebugLogger = os.Stdout
-}
 
 func TestConnCheck(t *testing.T) {
 	c := testLogin(t)

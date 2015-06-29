@@ -3,7 +3,6 @@ package epp
 import (
 	"crypto/tls"
 	"net"
-	"os"
 	"testing"
 
 	"github.com/nbio/st"
@@ -15,10 +14,6 @@ const (
 	user     = "test.user"
 	password = "test.passw0rd"
 )
-
-func init() {
-	DebugLogger = os.Stdout
-}
 
 func testDial(t *testing.T) net.Conn {
 	if testing.Short() {
