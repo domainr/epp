@@ -36,3 +36,52 @@ func TestWriteLoginChangePassword(t *testing.T) {
 	err = xml.Unmarshal(c.buf.Bytes(), &msg)
 	st.Expect(t, err, nil)
 }
+
+var (
+	testObjects = []string{
+		"urn:ietf:params:xml:ns:domain-1.0",
+		"urn:ietf:params:xml:ns:host-1.0",
+		"urn:ietf:params:xml:ns:contact-1.0",
+		"http://www.unitedtld.com/epp/finance-1.0",
+	}
+	testExtensions = []string{
+		"urn:ietf:params:xml:ns:secDNS-1.1",
+		"urn:ietf:params:xml:ns:rgp-1.0",
+		"urn:ietf:params:xml:ns:launch-1.0",
+		"urn:ietf:params:xml:ns:idn-1.0",
+		"http://www.unitedtld.com/epp/charge-1.0",
+	}
+)
+
+func BenchmarkMarshalLogin(b *testing.B) {
+	b.StopTimer()
+	msg := message{
+		Command: &command{
+			Login: &login{
+				User:        "jane",
+				Password:    "battery",
+				NewPassword: "horse",
+				Version:     "1.0",
+				Language:    "en",
+				Objects:     testObjects,
+				Extensions:  testExtensions,
+			},
+			TxnID: "0001",
+		},
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		xml.Marshal(&msg)
+	}
+}
+
+func BenchmarkWriteLogin(b *testing.B) {
+	b.StopTimer()
+	c := newConn(&net.IPConn{})
+	c.Greeting.Objects = testObjects
+	c.Greeting.Extensions = testExtensions
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		c.writeLogin("jane", "battery", "horse")
+	}
+}
