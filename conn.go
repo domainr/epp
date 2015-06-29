@@ -21,7 +21,7 @@ type Conn struct {
 
 	// Greeting holds the last received greeting message from the server,
 	// indicating server name, status, data policy and capabilities.
-	Greeting *Greeting
+	Greeting
 }
 
 // NewConn initializes an epp.Conn from a net.Conn and performs the EPP
@@ -29,8 +29,10 @@ type Conn struct {
 // https://tools.ietf.org/html/rfc5730#section-2.4
 func NewConn(conn net.Conn) (*Conn, error) {
 	c := newConn(conn)
-	var err error
-	c.Greeting, err = c.ReadGreeting()
+	g, err := c.readGreeting()
+	if g != nil && err == nil {
+		c.Greeting = *g
+	}
 	return c, err
 }
 

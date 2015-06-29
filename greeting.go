@@ -1,6 +1,10 @@
 package epp
 
-import "errors"
+import (
+	"encoding/xml"
+	"errors"
+	"io"
+)
 
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
 func (c *Conn) Hello() (*Greeting, error) {
@@ -8,7 +12,7 @@ func (c *Conn) Hello() (*Greeting, error) {
 	if err != nil {
 		return nil, err
 	}
-	return c.ReadGreeting()
+	return c.readGreeting()
 }
 
 // Greeting is an EPP response that represents server status and capabilities.
@@ -25,9 +29,9 @@ type Greeting struct {
 // A ErrGreetingNotFound is reported when a <greeting> message is expected but not found.
 var ErrGreetingNotFound = errors.New("missing <greeting> message")
 
-// ReadGreeting reads a <greeting> message from the EPP server.
+// readGreeting reads a <greeting> message from the EPP server.
 // Performed automatically during a Handshake or Hello command.
-func (c *Conn) ReadGreeting() (*Greeting, error) {
+func (c *Conn) readGreeting() (*Greeting, error) {
 	var msg message
 	err := c.readMessage(&msg)
 	if err != nil {
