@@ -16,6 +16,7 @@ type Conn struct {
 	net.Conn
 	buf     bytes.Buffer
 	decoder Decoder
+	encoder *xml.Encoder
 	txnID   uint64
 
 	// Greeting holds the last received greeting message from the server,
@@ -38,34 +39,35 @@ func NewConn(conn net.Conn) (*Conn, error) {
 func newConn(conn net.Conn) *Conn {
 	c := Conn{Conn: conn}
 	c.decoder = NewDecoder(&c.buf)
+	c.encoder = xml.NewEncoder(&c.buf)
 	return &c
 }
 
 // writeMessage serializes msg into XML and writes it to c.
+// It reuses (and therefore clobbers) the internal buffer
+// shared with the parsing side.
 func (c *Conn) writeMessage(msg *message) error {
-	data, err := xml.Marshal(msg)
+	c.buf.Reset()
+	c.buf.Write(xmlHeader)
+	err := c.encoder.Encode(msg)
 	if err != nil {
 		return err
 	}
-	return c.writeDataUnit(data)
+	return c.writeDataUnit(c.buf.Bytes())
 }
 
 // writeDataUnit writes a slice of bytes to c.
 // Bytes written are prefixed with 32-bit header specifying the total size
 // of the data unit (message + 4 byte header), in network (big-endian) order.
 // http://www.ietf.org/rfc/rfc4934.txt
-func (c *Conn) writeDataUnit(p []byte) error {
-	logXML("<-- WRITE DATA UNIT -->", p)
-	s := uint32(4 + len(xmlHeader) + len(p))
+func (c *Conn) writeDataUnit(x []byte) error {
+	logXML("<-- WRITE DATA UNIT -->", x)
+	s := uint32(4 + len(x))
 	err := binary.Write(c.Conn, binary.BigEndian, s)
 	if err != nil {
 		return err
 	}
-	_, err = c.Conn.Write(xmlHeader)
-	if err != nil {
-		return err
-	}
-	_, err = c.Conn.Write(p)
+	_, err = c.Conn.Write(x)
 	return err
 }
 
