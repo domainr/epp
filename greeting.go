@@ -2,17 +2,16 @@ package epp
 
 import (
 	"encoding/xml"
-	"errors"
 	"io"
 )
 
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
-func (c *Conn) Hello() (*Greeting, error) {
+func (c *Conn) Hello() error {
 	err := c.writeDataUnit(xmlHello)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &c.Greeting, decodeGreeting(&c.decoder, &c.Greeting)
+	return c.readGreeting()
 }
 
 // Greeting is an EPP response that represents server status and capabilities.
@@ -25,21 +24,12 @@ type Greeting struct {
 	Extensions []string `xml:"svcMenu>svcExtension>extURI,omitempty"`
 }
 
-// A ErrGreetingNotFound is reported when a <greeting> message is expected but not found.
-var ErrGreetingNotFound = errors.New("missing <greeting> message")
-
-// readGreeting reads a <greeting> message from the EPP server.
-// Performed automatically during a Handshake or Hello command.
-func (c *Conn) readGreeting() (*Greeting, error) {
-	var msg message
-	err := c.readMessage(&msg)
+func (c *Conn) readGreeting() error {
+	err := c.readDataUnit()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if msg.Greeting == nil {
-		return nil, ErrGreetingNotFound
-	}
-	return msg.Greeting, nil
+	return decodeGreeting(&c.decoder, &c.Greeting)
 }
 
 func decodeGreeting(d *Decoder, g *Greeting) error {

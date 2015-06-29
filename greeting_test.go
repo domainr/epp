@@ -10,9 +10,9 @@ import (
 func TestHello(t *testing.T) {
 	c, err := NewConn(testDial(t))
 	st.Assert(t, err, nil)
-	g, err := c.Hello()
+	err = c.Hello()
 	st.Expect(t, err, nil)
-	st.Reject(t, g, nil)
+	st.Expect(t, c.Greeting.ServerName, "ISPAPI EPP Server") // FIXME: brittle external dependency
 }
 
 func TestDecodeGreeting(t *testing.T) {
