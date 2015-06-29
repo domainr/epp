@@ -14,6 +14,8 @@ func (c *Conn) Hello() error {
 	return c.readGreeting()
 }
 
+var xmlHello = []byte(xml.Header + startEPP + `<hello/>` + endEPP)
+
 // Greeting is an EPP response that represents server status and capabilities.
 // https://tools.ietf.org/html/rfc5730#section-2.4
 type Greeting struct {
