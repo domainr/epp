@@ -27,9 +27,19 @@ func TestDecodeGreeting(t *testing.T) {
 	st.Expect(t, msg.Greeting.Objects[2], "urn:ietf:params:xml:ns:obj3")
 	st.Expect(t, msg.Greeting.Extensions[0], "http://custom/obj1ext-1.0")
 	logMarshal(t, &msg)
+
+	d = NewDecoder(bytes.NewBuffer(testXMLGreeting))
+	var g Greeting
+	err = decodeGreeting(&d, &g)
+	st.Expect(t, err, nil)
+	st.Expect(t, g.ServerName, "Example EPP server epp.example.com")
+	st.Expect(t, g.Objects[0], "urn:ietf:params:xml:ns:obj1")
+	st.Expect(t, g.Objects[1], "urn:ietf:params:xml:ns:obj2")
+	st.Expect(t, g.Objects[2], "urn:ietf:params:xml:ns:obj3")
+	st.Expect(t, g.Extensions[0], "http://custom/obj1ext-1.0")
 }
 
-func BenchmarkDecoderDecodeGreeting(b *testing.B) {
+func BenchmarkDecodeGreeting(b *testing.B) {
 	b.StopTimer()
 	var buf bytes.Buffer
 	d := NewDecoder(&buf)
@@ -38,11 +48,11 @@ func BenchmarkDecoderDecodeGreeting(b *testing.B) {
 		buf.Reset()
 		buf.Write(testXMLGreeting)
 		var g Greeting
-		d.decodeGreeting(&g)
+		decodeGreeting(&d, &g)
 	}
 }
 
-func BenchmarkDecoderUnmarshalGreeting(b *testing.B) {
+func BenchmarkDecoderDecodeGreeting(b *testing.B) {
 	b.StopTimer()
 	var buf bytes.Buffer
 	d := NewDecoder(&buf)

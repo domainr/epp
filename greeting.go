@@ -42,7 +42,7 @@ func (c *Conn) readGreeting() (*Greeting, error) {
 	return msg.Greeting, nil
 }
 
-func (d *Decoder) decodeGreeting(g *Greeting) error {
+func decodeGreeting(d *Decoder, g *Greeting) error {
 	d.Reset()
 	g.ServerName = ""
 	g.Languages = g.Languages[:0]
