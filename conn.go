@@ -15,7 +15,7 @@ import (
 type Conn struct {
 	net.Conn
 	buf     bytes.Buffer
-	decoder decoder
+	decoder Decoder
 	txnID   uint64
 
 	// Greeting holds the last received greeting message from the server,
@@ -37,7 +37,7 @@ func NewConn(conn net.Conn) (*Conn, error) {
 // Used internally for testing.
 func newConn(conn net.Conn) *Conn {
 	c := Conn{Conn: conn}
-	c.decoder = newDecoder(&c.buf)
+	c.decoder = NewDecoder(&c.buf)
 	return &c
 }
 
@@ -76,7 +76,7 @@ func (c *Conn) readMessage(msg *message) error {
 	if err != nil {
 		return err
 	}
-	return c.decoder.decode(msg)
+	return c.decoder.DecodeMessage(msg)
 }
 
 // readDataUnit reads a single EPP message from c into

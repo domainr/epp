@@ -17,7 +17,7 @@ func logMarshal(t *testing.T, msg *message) {
 
 func TestDecoderReuse(t *testing.T) {
 	buf := bytes.Buffer{}
-	d := newDecoder(&buf)
+	d := NewDecoder(&buf)
 
 	v := struct {
 		XMLName struct{} `xml:"hello"`
@@ -26,7 +26,7 @@ func TestDecoderReuse(t *testing.T) {
 
 	buf.Reset()
 	buf.Write([]byte(`<hello><foo>foo</foo></hello>`))
-	d.reset()
+	d.Reset()
 	st.Expect(t, d.InputOffset(), int64(0))
 	d.Decode(&v)
 	st.Expect(t, v.Foo, "foo")
@@ -34,7 +34,7 @@ func TestDecoderReuse(t *testing.T) {
 
 	buf.Reset()
 	buf.Write([]byte(`<hello><foo>bar</foo></hello>`))
-	d.reset()
+	d.Reset()
 	st.Expect(t, d.InputOffset(), int64(0))
 	tok, _ := d.Token()
 	se := tok.(xml.StartElement)
@@ -46,7 +46,7 @@ func TestDecoderReuse(t *testing.T) {
 
 	buf.Reset()
 	buf.Write([]byte(`<hello><foo>blam&lt;</foo></hello>`))
-	d.reset()
+	d.Reset()
 	st.Expect(t, d.InputOffset(), int64(0))
 	d.Decode(&v)
 	st.Expect(t, v.Foo, "blam<")
@@ -81,9 +81,9 @@ func TestDecoderDecodeGreeting(t *testing.T) {
 	</greeting>
 </epp>`)
 
-	d := newDecoder(bytes.NewBuffer(x))
+	d := NewDecoder(bytes.NewBuffer(x))
 	var msg message
-	err := d.decode(&msg)
+	err := d.DecodeMessage(&msg)
 	st.Expect(t, err, nil)
 	st.Reject(t, msg.Greeting, nil)
 	st.Expect(t, msg.Greeting.ServerName, "Example EPP server epp.example.com")
@@ -137,9 +137,9 @@ func TestUnmarshalCheckDomainResponse(t *testing.T) {
 	</response>
 </epp>`)
 
-	d := newDecoder(bytes.NewBuffer(x))
+	d := NewDecoder(bytes.NewBuffer(x))
 	var msg message
-	err := d.decode(&msg)
+	err := d.DecodeMessage(&msg)
 	st.Expect(t, err, nil)
 	st.Reject(t, msg.Response, nil)
 	st.Expect(t, msg.Response.ResponseData.DomainCheckData.Results[0].Domain.Domain, "good.memorial")

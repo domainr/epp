@@ -74,6 +74,7 @@ type response struct {
 	ServerTxnID  string   `xml:"trID>svTRID"`
 	ResponseData struct {
 		DomainCheckData *domainCheckData `xml:"urn:ietf:params:xml:ns:domain-1.0 chkData,omitempty"`
+		ChargeCheckData *chargeCheckData `xml:"http://www.unitedtld.com/epp/charge-1.0 chkData,omitempty"`
 	} `xml:"resData"`
 }
 
@@ -115,6 +116,19 @@ type domainCheckData struct {
 			IsAvailable bool   `xml:"avail,attr"`
 		} `xml:"name"`
 		Reason string `xml:"reason"`
+	} `xml:"cd"`
+}
+
+// chargeCheckData represents an EPP <charge:chkData> element.
+// http://www.unitedtld.com/epp/charge-1.0
+type chargeCheckData struct {
+	Results []struct {
+		Domain   string `xml:"name"`
+		Category struct {
+			Value string `xml:",chardata"`
+			Name  bool   `xml:"name,attr"`
+		} `xml:"set>category"`
+		Type string `xml:"set>type"`
 	} `xml:"cd"`
 }
 

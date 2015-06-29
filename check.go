@@ -59,8 +59,8 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheck, error) {
 // FIXME: remove/improve this.
 type DomainCheck domainCheckData
 
-func decodeCheckDomainResponse(d *decoder) (*domainCheckData, error) {
-	d.reset()
+func decodeCheckDomainResponse(d *Decoder) (*domainCheckData, error) {
+	d.Reset()
 	data := &domainCheckData{}
 	for {
 		t, err := d.Token()
@@ -78,7 +78,7 @@ func decodeCheckDomainResponse(d *decoder) (*domainCheckData, error) {
 		case xml.CharData:
 			fmt.Printf("CharData: %s\n", string(node))
 		}
-		fmt.Printf("Stack: %+v\n", d.stack)
+		fmt.Printf("Stack: %+v\n", d.Stack)
 	}
 	return data, nil
 }
