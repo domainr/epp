@@ -3,7 +3,6 @@ package epp
 import (
 	"bytes"
 	"testing"
-	"time"
 
 	"github.com/nbio/st"
 )
@@ -23,12 +22,10 @@ func TestDecodeGreeting(t *testing.T) {
 	st.Expect(t, err, nil)
 	st.Reject(t, msg.Greeting, nil)
 	st.Expect(t, msg.Greeting.ServerName, "Example EPP server epp.example.com")
-	tt, _ := time.Parse(time.RFC3339, "2000-06-08T22:00:00.0Z")
-	st.Expect(t, msg.Greeting.ServerTime, Time{tt})
-	st.Expect(t, msg.Greeting.ServiceObjects[0], "urn:ietf:params:xml:ns:obj1")
-	st.Expect(t, msg.Greeting.ServiceObjects[1], "urn:ietf:params:xml:ns:obj2")
-	st.Expect(t, msg.Greeting.ServiceObjects[2], "urn:ietf:params:xml:ns:obj3")
-	st.Expect(t, msg.Greeting.ServiceExtensions[0], "http://custom/obj1ext-1.0")
+	st.Expect(t, msg.Greeting.Objects[0], "urn:ietf:params:xml:ns:obj1")
+	st.Expect(t, msg.Greeting.Objects[1], "urn:ietf:params:xml:ns:obj2")
+	st.Expect(t, msg.Greeting.Objects[2], "urn:ietf:params:xml:ns:obj3")
+	st.Expect(t, msg.Greeting.Extensions[0], "http://custom/obj1ext-1.0")
 	logMarshal(t, &msg)
 }
 
