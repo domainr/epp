@@ -6,10 +6,6 @@ import (
 	"io"
 )
 
-// xmlHeader is a byte-slice representation of the standard XML header.
-// Declared as a global to relieve GC pressure.
-var xmlHeader = []byte(xml.Header)
-
 // Decoder implements a resettable XML decoder.
 // This is a dirty hack to reduce GC pressure.
 type Decoder struct {
