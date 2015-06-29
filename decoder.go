@@ -21,6 +21,15 @@ func NewDecoder(r io.Reader) Decoder {
 	return Decoder{Decoder: *d, saved: *d}
 }
 
+// Element returns the current StartElement.
+// Returns nil if not inside an XML tag.
+func (d *Decoder) Element() *xml.StartElement {
+	if len(d.Stack) == 0 {
+		return nil
+	}
+	return &d.Stack[len(d.Stack)-1]
+}
+
 // Reset restores the original state of the underlying
 // xml.Decoder (pos 1, line 1, stack, etc.).
 func (d *Decoder) Reset() {
@@ -58,13 +67,7 @@ func (d *Decoder) Token() (xml.Token, error) {
 	return t, err
 }
 
-type TokenHandler interface {
-	StartElement(*Decoder, xml.StartElement) error
-	EndElement(*Decoder, xml.EndElement) error
-	CharData(*Decoder, xml.CharData) error
-}
-
-func (d *Decoder) DecodeWith(h TokenHandler) error {
+func (d *Decoder) DecodeWith(fs func(xml.StartElement) error, fe func(xml.EndElement) error, fc func(xml.CharData) error) error {
 	d.Reset()
 	for {
 		t, err := d.Token()
@@ -76,11 +79,11 @@ func (d *Decoder) DecodeWith(h TokenHandler) error {
 		}
 		switch node := t.(type) {
 		case xml.StartElement:
-			err = h.StartElement(d, node)
+			err = fs(node)
 		case xml.EndElement:
-			err = h.EndElement(d, node)
+			err = fe(node)
 		case xml.CharData:
-			err = h.CharData(d, node)
+			err = fc(node)
 		default:
 			err = nil
 		}
