@@ -21,17 +21,12 @@ type message struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 
 	// Message types. Set to nil if not present in message.
-	Hello    *hello    `xml:"hello"`
 	Greeting *Greeting `xml:"greeting,omitempty"`
 	Command  *command  `xml:"command,omitempty"`
 	Response *response `xml:"response,omitempty"`
 }
 
 // EPP requests
-
-// hello represents an initial EPP hello request.
-// <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><hello/></epp>
-type hello struct{}
 
 // command represents an EPP command wrapper.
 type command struct {

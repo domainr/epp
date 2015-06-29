@@ -2,11 +2,9 @@ package epp
 
 import "errors"
 
-var msgHello = message{Hello: &hello{}}
-
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
 func (c *Conn) Hello() (*Greeting, error) {
-	err := c.writeMessage(&msgHello)
+	err := c.writeDataUnit(xmlHello)
 	if err != nil {
 		return nil, err
 	}
