@@ -44,17 +44,18 @@ func (c *Conn) readGreeting() (*Greeting, error) {
 
 func (d *Decoder) decodeGreeting(g *Greeting) error {
 	d.Reset()
+	g.ServerName = ""
 	g.Languages = g.Languages[:0]
 	g.Versions = g.Versions[:0]
 	g.Objects = g.Objects[:0]
 	g.Extensions = g.Extensions[:0]
 	for {
 		t, err := d.Token()
-		if err != nil && err != io.EOF {
-			return err
-		}
-		if t == nil {
+		if err == io.EOF {
 			break
+		}
+		if err != nil {
+			return err
 		}
 		switch node := t.(type) {
 		case xml.StartElement:
@@ -73,7 +74,6 @@ func (d *Decoder) decodeGreeting(g *Greeting) error {
 				return nil
 			}
 
-		// Extract character data
 		case xml.CharData:
 			e := d.Element()
 			if e == nil {
