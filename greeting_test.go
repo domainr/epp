@@ -15,3 +15,72 @@ func TestHello(t *testing.T) {
 	st.Expect(t, err, nil)
 	st.Reject(t, g, nil)
 }
+
+func TestDecodeGreeting(t *testing.T) {
+	d := NewDecoder(bytes.NewBuffer(testXMLGreeting))
+	var msg message
+	err := d.DecodeMessage(&msg)
+	st.Expect(t, err, nil)
+	st.Reject(t, msg.Greeting, nil)
+	st.Expect(t, msg.Greeting.ServerName, "Example EPP server epp.example.com")
+	tt, _ := time.Parse(time.RFC3339, "2000-06-08T22:00:00.0Z")
+	st.Expect(t, msg.Greeting.ServerTime, Time{tt})
+	st.Expect(t, msg.Greeting.ServiceObjects[0], "urn:ietf:params:xml:ns:obj1")
+	st.Expect(t, msg.Greeting.ServiceObjects[1], "urn:ietf:params:xml:ns:obj2")
+	st.Expect(t, msg.Greeting.ServiceObjects[2], "urn:ietf:params:xml:ns:obj3")
+	st.Expect(t, msg.Greeting.ServiceExtensions[0], "http://custom/obj1ext-1.0")
+	logMarshal(t, &msg)
+}
+
+func BenchmarkDecoderDecodeGreeting(b *testing.B) {
+	b.StopTimer()
+	var buf bytes.Buffer
+	d := NewDecoder(&buf)
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		buf.Write(testXMLGreeting)
+		var g Greeting
+		d.decodeGreeting(&g)
+	}
+}
+
+func BenchmarkDecoderUnmarshalGreeting(b *testing.B) {
+	b.StopTimer()
+	var buf bytes.Buffer
+	d := NewDecoder(&buf)
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		buf.Write(testXMLGreeting)
+		var msg message
+		d.Decode(&msg)
+	}
+}
+
+var testXMLGreeting = []byte(`<?xml version="1.0" encoding="utf-8"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+	<greeting>
+		<svID>Example EPP server epp.example.com</svID>
+		<svDate>2000-06-08T22:00:00.0Z</svDate>
+		<svcMenu>
+			<version>1.0</version>
+			<lang>en</lang>
+			<lang>fr</lang>
+			<objURI>urn:ietf:params:xml:ns:obj1</objURI>
+			<objURI>urn:ietf:params:xml:ns:obj2</objURI>
+			<objURI>urn:ietf:params:xml:ns:obj3</objURI>
+			<svcExtension>
+				<extURI>http://custom/obj1ext-1.0</extURI>
+			</svcExtension>
+		</svcMenu>
+		<dcp>
+			<access><all/></access>
+			<statement>
+				<purpose><admin/><prov/></purpose>
+				<recipient><ours/><public/></recipient>
+				<retention><stated/></retention>
+			</statement>
+		</dcp>
+	</greeting>
+</epp>`)

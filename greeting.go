@@ -42,3 +42,60 @@ func (c *Conn) readGreeting() (*Greeting, error) {
 	}
 	return msg.Greeting, nil
 }
+
+func (d *Decoder) decodeGreeting(g *Greeting) error {
+	d.Reset()
+	g.ServiceLanguages = g.ServiceLanguages[:0]
+	g.ServiceVersions = g.ServiceVersions[:0]
+	g.ServiceObjects = g.ServiceObjects[:0]
+	g.ServiceExtensions = g.ServiceExtensions[:0]
+	for {
+		t, err := d.Token()
+		if err != nil && err != io.EOF {
+			return err
+		}
+		if t == nil {
+			break
+		}
+		switch node := t.(type) {
+		case xml.StartElement:
+			// Ignore <dcp> section entirely
+			if node.Name.Local == "dcp" {
+				err = d.Skip()
+				if err != nil {
+					return err
+				}
+			}
+
+		case xml.EndElement:
+			// Escape early (skip remaining XML)
+			var t Time
+			if node.Name.Local == "svcMenu" &&
+				g.ServerName != "" &&
+				g.ServerTime != t {
+				return nil
+			}
+
+		// Extract character data
+		case xml.CharData:
+			if len(d.Stack) == 0 {
+				continue
+			}
+			switch d.Stack[len(d.Stack)-1].Name.Local {
+			case "svID":
+				g.ServerName = string(node)
+			case "svDate":
+				g.ServerTime.UnmarshalText(node)
+			case "version":
+				g.ServiceVersions = append(g.ServiceVersions, string(node))
+			case "lang":
+				g.ServiceLanguages = append(g.ServiceLanguages, string(node))
+			case "objURI":
+				g.ServiceObjects = append(g.ServiceObjects, string(node))
+			case "extURI":
+				g.ServiceExtensions = append(g.ServiceExtensions, string(node))
+			}
+		}
+	}
+	return nil
+}
