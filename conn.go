@@ -111,6 +111,12 @@ func (c *Conn) id() string {
 	return fmt.Sprintf("%016x", atomic.AddUint64(&c.txnID, 1))
 }
 
+// writeID writes the XML for the transaction ID.
+func (c *Conn) writeID() error {
+	_, err := fmt.Fprintf(&c.buf, "<clTRID>%016x</clTRID>", atomic.AddUint64(&c.txnID, 1))
+	return err
+}
+
 // TxnID returns the current client transaction ID for c.
 // This generally corresponds to the number of commands performed.
 func (c *Conn) TxnID() uint64 {
