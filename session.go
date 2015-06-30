@@ -1,10 +1,20 @@
 package epp
 
-import "encoding/xml"
+import (
+	"bytes"
+	"encoding/xml"
+)
 
 // Login initializes an authenticated EPP session.
 func (c *Conn) Login(user, password, newPassword string) error {
-	err := c.encodeLogin(user, password, newPassword)
+	ver, lang := "1.0", "en"
+	if len(c.Greeting.Versions) > 0 {
+		ver = c.Greeting.Versions[0]
+	}
+	if len(c.Greeting.Languages) > 0 {
+		lang = c.Greeting.Languages[0]
+	}
+	err := encodeLogin(&c.buf, user, password, newPassword, ver, lang, c.Greeting.Objects, c.Greeting.Extensions)
 	if err != nil {
 		return err
 	}
@@ -16,51 +26,40 @@ func (c *Conn) Login(user, password, newPassword string) error {
 	return c.readMessage(&msg)
 }
 
-func (c *Conn) encodeLogin(user, password, newPassword string) error {
-	c.buf.Reset()
-	c.buf.Write(xmlCommandPrefix)
-	c.buf.WriteString(`<login><clID>`)
-	xml.EscapeText(&c.buf, []byte(user))
-	c.buf.WriteString(`</clID><pw>`)
-	xml.EscapeText(&c.buf, []byte(password))
+func encodeLogin(buf *bytes.Buffer, user, password, newPassword, version, language string, objects, extensions []string) error {
+	buf.Reset()
+	buf.Write(xmlCommandPrefix)
+	buf.WriteString(`<login><clID>`)
+	xml.EscapeText(buf, []byte(user))
+	buf.WriteString(`</clID><pw>`)
+	xml.EscapeText(buf, []byte(password))
 	if len(newPassword) > 0 {
-		c.buf.WriteString(`</pw><newPW>`)
-		xml.EscapeText(&c.buf, []byte(newPassword))
-		c.buf.WriteString(`</newPW><options>`)
+		buf.WriteString(`</pw><newPW>`)
+		xml.EscapeText(buf, []byte(newPassword))
+		buf.WriteString(`</newPW><options><version>`)
 	} else {
-		c.buf.WriteString(`</pw><options>`)
+		buf.WriteString(`</pw><options><version>`)
 	}
-	if len(c.Greeting.Versions) > 0 {
-		c.buf.WriteString(`<version>`)
-		xml.EscapeText(&c.buf, []byte(c.Greeting.Versions[0]))
-		c.buf.WriteString(`</version>`)
-	} else {
-		c.buf.WriteString(`<version>1.0</version>`)
+	xml.EscapeText(buf, []byte(version))
+	buf.WriteString(`</version><lang>`)
+	xml.EscapeText(buf, []byte(language))
+	buf.WriteString(`</lang></options><svcs>`)
+	for _, o := range objects {
+		buf.WriteString(`<objURI>`)
+		xml.EscapeText(buf, []byte(o))
+		buf.WriteString(`</objURI>`)
 	}
-	if len(c.Greeting.Languages) > 0 {
-		c.buf.WriteString(`<lang>`)
-		xml.EscapeText(&c.buf, []byte(c.Greeting.Languages[0]))
-		c.buf.WriteString(`</lang>`)
-	} else {
-		c.buf.WriteString(`<lang>en</lang>`)
-	}
-	c.buf.WriteString(`</options><svcs>`)
-	for _, o := range c.Greeting.Objects {
-		c.buf.WriteString(`<objURI>`)
-		xml.EscapeText(&c.buf, []byte(o))
-		c.buf.WriteString(`</objURI>`)
-	}
-	if len(c.Greeting.Extensions) > 0 {
-		c.buf.WriteString(`<svcExtension>`)
-		for _, o := range c.Greeting.Extensions {
-			c.buf.WriteString(`<extURI>`)
-			xml.EscapeText(&c.buf, []byte(o))
-			c.buf.WriteString(`</extURI>`)
+	if len(extensions) > 0 {
+		buf.WriteString(`<svcExtension>`)
+		for _, o := range extensions {
+			buf.WriteString(`<extURI>`)
+			xml.EscapeText(buf, []byte(o))
+			buf.WriteString(`</extURI>`)
 		}
-		c.buf.WriteString(`</svcExtension>`)
+		buf.WriteString(`</svcExtension>`)
 	}
-	c.buf.WriteString(`</svcs></login>`)
-	c.buf.Write(xmlCommandSuffix)
+	buf.WriteString(`</svcs></login>`)
+	buf.Write(xmlCommandSuffix)
 	return nil
 }
 

@@ -1,8 +1,8 @@
 package epp
 
 import (
+	"bytes"
 	"encoding/xml"
-	"net"
 	"testing"
 
 	"github.com/nbio/st"
@@ -16,24 +16,24 @@ func TestConnLogin(t *testing.T) {
 }
 
 func TestEncodeLogin(t *testing.T) {
-	c := newConn(&net.IPConn{})
-	err := c.encodeLogin("jane", "battery", "")
+	var buf bytes.Buffer
+	err := encodeLogin(&buf, "jane", "battery", "", "1.0", "en", nil, nil)
 	st.Expect(t, err, nil)
-	st.Expect(t, c.buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
+	st.Expect(t, buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
 <epp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd" xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><login><clID>jane</clID><pw>battery</pw><options><version>1.0</version><lang>en</lang></options><svcs></svcs></login></command></epp>`)
 	var msg message
-	err = xml.Unmarshal(c.buf.Bytes(), &msg)
+	err = xml.Unmarshal(buf.Bytes(), &msg)
 	st.Expect(t, err, nil)
 }
 
 func TestEncodeLoginChangePassword(t *testing.T) {
-	c := newConn(&net.IPConn{})
-	err := c.encodeLogin("jane", "battery", "horse")
+	var buf bytes.Buffer
+	err := encodeLogin(&buf, "jane", "battery", "horse", "1.0", "en", nil, nil)
 	st.Expect(t, err, nil)
-	st.Expect(t, c.buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
+	st.Expect(t, buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
 <epp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd" xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><login><clID>jane</clID><pw>battery</pw><newPW>horse</newPW><options><version>1.0</version><lang>en</lang></options><svcs></svcs></login></command></epp>`)
 	var msg message
-	err = xml.Unmarshal(c.buf.Bytes(), &msg)
+	err = xml.Unmarshal(buf.Bytes(), &msg)
 	st.Expect(t, err, nil)
 }
 
@@ -75,12 +75,8 @@ func BenchmarkMarshalLogin(b *testing.B) {
 }
 
 func BenchmarkEncodeLogin(b *testing.B) {
-	b.StopTimer()
-	c := newConn(&net.IPConn{})
-	c.Greeting.Objects = testObjects
-	c.Greeting.Extensions = testExtensions
-	b.StartTimer()
+	var buf bytes.Buffer
 	for i := 0; i < b.N; i++ {
-		c.encodeLogin("jane", "battery", "horse")
+		encodeLogin(&buf, "jane", "battery", "horse", "1.0", "en", testObjects, testExtensions)
 	}
 }
