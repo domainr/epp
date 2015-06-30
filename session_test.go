@@ -15,9 +15,9 @@ func TestConnLogin(t *testing.T) {
 	st.Assert(t, err, nil)
 }
 
-func TestWriteLogin(t *testing.T) {
+func TestEncodeLogin(t *testing.T) {
 	c := newConn(&net.IPConn{})
-	err := c.writeLogin("jane", "battery", "")
+	err := c.encodeLogin("jane", "battery", "")
 	st.Expect(t, err, nil)
 	st.Expect(t, c.buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
 <epp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd" xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><login><clID>jane</clID><pw>battery</pw><options><version>1.0</version><lang>en</lang></options><svcs></svcs></login><clTRID>0000000000000001</clTRID></command></epp>`)
@@ -26,9 +26,9 @@ func TestWriteLogin(t *testing.T) {
 	st.Expect(t, err, nil)
 }
 
-func TestWriteLoginChangePassword(t *testing.T) {
+func TestEncodeLoginChangePassword(t *testing.T) {
 	c := newConn(&net.IPConn{})
-	err := c.writeLogin("jane", "battery", "horse")
+	err := c.encodeLogin("jane", "battery", "horse")
 	st.Expect(t, err, nil)
 	st.Expect(t, c.buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
 <epp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd" xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><login><clID>jane</clID><pw>battery</pw><newPW>horse</newPW><options><version>1.0</version><lang>en</lang></options><svcs></svcs></login><clTRID>0000000000000001</clTRID></command></epp>`)
@@ -75,13 +75,13 @@ func BenchmarkMarshalLogin(b *testing.B) {
 	}
 }
 
-func BenchmarkWriteLogin(b *testing.B) {
+func BenchmarkEncodeLogin(b *testing.B) {
 	b.StopTimer()
 	c := newConn(&net.IPConn{})
 	c.Greeting.Objects = testObjects
 	c.Greeting.Extensions = testExtensions
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		c.writeLogin("jane", "battery", "horse")
+		c.encodeLogin("jane", "battery", "horse")
 	}
 }

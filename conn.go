@@ -55,6 +55,11 @@ func (c *Conn) writeMessage(msg *message) error {
 	return c.writeDataUnit(c.buf.Bytes())
 }
 
+// flushDataUnit writes bytes from c.buf to c using writeDataUnit.
+func (c *Conn) flushDataUnit() error {
+	return c.writeDataUnit(c.buf.Bytes())
+}
+
 // writeDataUnit writes a slice of bytes to c.
 // Bytes written are prefixed with 32-bit header specifying the total size
 // of the data unit (message + 4 byte header), in network (big-endian) order.

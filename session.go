@@ -4,11 +4,11 @@ import "encoding/xml"
 
 // Login initializes an authenticated EPP session.
 func (c *Conn) Login(user, password, newPassword string) error {
-	err := c.writeLogin(user, password, newPassword)
+	err := c.encodeLogin(user, password, newPassword)
 	if err != nil {
 		return err
 	}
-	err = c.writeDataUnit(c.buf.Bytes())
+	err = c.flushDataUnit()
 	if err != nil {
 		return err
 	}
@@ -16,7 +16,7 @@ func (c *Conn) Login(user, password, newPassword string) error {
 	return c.readMessage(&msg)
 }
 
-func (c *Conn) writeLogin(user, password, newPassword string) error {
+func (c *Conn) encodeLogin(user, password, newPassword string) error {
 	c.buf.Reset()
 	c.buf.Write(xmlCommandPrefix)
 	c.buf.WriteString(`<login><clID>`)
