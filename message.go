@@ -1,32 +1,17 @@
 package epp
 
 import (
-	"encoding/xml"
 	"errors"
 	"fmt"
 )
 
-// marshal encodes an EPP request or message into XML,
-// returning any errors that occur.
-func marshal(msg interface{}) ([]byte, error) {
-	return xml.Marshal(msg)
-}
-
-// unmarshal decodes an EPP XML response into res,
-// returning any errors, including any EPP errors
-// received in the response message.
-func unmarshal(data []byte, msg *message) error {
-	err := xml.Unmarshal(data, msg)
-	if err != nil {
-		return err
+func (msg *message) error() error {
+	if msg.Response == nil || len(msg.Response.Results) == 0 {
+		return nil
 	}
-	// color.Fprintf(os.Stderr, "@{y}%s\n", spew.Sprintf("%+v", req))
-	res := msg.Response
-	if res != nil && len(res.Results) > 0 {
-		r := res.Results[0]
-		if r.IsError() {
-			return r
-		}
+	r := msg.Response.Results[0]
+	if r.IsError() {
+		return r
 	}
 	return nil
 }
@@ -36,7 +21,6 @@ type message struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 
 	// Message types. Set to nil if not present in message.
-	Hello    *hello    `xml:"hello"`
 	Greeting *Greeting `xml:"greeting,omitempty"`
 	Command  *command  `xml:"command,omitempty"`
 	Response *response `xml:"response,omitempty"`
@@ -44,18 +28,11 @@ type message struct {
 
 // EPP requests
 
-// hello represents an initial EPP hello request.
-// <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><hello/></epp>
-type hello struct{}
-
 // command represents an EPP command wrapper.
 type command struct {
 	// Command types. Set to nil if not present in message.
 	Login *login `xml:"login,omitempty"`
 	Check *check `xml:"check"`
-
-	// TxnID represents a unique client ID for this transaction.
-	TxnID string `xml:"clTRID"`
 }
 
 // loginCommand authenticates and authorizes an EPP session.
@@ -85,8 +62,6 @@ type domainCheck struct {
 type response struct {
 	Results      []Result `xml:"result"`
 	Queue        *queue   `xml:"msgQ,omitempty"`
-	TxnID        string   `xml:"trID>clTRID"`
-	ServerTxnID  string   `xml:"trID>svTRID"`
 	ResponseData struct {
 		DomainCheckData *domainCheckData `xml:"urn:ietf:params:xml:ns:domain-1.0 chkData,omitempty"`
 	} `xml:"resData"`

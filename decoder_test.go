@@ -2,34 +2,57 @@ package epp
 
 import (
 	"bytes"
+	"encoding/xml"
 	"testing"
 
 	"github.com/nbio/st"
 )
 
-func TestConnCheck(t *testing.T) {
-	c := testLogin(t)
-
-	dc, err := c.CheckDomain("google.com")
+func logMarshal(t *testing.T, msg *message) {
+	x, err := xml.Marshal(&msg)
 	st.Expect(t, err, nil)
-	st.Reject(t, dc, nil)
-	st.Expect(t, len(dc.Results), 1)
-	st.Expect(t, dc.Results[0].Domain.Domain, "google.com")
-	st.Expect(t, dc.Results[0].Domain.IsAvailable, false)
-
-	dc, err = c.CheckDomain("dmnr-test-x759824vim-i2.com")
-	st.Expect(t, err, nil)
-	st.Reject(t, dc, nil)
-	st.Expect(t, len(dc.Results), 1)
-	st.Expect(t, dc.Results[0].Domain.Domain, "dmnr-test-x759824vim-i2.com")
-	st.Expect(t, dc.Results[0].Domain.IsAvailable, true)
-
-	dc, err = c.CheckDomain("--dmnr-test--.com")
-	st.Reject(t, err, nil)
-	st.Expect(t, dc, (*DomainCheck)(nil))
+	t.Logf("<!-- MARSHALED -->\n%s\n", string(x))
 }
 
-func TestDecodeCheckDomainResponse(t *testing.T) {
+func TestDecoderReuse(t *testing.T) {
+	buf := bytes.Buffer{}
+	d := NewDecoder(&buf)
+
+	v := struct {
+		XMLName struct{} `xml:"hello"`
+		Foo     string   `xml:"foo"`
+	}{}
+
+	buf.Reset()
+	buf.Write([]byte(`<hello><foo>foo</foo></hello>`))
+	d.Reset()
+	st.Expect(t, d.InputOffset(), int64(0))
+	d.Decode(&v)
+	st.Expect(t, v.Foo, "foo")
+	st.Expect(t, d.InputOffset(), int64(29))
+
+	buf.Reset()
+	buf.Write([]byte(`<hello><foo>bar</foo></hello>`))
+	d.Reset()
+	st.Expect(t, d.InputOffset(), int64(0))
+	tok, _ := d.Token()
+	se := tok.(xml.StartElement)
+	st.Expect(t, se.Name.Local, "hello")
+	tok, _ = d.Token()
+	se = tok.(xml.StartElement)
+	st.Expect(t, se.Name.Local, "foo")
+	st.Expect(t, d.InputOffset(), int64(12))
+
+	buf.Reset()
+	buf.Write([]byte(`<hello><foo>blam&lt;</foo></hello>`))
+	d.Reset()
+	st.Expect(t, d.InputOffset(), int64(0))
+	d.Decode(&v)
+	st.Expect(t, v.Foo, "blam<")
+	st.Expect(t, d.InputOffset(), int64(34))
+}
+
+func TestUnmarshalCheckDomainResponse(t *testing.T) {
 	x := []byte(`<?xml version="1.0" encoding="utf-8"?>
 <epp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd" xmlns="urn:ietf:params:xml:ns:epp-1.0">
 	<response>
@@ -66,6 +89,11 @@ func TestDecodeCheckDomainResponse(t *testing.T) {
 </epp>`)
 
 	d := NewDecoder(bytes.NewBuffer(x))
-	_, err := decodeCheckDomainResponse(&d)
+	var msg message
+	err := d.DecodeMessage(&msg)
 	st.Expect(t, err, nil)
+	st.Reject(t, msg.Response, nil)
+	st.Expect(t, msg.Response.ResponseData.DomainCheckData.Results[0].Domain.Domain, "good.memorial")
+	st.Expect(t, msg.Response.ResponseData.DomainCheckData.Results[0].Domain.IsAvailable, true)
+	logMarshal(t, &msg)
 }
