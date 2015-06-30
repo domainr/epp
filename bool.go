@@ -46,7 +46,7 @@ func (b Bool) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 }
 
 // MarshalXMLAttr implements the xml.MarshalerAttr interface.
-// Attributes will be serialized with a value of "1".
+// Attributes will be serialized with a value of "0" or "1".
 func (b Bool) MarshalXMLAttr(name xml.Name) (attr xml.Attr, err error) {
 	attr.Name = name
 	if b {
