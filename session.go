@@ -60,7 +60,7 @@ func (c *Conn) encodeLogin(user, password, newPassword string) error {
 		c.buf.WriteString(`</svcExtension>`)
 	}
 	c.buf.WriteString(`</svcs></login>`)
-	c.writeID()
+	c.encodeID()
 	c.buf.Write(xmlCommandSuffix)
 	return nil
 }

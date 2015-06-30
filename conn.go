@@ -116,8 +116,8 @@ func (c *Conn) id() string {
 	return fmt.Sprintf("%016x", atomic.AddUint64(&c.txnID, 1))
 }
 
-// writeID writes the XML for the transaction ID.
-func (c *Conn) writeID() error {
+// encodeID writes the XML for the transaction ID to c.buf.
+func (c *Conn) encodeID() error {
 	_, err := fmt.Fprintf(&c.buf, "<clTRID>%016x</clTRID>", atomic.AddUint64(&c.txnID, 1))
 	return err
 }
