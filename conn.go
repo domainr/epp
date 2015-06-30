@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/xml"
-	"fmt"
 	"io"
 	"net"
-	"sync/atomic"
 )
 
 // Conn represents a single connection to an EPP server.
@@ -17,7 +15,6 @@ type Conn struct {
 	buf     bytes.Buffer
 	decoder Decoder
 	encoder *xml.Encoder
-	txnID   uint64
 
 	// Greeting holds the last received greeting message from the server,
 	// indicating server name, status, data policy and capabilities.
@@ -109,21 +106,4 @@ func (c *Conn) readDataUnit() error {
 	}
 	logXML("<-- READ DATA UNIT -->", c.buf.Bytes())
 	return nil
-}
-
-// id returns a zero-padded 16-character hex uint64 transaction ID.
-func (c *Conn) id() string {
-	return fmt.Sprintf("%016x", atomic.AddUint64(&c.txnID, 1))
-}
-
-// encodeID writes the XML for the transaction ID to c.buf.
-func (c *Conn) encodeID() error {
-	_, err := fmt.Fprintf(&c.buf, "<clTRID>%016x</clTRID>", atomic.AddUint64(&c.txnID, 1))
-	return err
-}
-
-// TxnID returns the current client transaction ID for c.
-// This generally corresponds to the number of commands performed.
-func (c *Conn) TxnID() uint64 {
-	return c.txnID
 }

@@ -38,17 +38,3 @@ func TestNewConn(t *testing.T) {
 	st.Reject(t, c, nil)
 	st.Reject(t, c.Greeting, nil)
 }
-
-func TestConnID(t *testing.T) {
-	var c Conn
-	st.Expect(t, c.id(), "0000000000000001")
-	st.Expect(t, c.id(), "0000000000000002")
-	st.Expect(t, c.id(), "0000000000000003")
-	st.Expect(t, c.id(), "0000000000000004")
-	st.Expect(t, c.id(), "0000000000000005")
-	st.Expect(t, c.id(), "0000000000000006")
-	st.Expect(t, c.id(), "0000000000000007")
-	st.Expect(t, c.id(), "0000000000000008")
-	st.Expect(t, c.id(), "0000000000000009")
-	st.Expect(t, c.id(), "000000000000000a")
-}

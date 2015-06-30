@@ -33,9 +33,6 @@ type command struct {
 	// Command types. Set to nil if not present in message.
 	Login *login `xml:"login,omitempty"`
 	Check *check `xml:"check"`
-
-	// TxnID represents a unique client ID for this transaction.
-	TxnID string `xml:"clTRID"`
 }
 
 // loginCommand authenticates and authorizes an EPP session.
@@ -65,11 +62,8 @@ type domainCheck struct {
 type response struct {
 	Results      []Result `xml:"result"`
 	Queue        *queue   `xml:"msgQ,omitempty"`
-	TxnID        string   `xml:"trID>clTRID"`
-	ServerTxnID  string   `xml:"trID>svTRID"`
 	ResponseData struct {
 		DomainCheckData *domainCheckData `xml:"urn:ietf:params:xml:ns:domain-1.0 chkData,omitempty"`
-		ChargeCheckData *chargeCheckData `xml:"http://www.unitedtld.com/epp/charge-1.0 chkData,omitempty"`
 	} `xml:"resData"`
 }
 
@@ -111,19 +105,6 @@ type domainCheckData struct {
 			IsAvailable bool   `xml:"avail,attr"`
 		} `xml:"name"`
 		Reason string `xml:"reason"`
-	} `xml:"cd"`
-}
-
-// chargeCheckData represents an EPP <charge:chkData> element.
-// http://www.unitedtld.com/epp/charge-1.0
-type chargeCheckData struct {
-	Results []struct {
-		Domain   string `xml:"name"`
-		Category struct {
-			Value string `xml:",chardata"`
-			Name  bool   `xml:"name,attr"`
-		} `xml:"set>category"`
-		Type string `xml:"set>type"`
 	} `xml:"cd"`
 }
 

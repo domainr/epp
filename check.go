@@ -35,7 +35,6 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheck, error) {
 					Domains: domains,
 				},
 			},
-			TxnID: c.id(),
 		},
 	}
 	err := c.writeMessage(&req)
