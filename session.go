@@ -99,8 +99,7 @@ outer:
 			}
 
 		case xml.CharData:
-			e := d.Element()
-			if e != nil && e.Name.Local == "msg" {
+			if d.AtPath("response", "result", "msg") {
 				r.Message = string(node)
 			}
 		}

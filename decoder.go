@@ -21,13 +21,34 @@ func NewDecoder(r io.Reader) Decoder {
 	return Decoder{Decoder: *d, saved: *d}
 }
 
-// Element returns the current StartElement.
-// Returns nil if not inside an XML tag.
-func (d *Decoder) Element() *xml.StartElement {
-	if len(d.Stack) == 0 {
-		return nil
+// Element returns StartElement indexed by i.
+// Indexes < 0 are offset from len(d.stack).
+// Returns a zero-value StartElement if i is out of bounds, or
+// the decoder is not inside an XML tag.
+func (d *Decoder) Element(i int) xml.StartElement {
+	if i < 0 {
+		i += len(d.Stack)
 	}
-	return &d.Stack[len(d.Stack)-1]
+	if i < 0 || i >= len(d.Stack) {
+		return xml.StartElement{}
+	}
+	return d.Stack[i]
+}
+
+// AtPath determines if the current local element
+// path ends with path.
+func (d *Decoder) AtPath(path ...string) bool {
+	ls := len(d.Stack)
+	lp := len(path)
+	if ls < lp {
+		return false
+	}
+	for i := 1; i <= lp; i++ {
+		if d.Stack[ls-i].Name.Local != path[lp-i] {
+			return false
+		}
+	}
+	return true
 }
 
 // Reset restores the original state of the underlying

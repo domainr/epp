@@ -67,11 +67,7 @@ func decodeGreeting(d *Decoder, g *Greeting) error {
 			}
 
 		case xml.CharData:
-			e := d.Element()
-			if e == nil {
-				break
-			}
-			switch e.Name.Local {
+			switch d.Element(-1).Name.Local {
 			case "svID":
 				g.ServerName = string(node)
 			case "version":
