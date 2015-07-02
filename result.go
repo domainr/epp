@@ -30,9 +30,9 @@ func (r Result) Error() string {
 	return fmt.Sprintf("EPP result code %d: %s", r.Code, r.Message)
 }
 
-// decodeResult decodes a Result from a Decoder.
+// decodeResult decodes Result r from Decoder d.
 // It does not reset the Decoder.
-func decodeResult(d *Decoder, r *Result) error {
+func (d *Decoder) decodeResult(r *Result) error {
 	*r = Result{}
 	err := d.DecodeElementWith(d.Element(-1), func(t xml.Token) error {
 		switch node := t.(type) {

@@ -72,7 +72,7 @@ func decodeDomainCheckResponse(d *Decoder) ([]DomainCheck_, error) {
 		case xml.StartElement:
 			switch {
 			case d.AtPath("epp", "response", "result"):
-				err := decodeResult(d, &r)
+				err := d.decodeResult(&r)
 				if err != nil {
 					return dcs, err
 				}

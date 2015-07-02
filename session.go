@@ -63,7 +63,7 @@ func encodeLogin(buf *bytes.Buffer, user, password, newPassword, version, langua
 	return nil
 }
 
-func decodeLoginResponse(d *Decoder) error {
+func (d *Decoder) decodeLoginResponse() error {
 	var r Result
-	return decodeResult(d, &r)
+	return d.decodeResult(&r)
 }
