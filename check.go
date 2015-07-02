@@ -1,10 +1,6 @@
 package epp
 
-import (
-	"encoding/xml"
-	"fmt"
-	"io"
-)
+import "io"
 
 // <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
 //   <command>
@@ -69,15 +65,15 @@ func decodeCheckDomainResponse(d *Decoder) (*domainCheckData, error) {
 		if t == nil {
 			break
 		}
-		switch node := t.(type) {
-		case xml.StartElement:
-			fmt.Printf("StartElement: %s %s\n", node.Name.Space, node.Name.Local)
-		case xml.EndElement:
-			fmt.Printf("EndElement: %s %s\n", node.Name.Space, node.Name.Local)
-		case xml.CharData:
-			fmt.Printf("CharData: %s\n", string(node))
-		}
-		fmt.Printf("Stack: %+v\n", d.Stack)
+		// switch node := t.(type) {
+		// case xml.StartElement:
+		// 	fmt.Printf("StartElement: %s %s\n", node.Name.Space, node.Name.Local)
+		// case xml.EndElement:
+		// 	fmt.Printf("EndElement: %s %s\n", node.Name.Space, node.Name.Local)
+		// case xml.CharData:
+		// 	fmt.Printf("CharData: %s\n", string(node))
+		// }
+		// fmt.Printf("Stack: %+v\n", d.Stack)
 	}
 	return data, nil
 }
