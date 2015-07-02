@@ -63,7 +63,7 @@ outer:
 			}
 
 		case xml.CharData:
-			if d.AtPath("response", "result", "msg") {
+			if d.AtPath("result", "msg") {
 				r.Message = string(node)
 			}
 		}
