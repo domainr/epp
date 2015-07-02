@@ -88,6 +88,8 @@ func (d *Decoder) Token() (xml.Token, error) {
 	return t, err
 }
 
+// DecodeWith is an experimental function to wrap the underlying
+// for loop + switch pattern when using xml.Decoder.
 func (d *Decoder) DecodeWith(fs func(xml.StartElement) error, fe func(xml.EndElement) error, fc func(xml.CharData) error) error {
 	d.Reset()
 	for {
