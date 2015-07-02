@@ -67,5 +67,6 @@ func TestDecodeCheckDomainResponse(t *testing.T) {
 
 	d := NewDecoder(bytes.NewBuffer(x))
 	_, err := decodeDomainCheckResponse(&d)
+	err = IgnoreEOF(err)
 	st.Expect(t, err, nil)
 }

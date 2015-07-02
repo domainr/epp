@@ -8,6 +8,15 @@ import (
 	"net"
 )
 
+// IgnoreEOF returns err unless err == io.EOF,
+// in which case it returns nil.
+func IgnoreEOF(err error) error {
+	if err == io.EOF {
+		return nil
+	}
+	return err
+}
+
 // Conn represents a single connection to an EPP server.
 // This implementation is not safe for concurrent use.
 type Conn struct {

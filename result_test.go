@@ -16,7 +16,7 @@ func TestDecodeResult(t *testing.T) {
 	buf.Reset()
 	buf.WriteString(`<result code="1000"><msg>Command completed successfully</msg></result>`)
 	d.Reset()
-	err := decodeResult(&d, &r)
+	err := IgnoreEOF(decodeResult(&d, &r))
 	st.Expect(t, err, nil)
 	st.Expect(t, r.Code, 1000)
 	st.Expect(t, r.Message, "Command completed successfully")

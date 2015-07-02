@@ -30,7 +30,7 @@ func TestDecodeGreeting(t *testing.T) {
 
 	d = NewDecoder(bytes.NewBuffer(testXMLGreeting))
 	var g Greeting
-	err = decodeGreeting(&d, &g)
+	err = IgnoreEOF(decodeGreeting(&d, &g))
 	st.Expect(t, err, nil)
 	st.Expect(t, g.ServerName, "Example EPP server epp.example.com")
 	st.Expect(t, g.Objects[0], "urn:ietf:params:xml:ns:obj1")
