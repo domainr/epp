@@ -1,6 +1,9 @@
 package epp
 
-import "io"
+import (
+	"encoding/xml"
+	"io"
+)
 
 // <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
 //   <command>
@@ -54,26 +57,85 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheck, error) {
 // FIXME: remove/improve this.
 type DomainCheck domainCheckData
 
-func decodeCheckDomainResponse(d *Decoder) (*domainCheckData, error) {
+func decodeDomainCheckResponse(d *Decoder) ([]DomainCheck_, error) {
 	d.Reset()
-	data := &domainCheckData{}
+	var dcs []DomainCheck_
 	for {
 		t, err := d.Token()
-		if err != nil && err != io.EOF {
-			return nil, err
-		}
-		if t == nil {
+		if err == io.EOF {
 			break
 		}
-		// switch node := t.(type) {
-		// case xml.StartElement:
-		// 	fmt.Printf("StartElement: %s %s\n", node.Name.Space, node.Name.Local)
-		// case xml.EndElement:
-		// 	fmt.Printf("EndElement: %s %s\n", node.Name.Space, node.Name.Local)
-		// case xml.CharData:
-		// 	fmt.Printf("CharData: %s\n", string(node))
-		// }
+		if err != nil {
+			return dcs, err
+		}
+		switch node := t.(type) {
+		case xml.StartElement:
+			switch {
+			case d.AtPath("epp", "response", "result"):
+				_, err := decodeResult(d)
+				if err != nil {
+					return dcs, err
+				}
+
+			case d.AtPath("resData", "chkData", "cd"):
+				_, err := decodeDomainCheckData(d)
+				if err != nil {
+					return dcs, err
+				}
+			}
+
+		case xml.CharData:
+			if string(node) != "" {
+
+			}
+		}
 		// fmt.Printf("Stack: %+v\n", d.Stack)
+	}
+	return dcs, nil
+}
+
+type DomainCheck_ struct {
+	Domain    string
+	Reason    string
+	Available bool
+}
+
+type domainCheckData_ struct {
+	domain    string
+	available Bool
+	reason    string
+}
+
+func decodeDomainCheckData(d *Decoder) (domainCheckData_, error) {
+	var data domainCheckData_
+outer:
+	for {
+		t, err := d.Token()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return data, err
+		}
+		switch node := t.(type) {
+		case xml.EndElement:
+			if node.Name.Local == "cd" {
+				break outer
+			}
+		case xml.CharData:
+			e := d.Element(-1)
+			switch e.Name.Local {
+			case "name":
+				data.domain = string(node)
+				for _, a := range e.Attr {
+					if a.Name.Local == "avail" {
+						data.available.UnmarshalXMLAttr(&a)
+					}
+				}
+			case "reason":
+				data.reason = string(node)
+			}
+		}
 	}
 	return data, nil
 }
