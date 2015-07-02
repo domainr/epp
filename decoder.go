@@ -88,11 +88,13 @@ func (d *Decoder) Token() (xml.Token, error) {
 	return t, err
 }
 
-// DecodeWith is an experimental function to wrap the underlying
-// for loop + switch pattern when using xml.Decoder.
+// DecodeWith wraps the standard xml.Decoder for loop + switch pattern.
+// It recursively calls d.DecodeWith for each StartElement encountered,
+// and returns when it encounters an xml.EndElement.
 // If a call to f returns an error, it exits early, returning that error.
 // It does not reset the decoder.
 func (d *Decoder) DecodeWith(f func(xml.Token) error) error {
+	top := len(d.Stack) == 0
 	for {
 		t, err := d.Token()
 		if err != nil {
@@ -101,6 +103,18 @@ func (d *Decoder) DecodeWith(f func(xml.Token) error) error {
 		err = f(t)
 		if err != nil {
 			return err
+		}
+		switch t.(type) {
+		case xml.StartElement:
+			err = d.DecodeWith(f)
+			if err != nil {
+				return err
+			}
+			if top {
+				return nil
+			}
+		case xml.EndElement:
+			return nil
 		}
 	}
 	return nil

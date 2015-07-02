@@ -1,9 +1,6 @@
 package epp
 
-import (
-	"encoding/xml"
-	"io"
-)
+import "encoding/xml"
 
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
 func (c *Conn) Hello() error {
@@ -43,12 +40,13 @@ func decodeGreeting(d *Decoder, g *Greeting) error {
 	g.Extensions = g.Extensions[:0]
 	return d.DecodeWith(func(t xml.Token) error {
 		switch node := t.(type) {
-		case xml.EndElement:
-			// Escape early (skip remaining XML)
-			if node.Name.Local == "svcMenu" &&
-				g.ServerName != "" {
-				return io.EOF
-			}
+		// FIXME: re-optimize this with a special error type?
+		// case xml.EndElement:
+		// 	// Escape early (skip remaining XML)
+		// 	if node.Name.Local == "svcMenu" &&
+		// 		g.ServerName != "" {
+		// 		return io.EOF
+		// 	}
 
 		case xml.CharData:
 			switch d.Element(-1).Name.Local {

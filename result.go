@@ -3,7 +3,6 @@ package epp
 import (
 	"encoding/xml"
 	"fmt"
-	"io"
 	"strconv"
 )
 
@@ -47,12 +46,6 @@ func decodeResult(d *Decoder, r *Result) error {
 						break
 					}
 				}
-			}
-
-		case xml.EndElement:
-			// Escape early (skip remaining XML)
-			if node.Name.Local == "result" {
-				return io.EOF
 			}
 
 		case xml.CharData:
