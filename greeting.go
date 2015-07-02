@@ -31,39 +31,23 @@ func (c *Conn) readGreeting() error {
 	if err != nil {
 		return err
 	}
+	c.decoder.Reset()
 	return decodeGreeting(&c.decoder, &c.Greeting)
 }
 
 func decodeGreeting(d *Decoder, g *Greeting) error {
-	d.Reset()
 	g.ServerName = ""
 	g.Languages = g.Languages[:0]
 	g.Versions = g.Versions[:0]
 	g.Objects = g.Objects[:0]
 	g.Extensions = g.Extensions[:0]
-	for {
-		t, err := d.Token()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
+	return d.DecodeWith(func(t xml.Token) error {
 		switch node := t.(type) {
-		case xml.StartElement:
-			// Ignore <dcp> section entirely
-			if node.Name.Local == "dcp" {
-				err = d.decoder.Skip() // FIXME: Skip doesn’t change d.Stack
-				if err != nil {
-					return err
-				}
-			}
-
 		case xml.EndElement:
 			// Escape early (skip remaining XML)
 			if node.Name.Local == "svcMenu" &&
 				g.ServerName != "" {
-				return nil
+				return io.EOF
 			}
 
 		case xml.CharData:
@@ -80,6 +64,6 @@ func decodeGreeting(d *Decoder, g *Greeting) error {
 				g.Extensions = append(g.Extensions, string(node))
 			}
 		}
-	}
-	return nil
+		return nil
+	})
 }
