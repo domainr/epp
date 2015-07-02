@@ -1,9 +1,6 @@
 package epp
 
-import (
-	"errors"
-	"fmt"
-)
+import "errors"
 
 func (msg *message) error() error {
 	if msg.Response == nil || len(msg.Response.Results) == 0 {
@@ -65,29 +62,6 @@ type response struct {
 	ResponseData struct {
 		DomainCheckData *domainCheckData `xml:"urn:ietf:params:xml:ns:domain-1.0 chkData,omitempty"`
 	} `xml:"resData"`
-}
-
-// Result represents an EPP server <result> element.
-type Result struct {
-	Code    int    `xml:"code,attr"`
-	Message string `xml:"msg"`
-}
-
-// IsError determines whether an EPP status code is an error.
-// https://tools.ietf.org/html/rfc5730#section-3
-func (r Result) IsError() bool {
-	return r.Code >= 2000
-}
-
-// IsFatal determines whether an EPP status code is a fatal response, and the connection should be closed.
-// https://tools.ietf.org/html/rfc5730#section-3
-func (r Result) IsFatal() bool {
-	return r.Code >= 2500
-}
-
-// Error implements the error interface.
-func (r Result) Error() string {
-	return fmt.Sprintf("EPP result code %d: %s", r.Code, r.Message)
 }
 
 // queue represents an EPP command queue.

@@ -3,8 +3,6 @@ package epp
 import (
 	"bytes"
 	"encoding/xml"
-	"io"
-	"strconv"
 )
 
 // Login initializes an authenticated EPP session.
@@ -68,46 +66,4 @@ func encodeLogin(buf *bytes.Buffer, user, password, newPassword, version, langua
 func decodeLoginResponse(d *Decoder) (Result, error) {
 	d.Reset()
 	return decodeResult(d)
-}
-
-func decodeResult(d *Decoder) (Result, error) {
-	var r Result
-outer:
-	for {
-		t, err := d.Token()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return r, err
-		}
-		switch node := t.(type) {
-		case xml.StartElement:
-			if node.Name.Local == "result" {
-				for _, a := range node.Attr {
-					if a.Name.Local == "code" {
-						r.Code, _ = strconv.Atoi(a.Value)
-						break
-					}
-				}
-			}
-
-		case xml.EndElement:
-			// Escape early (skip remaining XML)
-			if node.Name.Local == "result" {
-				break outer
-			}
-
-		case xml.CharData:
-			if d.AtPath("response", "result", "msg") {
-				r.Message = string(node)
-			}
-		}
-
-		// Escape early (skip remaining XML)
-		if r.Code > 0 && r.Message != "" {
-			break
-		}
-	}
-	return r, nil
 }
