@@ -58,7 +58,7 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheck, error) {
 type DomainCheck domainCheckData
 
 func decodeDomainCheckResponse(d *Decoder) ([]DomainCheck_, error) {
-	d.Reset()
+	var r Result
 	var dcs []DomainCheck_
 	for {
 		t, err := d.Token()
@@ -72,7 +72,7 @@ func decodeDomainCheckResponse(d *Decoder) ([]DomainCheck_, error) {
 		case xml.StartElement:
 			switch {
 			case d.AtPath("epp", "response", "result"):
-				_, err := decodeResult(d)
+				err := decodeResult(d, &r)
 				if err != nil {
 					return dcs, err
 				}

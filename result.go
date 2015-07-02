@@ -35,8 +35,7 @@ func (r Result) Error() string {
 // It optimistically stops decoding, and may leave
 // the Decoder in a half-finished state.
 // It does not reset the Decoder.
-func decodeResult(d *Decoder) (Result, error) {
-	var r Result
+func decodeResult(d *Decoder, r *Result) error {
 outer:
 	for {
 		t, err := d.Token()
@@ -44,7 +43,7 @@ outer:
 			break
 		}
 		if err != nil {
-			return r, err
+			return err
 		}
 		switch node := t.(type) {
 		case xml.StartElement:
@@ -75,7 +74,7 @@ outer:
 		}
 	}
 	if r.IsError() {
-		return r, r
+		return r
 	}
-	return r, nil
+	return nil
 }
