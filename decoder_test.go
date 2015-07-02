@@ -3,6 +3,7 @@ package epp
 import (
 	"bytes"
 	"encoding/xml"
+	"io"
 	"testing"
 
 	"github.com/nbio/st"
@@ -129,4 +130,6 @@ func TestDecoderAtPath(t *testing.T) {
 	st.Expect(t, len(d.Stack), 0)
 	st.Expect(t, d.Element(-1).Name.Local, "")
 	st.Expect(t, d.AtPath(), true)
+	_, err := d.Token()
+	st.Expect(t, err, io.EOF)
 }
