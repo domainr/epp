@@ -36,6 +36,7 @@ func (r Result) Error() string {
 // the Decoder in a half-finished state.
 // It does not reset the Decoder.
 func decodeResult(d *Decoder, r *Result) error {
+	*r = Result{}
 outer:
 	for {
 		t, err := d.Token()
@@ -66,11 +67,6 @@ outer:
 			if d.AtPath("result", "msg") {
 				r.Message = string(node)
 			}
-		}
-
-		// Escape early (skip remaining XML)
-		if r.Code > 0 && r.Message != "" {
-			break
 		}
 	}
 	if r.IsError() {
