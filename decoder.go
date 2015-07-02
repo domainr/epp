@@ -119,3 +119,13 @@ func (d *Decoder) DecodeWith(f func(xml.Token) error) error {
 	}
 	return nil
 }
+
+// DecodeElementWith decodes a single element e with func f,
+// returning any errors that occur.
+func (d *Decoder) DecodeElementWith(e xml.StartElement, f func(xml.Token) error) error {
+	err := f(e)
+	if err != nil {
+		return err
+	}
+	return d.DecodeWith(f)
+}
