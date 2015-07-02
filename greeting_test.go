@@ -45,8 +45,11 @@ func BenchmarkDecodeGreeting(b *testing.B) {
 	d := NewDecoder(&buf)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
+		b.StopTimer()
 		buf.Reset()
 		buf.Write(testXMLGreeting)
+		d.Reset()
+		b.StartTimer()
 		var g Greeting
 		decodeGreeting(&d, &g)
 	}
@@ -58,8 +61,11 @@ func BenchmarkDecoderDecodeGreeting(b *testing.B) {
 	d := NewDecoder(&buf)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
+		b.StopTimer()
 		buf.Reset()
 		buf.Write(testXMLGreeting)
+		d.Reset()
+		b.StartTimer()
 		var msg message
 		d.decoder.Decode(&msg)
 	}
