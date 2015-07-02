@@ -32,20 +32,12 @@ func (r Result) Error() string {
 }
 
 // decodeResult decodes a Result from a Decoder.
-// It optimistically stops decoding, and may leave
-// the Decoder in a half-finished state.
+// It optimistically stops decoding, and may leave the Decoder in a half-finished state.
+// To exit early, f should return io.EOF.
 // It does not reset the Decoder.
 func decodeResult(d *Decoder, r *Result) error {
 	*r = Result{}
-outer:
-	for {
-		t, err := d.Token()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
+	err := d.DecodeWith(func(t xml.Token) error {
 		switch node := t.(type) {
 		case xml.StartElement:
 			if node.Name.Local == "result" {
@@ -60,7 +52,7 @@ outer:
 		case xml.EndElement:
 			// Escape early (skip remaining XML)
 			if node.Name.Local == "result" {
-				break outer
+				return io.EOF
 			}
 
 		case xml.CharData:
@@ -68,9 +60,10 @@ outer:
 				r.Message = string(node)
 			}
 		}
-	}
+		return nil
+	})
 	if r.IsError() {
 		return r
 	}
-	return nil
+	return err
 }
