@@ -61,7 +61,7 @@ func BenchmarkDecoderDecodeGreeting(b *testing.B) {
 		buf.Reset()
 		buf.Write(testXMLGreeting)
 		var msg message
-		d.Decode(&msg)
+		d.decoder.Decode(&msg)
 	}
 }
 

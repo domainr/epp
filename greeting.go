@@ -53,7 +53,7 @@ func decodeGreeting(d *Decoder, g *Greeting) error {
 		case xml.StartElement:
 			// Ignore <dcp> section entirely
 			if node.Name.Local == "dcp" {
-				err = d.Skip()
+				err = d.decoder.Skip() // FIXME: Skip doesn’t change d.Stack
 				if err != nil {
 					return err
 				}
