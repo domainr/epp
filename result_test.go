@@ -2,6 +2,7 @@ package epp
 
 import (
 	"bytes"
+	"encoding/xml"
 	"testing"
 
 	"github.com/nbio/st"
@@ -22,6 +23,7 @@ func TestDecodeResult(t *testing.T) {
 	st.Expect(t, r.IsError(), false)
 	st.Expect(t, r.IsFatal(), false)
 
+	// Result code >= 2000 is an error.
 	buf.Reset()
 	buf.WriteString(`<result code="2001"><msg>Command syntax error</msg></result>`)
 	d.Reset()
@@ -32,6 +34,7 @@ func TestDecodeResult(t *testing.T) {
 	st.Expect(t, r.IsError(), true)
 	st.Expect(t, r.IsFatal(), false)
 
+	// Result code > 2500 is a fatal error.
 	buf.Reset()
 	buf.WriteString(`<result code="2501"><msg>Authentication error; server closing connection</msg></result>`)
 	d.Reset()
@@ -41,6 +44,16 @@ func TestDecodeResult(t *testing.T) {
 	st.Expect(t, r.Message, "Authentication error; server closing connection")
 	st.Expect(t, r.IsError(), true)
 	st.Expect(t, r.IsFatal(), true)
+
+	// Decoding should stop after </result>.
+	buf.Reset()
+	buf.WriteString(`<result code="1000"><msg>OK</msg></result><foo></foo>`)
+	d.Reset()
+	err = decodeResult(&d, &r)
+	token, err := d.Token()
+	st.Expect(t, err, nil)
+	se := token.(xml.StartElement)
+	st.Expect(t, se.Name.Local, "foo")
 }
 
 func BenchmarkDecodeResult(b *testing.B) {
@@ -52,7 +65,7 @@ func BenchmarkDecodeResult(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		buf.Reset()
-		buf.WriteString(`<result code="2501"><msg>Authentication error; server closing connection</msg></result>`)
+		buf.WriteString(`<result code="1000"><msg>Command completed successfully</msg></result>`)
 		d.Reset()
 		b.StartTimer()
 		decodeResult(&d, &r)
