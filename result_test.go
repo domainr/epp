@@ -42,3 +42,19 @@ func TestDecodeResult(t *testing.T) {
 	st.Expect(t, r.IsError(), true)
 	st.Expect(t, r.IsFatal(), true)
 }
+
+func BenchmarkDecodeResult(b *testing.B) {
+	b.StopTimer()
+	var r Result
+	var buf bytes.Buffer
+	d := NewDecoder(&buf)
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		buf.Reset()
+		buf.WriteString(`<result code="2501"><msg>Authentication error; server closing connection</msg></result>`)
+		d.Reset()
+		b.StartTimer()
+		decodeResult(&d, &r)
+	}
+}
