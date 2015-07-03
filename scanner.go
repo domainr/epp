@@ -3,6 +3,7 @@ package epp
 import (
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -87,6 +88,8 @@ func (s *Scanner) Scan(d *xml.Decoder, v interface{}) error {
 			if !ok {
 				s2, ok = s.tree[xml.Name{"", node.Name.Local}]
 				if !ok {
+					fmt.Printf("Skipping: %s\n", node.Name.Local)
+					err = d.Skip()
 					break
 				}
 			}

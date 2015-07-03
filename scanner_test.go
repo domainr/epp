@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"testing"
 
 	"github.com/nbio/st"
@@ -32,7 +33,7 @@ func TestScanner(t *testing.T) {
 	d := xml.NewDecoder(bytes.NewBuffer(x))
 	var res response_
 	err = s.Scan(d, &res)
-	st.Expect(t, err, nil)
+	st.Expect(t, err, io.EOF)
 }
 
 func debugScanFunc(e xml.StartElement, c xml.CharData, v interface{}) error {
