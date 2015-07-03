@@ -57,6 +57,17 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheck, error) {
 // FIXME: remove/improve this.
 type DomainCheck domainCheckData
 
+type DomainCheckResponse struct {
+	Checks  []DomainCheck
+	Charges []DomainCharge
+}
+
+type DomainCharge struct {
+	Domain       string
+	Category     string
+	CategoryName string
+}
+
 func decodeDomainCheckResponse(d *Decoder) ([]DomainCheck_, error) {
 	var r Result
 	var dcs []DomainCheck_

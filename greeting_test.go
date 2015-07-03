@@ -16,30 +16,6 @@ func TestHello(t *testing.T) {
 	st.Expect(t, c.Greeting.ServerName, "ISPAPI EPP Server") // FIXME: brittle external dependency
 }
 
-func TestDecodeGreeting(t *testing.T) {
-	d := NewDecoder(bytes.NewBuffer(testXMLGreeting))
-	var msg message
-	err := d.DecodeMessage(&msg)
-	st.Expect(t, err, nil)
-	st.Reject(t, msg.Greeting, nil)
-	st.Expect(t, msg.Greeting.ServerName, "Example EPP server epp.example.com")
-	st.Expect(t, msg.Greeting.Objects[0], "urn:ietf:params:xml:ns:obj1")
-	st.Expect(t, msg.Greeting.Objects[1], "urn:ietf:params:xml:ns:obj2")
-	st.Expect(t, msg.Greeting.Objects[2], "urn:ietf:params:xml:ns:obj3")
-	st.Expect(t, msg.Greeting.Extensions[0], "http://custom/obj1ext-1.0")
-	logMarshal(t, &msg)
-
-	d = NewDecoder(bytes.NewBuffer(testXMLGreeting))
-	var g Greeting
-	err = IgnoreEOF(decodeGreeting(&d, &g))
-	st.Expect(t, err, nil)
-	st.Expect(t, g.ServerName, "Example EPP server epp.example.com")
-	st.Expect(t, g.Objects[0], "urn:ietf:params:xml:ns:obj1")
-	st.Expect(t, g.Objects[1], "urn:ietf:params:xml:ns:obj2")
-	st.Expect(t, g.Objects[2], "urn:ietf:params:xml:ns:obj3")
-	st.Expect(t, g.Extensions[0], "http://custom/obj1ext-1.0")
-}
-
 func TestScanGreeting(t *testing.T) {
 	d := xml.NewDecoder(bytes.NewBuffer(testXMLGreeting))
 	var res response_
@@ -66,40 +42,6 @@ func BenchmarkScanGreeting(b *testing.B) {
 		b.StartTimer()
 		var res response_
 		scanResponse.Scan(&d.decoder, &res)
-	}
-}
-
-func BenchmarkDecodeGreeting(b *testing.B) {
-	b.StopTimer()
-	var buf bytes.Buffer
-	d := NewDecoder(&buf)
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		b.StopTimer()
-		buf.Reset()
-		buf.Write(testXMLGreeting)
-		deleteBufferRange(&buf, []byte(`<dcp>`), []byte(`</dcp>`))
-		d.Reset()
-		b.StartTimer()
-		var g Greeting
-		decodeGreeting(&d, &g)
-	}
-}
-
-func BenchmarkDecoderDecodeGreeting(b *testing.B) {
-	b.StopTimer()
-	var buf bytes.Buffer
-	d := NewDecoder(&buf)
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		b.StopTimer()
-		buf.Reset()
-		buf.Write(testXMLGreeting)
-		deleteBufferRange(&buf, []byte(`<dcp>`), []byte(`</dcp>`))
-		d.Reset()
-		b.StartTimer()
-		var msg message
-		d.decoder.Decode(&msg)
 	}
 }
 

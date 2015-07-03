@@ -55,36 +55,35 @@ func (c *Conn) readGreeting() error {
 	return nil
 }
 
-func decodeGreeting(d *Decoder, g *Greeting) error {
-	g.ServerName = ""
-	g.Languages = nil
-	g.Versions = nil
-	g.Objects = nil
-	g.Extensions = nil
-	return d.DecodeWith(func(t xml.Token) error {
-		switch node := t.(type) {
-		// FIXME: re-optimize this with a special error type?
-		// case xml.EndElement:
-		// 	// Escape early (skip remaining XML)
-		// 	if node.Name.Local == "svcMenu" &&
-		// 		g.ServerName != "" {
-		// 		return io.EOF
-		// 	}
-
-		case xml.CharData:
-			switch d.Element(-1).Name.Local {
-			case "svID":
-				g.ServerName = string(node)
-			case "version":
-				g.Versions = append(g.Versions, string(node))
-			case "lang":
-				g.Languages = append(g.Languages, string(node))
-			case "objURI":
-				g.Objects = append(g.Objects, string(node))
-			case "extURI":
-				g.Extensions = append(g.Extensions, string(node))
-			}
-		}
+func init() {
+	scanResponse.MustHandleStartElement("epp>greeting", func(c *Context) error {
+		res := c.Value.(*response_)
+		res.greeting = Greeting{}
+		return nil
+	})
+	scanResponse.MustHandleCharData("epp>greeting>svID", func(c *Context) error {
+		res := c.Value.(*response_)
+		res.greeting.ServerName = string(c.CharData)
+		return nil
+	})
+	scanResponse.MustHandleCharData("epp>greeting>svcMenu>version", func(c *Context) error {
+		res := c.Value.(*response_)
+		res.greeting.Versions = append(res.greeting.Versions, string(c.CharData))
+		return nil
+	})
+	scanResponse.MustHandleCharData("epp>greeting>svcMenu>lang", func(c *Context) error {
+		res := c.Value.(*response_)
+		res.greeting.Languages = append(res.greeting.Languages, string(c.CharData))
+		return nil
+	})
+	scanResponse.MustHandleCharData("epp>greeting>svcMenu>objURI", func(c *Context) error {
+		res := c.Value.(*response_)
+		res.greeting.Objects = append(res.greeting.Objects, string(c.CharData))
+		return nil
+	})
+	scanResponse.MustHandleCharData("epp>greeting>svcMenu>svcExtension>extURI", func(c *Context) error {
+		res := c.Value.(*response_)
+		res.greeting.Extensions = append(res.greeting.Extensions, string(c.CharData))
 		return nil
 	})
 }
