@@ -16,28 +16,28 @@ func init() {
 		return nil
 	})
 	scanResponse.MustHandleCharData("epp>greeting>svID", func(c *Context) error {
-		g := c.Value.(*response_).greeting
-		g.ServerName = string(c.CharData)
+		res := c.Value.(*response_)
+		res.greeting.ServerName = string(c.CharData)
 		return nil
 	})
 	scanResponse.MustHandleCharData("epp>greeting>svcMenu>version", func(c *Context) error {
-		g := c.Value.(*response_).greeting
-		g.Versions = append(g.Versions, string(c.CharData))
+		res := c.Value.(*response_)
+		res.greeting.Versions = append(res.greeting.Versions, string(c.CharData))
 		return nil
 	})
 	scanResponse.MustHandleCharData("epp>greeting>svcMenu>lang", func(c *Context) error {
-		g := c.Value.(*response_).greeting
-		g.Languages = append(g.Languages, string(c.CharData))
+		res := c.Value.(*response_)
+		res.greeting.Languages = append(res.greeting.Languages, string(c.CharData))
 		return nil
 	})
 	scanResponse.MustHandleCharData("epp>greeting>svcMenu>objURI", func(c *Context) error {
-		g := c.Value.(*response_).greeting
-		g.Objects = append(g.Objects, string(c.CharData))
+		res := c.Value.(*response_)
+		res.greeting.Objects = append(res.greeting.Objects, string(c.CharData))
 		return nil
 	})
 	scanResponse.MustHandleCharData("epp>greeting>svcMenu>svcExtension>extURI", func(c *Context) error {
-		g := c.Value.(*response_).greeting
-		g.Extensions = append(g.Extensions, string(c.CharData))
+		res := c.Value.(*response_)
+		res.greeting.Extensions = append(res.greeting.Extensions, string(c.CharData))
 		return nil
 	})
 }

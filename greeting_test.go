@@ -45,7 +45,6 @@ func TestScanGreeting(t *testing.T) {
 	var res response_
 	err := IgnoreEOF(scanResponse.Scan(d, &res))
 	st.Expect(t, err, nil)
-	st.Reject(t, res.greeting, nil)
 	st.Expect(t, res.greeting.ServerName, "Example EPP server epp.example.com")
 	st.Expect(t, res.greeting.Objects[0], "urn:ietf:params:xml:ns:obj1")
 	st.Expect(t, res.greeting.Objects[1], "urn:ietf:params:xml:ns:obj2")
