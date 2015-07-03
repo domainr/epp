@@ -23,6 +23,22 @@ type Greeting struct {
 	Extensions []string `xml:"svcMenu>svcExtension>extURI,omitempty"`
 }
 
+var (
+	defaultObjects = []string{
+		"urn:ietf:params:xml:ns:domain-1.0",
+		"urn:ietf:params:xml:ns:host-1.0",
+		"urn:ietf:params:xml:ns:contact-1.0",
+		"http://www.unitedtld.com/epp/finance-1.0",
+	}
+	defaultExtensions = []string{
+		"urn:ietf:params:xml:ns:secDNS-1.1",
+		"urn:ietf:params:xml:ns:rgp-1.0",
+		"urn:ietf:params:xml:ns:launch-1.0",
+		"urn:ietf:params:xml:ns:idn-1.0",
+		"http://www.unitedtld.com/epp/charge-1.0",
+	}
+)
+
 func (c *Conn) readGreeting() error {
 	err := c.readDataUnit()
 	if err != nil {
@@ -34,10 +50,10 @@ func (c *Conn) readGreeting() error {
 
 func decodeGreeting(d *Decoder, g *Greeting) error {
 	g.ServerName = ""
-	g.Languages = g.Languages[:0]
-	g.Versions = g.Versions[:0]
-	g.Objects = g.Objects[:0]
-	g.Extensions = g.Extensions[:0]
+	g.Languages = nil
+	g.Versions = nil
+	g.Objects = nil
+	g.Extensions = nil
 	return d.DecodeWith(func(t xml.Token) error {
 		switch node := t.(type) {
 		// FIXME: re-optimize this with a special error type?
