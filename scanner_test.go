@@ -12,10 +12,9 @@ import (
 
 func TestScanner(t *testing.T) {
 	s := NewScanner()
-	err := s.HandleStartElement("epp", debugScanFunc)
-	st.Expect(t, err, nil)
-	err = s.HandleStartElement("epp>response>result", debugScanFunc)
-	st.Expect(t, err, nil)
+	s.MustHandleStartElement("epp", debugStartElement)
+	s.MustHandleStartElement("epp>response>result", debugStartElement)
+	s.MustHandleCharData("epp>response>result>msg", debugCharData)
 
 	x := []byte(`<?xml version="1.0" encoding="utf-8"?>
 <epp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd" xmlns="urn:ietf:params:xml:ns:epp-1.0">
@@ -32,15 +31,16 @@ func TestScanner(t *testing.T) {
 
 	d := xml.NewDecoder(bytes.NewBuffer(x))
 	var res response_
-	err = s.Scan(d, &res)
+	err := s.Scan(d, &res)
 	st.Expect(t, err, io.EOF)
 }
 
-func debugScanFunc(ctx *Context) error {
-	if ctx.CharData != nil {
-		fmt.Printf("xml.CharData: %s\n", string(ctx.CharData))
-	} else {
-		fmt.Printf("xml.StartElement: <%s xmlns=\"%s\">\n", ctx.StartElement.Name.Local, ctx.StartElement.Name.Space)
-	}
+func debugStartElement(ctx *Context) error {
+	fmt.Printf("xml.StartElement: <%s xmlns=\"%s\">\n", ctx.StartElement.Name.Local, ctx.StartElement.Name.Space)
+	return nil
+}
+
+func debugCharData(ctx *Context) error {
+	fmt.Printf("xml.CharData: %s\n", string(ctx.CharData))
 	return nil
 }
