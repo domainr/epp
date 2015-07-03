@@ -14,6 +14,15 @@ type Context struct {
 	CharData     xml.CharData
 }
 
+func (ctx *Context) Attr(space, local string) string {
+	for _, a := range ctx.StartElement.Attr {
+		if (space == "" || a.Name.Space == space) && a.Name.Local == local {
+			return a.Value
+		}
+	}
+	return ""
+}
+
 // ScanFunc is a callback that accepts an xml.StartElement, an
 // xml.CharData, and an optional interface{} value for private use.
 //

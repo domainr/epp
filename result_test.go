@@ -56,6 +56,22 @@ func TestDecodeResult(t *testing.T) {
 	st.Expect(t, se.Name.Local, "foo")
 }
 
+func TestScanResult(t *testing.T) {
+	var res response_
+
+	d := db(`<epp><response><result code="1000"><msg>Command completed successfully</msg></result></response></epp>`)
+	err := IgnoreEOF(scanResponse.Scan(d, &res))
+	st.Expect(t, err, nil)
+	st.Expect(t, res.Result.Code, 1000)
+	st.Expect(t, res.Result.Message, "Command completed successfully")
+	st.Expect(t, res.Result.IsError(), false)
+	st.Expect(t, res.Result.IsFatal(), false)
+}
+
+func db(s string) *xml.Decoder {
+	return xml.NewDecoder(bytes.NewBufferString(s))
+}
+
 func BenchmarkDecodeResult(b *testing.B) {
 	b.StopTimer()
 	var r Result
@@ -65,9 +81,19 @@ func BenchmarkDecodeResult(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		buf.Reset()
-		buf.WriteString(`<result code="1000"><msg>Command completed successfully</msg></result>`)
+		buf.WriteString(`<epp><response><result code="1000"><msg>Command completed successfully</msg></result></response></epp>`)
 		d.Reset()
 		b.StartTimer()
 		d.decodeResult(&r)
+	}
+}
+
+func BenchmarkScanResult(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		d := db(`<epp><response><result code="1000"><msg>Command completed successfully</msg></result></response></epp>`)
+		b.StartTimer()
+		var res response_
+		scanResponse.Scan(d, &res)
 	}
 }

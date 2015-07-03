@@ -32,7 +32,13 @@ func (r Result) Error() string {
 
 func init() {
 	scanResponse.MustHandleStartElement("epp > response > result", func(c *Context) error {
-		c.Value.(*response_).Result = Result{}
+		res := c.Value.(*response_)
+		res.Result = Result{}
+		res.Result.Code, _ = strconv.Atoi(c.Attr("", "code"))
+		return nil
+	})
+	scanResponse.MustHandleCharData("epp > response > result > msg", func(c *Context) error {
+		c.Value.(*response_).Result.Message = string(c.CharData)
 		return nil
 	})
 }
