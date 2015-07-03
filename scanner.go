@@ -7,13 +7,21 @@ import (
 	"strings"
 )
 
+// Context holds XML scanning context for a Scanner.
+type Context struct {
+	Decoder      *xml.Decoder
+	StartElement *xml.StartElement
+	CharData     xml.CharData
+	Value        interface{}
+}
+
 // ScanFunc is a callback that accepts an xml.StartElement, an
 // xml.CharData, and an optional interface{} value for private use.
 //
 // The function is called for two XML tokens: xml.StartElement
 // and xml.CharData. The xml.StartElement will always be the last
 // StartElement parsed. CharData may be nil.
-type ScanFunc func(xml.StartElement, xml.CharData, interface{}) error
+type ScanFunc func(ctx *Context) error
 
 // Scanner scans XML from an xml.Decoder, looking for specific paths.
 type Scanner struct {
@@ -24,6 +32,15 @@ type Scanner struct {
 // NewScanner returns an initialized Scanner, ready to use.
 func NewScanner() *Scanner {
 	return &Scanner{tree: make(map[xml.Name]*Scanner)}
+}
+
+// MustHandle sets up an XML path handler for a Scanner.
+// It panics if it cannot create a path handler.
+func (s *Scanner) MustHandle(path string, f ScanFunc) {
+	err := s.Handle(path, f)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // Handle sets up an XML path handler for a Scanner.
@@ -75,7 +92,10 @@ var ErrInvalidPath = errors.New("invalid scan path")
 // It will return if it encounters an xml.EndElement that matches
 // the corresponding xml.StartElement it attempted to scan.
 func (s *Scanner) Scan(d *xml.Decoder, v interface{}) error {
-	var e xml.StartElement
+	ctx := Context{
+		Decoder: d,
+		Value:   v,
+	}
 	for {
 		t, err := d.Token()
 		if err != nil {
@@ -83,7 +103,7 @@ func (s *Scanner) Scan(d *xml.Decoder, v interface{}) error {
 		}
 		switch node := t.(type) {
 		case xml.StartElement:
-			e = node
+			ctx.StartElement = &node
 			s2, ok := s.tree[node.Name]
 			if !ok {
 				s2, ok = s.tree[xml.Name{"", node.Name.Local}]
@@ -94,7 +114,7 @@ func (s *Scanner) Scan(d *xml.Decoder, v interface{}) error {
 				}
 			}
 			if s2.f != nil {
-				err = s2.f(e, nil, v)
+				err = s2.f(&ctx)
 				if err != nil {
 					return err
 				}
@@ -106,7 +126,9 @@ func (s *Scanner) Scan(d *xml.Decoder, v interface{}) error {
 
 		case xml.CharData:
 			if s.f != nil {
-				err = s.f(e, node, v)
+				ctx.CharData = node
+				err = s.f(&ctx)
+				ctx.CharData = nil
 			}
 		}
 		if err != nil {

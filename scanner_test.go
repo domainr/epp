@@ -36,11 +36,11 @@ func TestScanner(t *testing.T) {
 	st.Expect(t, err, io.EOF)
 }
 
-func debugScanFunc(e xml.StartElement, c xml.CharData, v interface{}) error {
-	if c != nil {
-		fmt.Printf("xml.CharData: %s\n", string(c))
+func debugScanFunc(ctx *Context) error {
+	if ctx.CharData != nil {
+		fmt.Printf("xml.CharData: %s\n", string(ctx.CharData))
 	} else {
-		fmt.Printf("xml.StartElement: <%s xmlns=\"%s\">\n", e.Name.Local, e.Name.Space)
+		fmt.Printf("xml.StartElement: <%s xmlns=\"%s\">\n", ctx.StartElement.Name.Local, ctx.StartElement.Name.Space)
 	}
 	return nil
 }
