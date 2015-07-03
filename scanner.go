@@ -10,7 +10,7 @@ import (
 type Context struct {
 	Decoder      *xml.Decoder
 	Value        interface{}
-	StartElement *xml.StartElement
+	StartElement xml.StartElement
 	CharData     xml.CharData
 }
 
@@ -121,38 +121,37 @@ var ErrInvalidPath = errors.New("invalid scan path")
 // It will return if it encounters an xml.EndElement that matches
 // the corresponding xml.StartElement it attempted to scan.
 func (s *Scanner) Scan(d *xml.Decoder, v interface{}) error {
-	return s.scanElement(d, nil, v)
+	ctx := Context{
+		Decoder: d,
+		Value:   v,
+	}
+	return s.scan(&ctx)
 }
 
-func (s *Scanner) scanElement(d *xml.Decoder, e *xml.StartElement, v interface{}) error {
-	ctx := Context{
-		Decoder:      d,
-		Value:        v,
-		StartElement: e,
-	}
+func (s *Scanner) scan(ctx *Context) error {
 	for {
-		t, err := d.Token()
+		t, err := ctx.Decoder.Token()
 		if err != nil {
 			return err
 		}
 		switch node := t.(type) {
 		case xml.StartElement:
-			ctx.StartElement = &node
+			ctx.StartElement = node
 			s2, ok := s.tree[node.Name]
 			if !ok {
 				s2, ok = s.tree[xml.Name{"", node.Name.Local}]
 				if !ok {
-					err = d.Skip()
+					err = ctx.Decoder.Skip()
 					break
 				}
 			}
 			if s2.se != nil {
-				err = s2.se(&ctx)
+				err = s2.se(ctx)
 				if err != nil {
 					return err
 				}
 			}
-			err = s2.scanElement(d, ctx.StartElement, v)
+			err = s2.scan(ctx)
 
 		case xml.EndElement:
 			return nil
@@ -160,7 +159,7 @@ func (s *Scanner) scanElement(d *xml.Decoder, e *xml.StartElement, v interface{}
 		case xml.CharData:
 			if s.cd != nil {
 				ctx.CharData = node
-				err = s.cd(&ctx)
+				err = s.cd(ctx)
 				ctx.CharData = nil
 			}
 		}
