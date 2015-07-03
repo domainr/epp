@@ -34,16 +34,19 @@ func NewScanner() *Scanner {
 	return &Scanner{tree: make(map[xml.Name]*Scanner)}
 }
 
-// MustHandle sets up an XML path handler for a Scanner.
-// It panics if it cannot create a path handler.
-func (s *Scanner) MustHandle(path string, f ScanFunc) {
-	err := s.Handle(path, f)
+func must(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
 
-// Handle sets up an XML path handler for a Scanner.
+// MustHandleStartElement sets up an XML path handler for a Scanner.
+// It panics if it cannot create a path handler.
+func (s *Scanner) MustHandleStartElement(path string, f ScanFunc) {
+	must(s.HandleStartElement(path, f))
+}
+
+// HandleStartElement sets up an XML StartElement handler for a Scanner.
 //
 // Paths must be in the form of "foo>bar" or "uri foo>uri bar".
 // The path is delimited by > characters, and individual path
@@ -52,7 +55,7 @@ func (s *Scanner) MustHandle(path string, f ScanFunc) {
 //
 // Handle returns ErrInvalidPath if the specified path
 // is malformed.
-func (s *Scanner) Handle(path string, f ScanFunc) error {
+func (s *Scanner) HandleStartElement(path string, f ScanFunc) error {
 	s2, err := s.makePath(path)
 	if err != nil {
 		return err

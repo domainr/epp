@@ -11,10 +11,8 @@ var scanResponse *Scanner
 
 func init() {
 	scanResponse = NewScanner()
-	scanResponse.MustHandle("epp>greeting", func(c *Context) error {
-		if c.CharData == nil {
-			c.Value.(*response_).greeting = &Greeting{}
-		}
+	scanResponse.MustHandleStartElement("epp>greeting", func(c *Context) error {
+		c.Value.(*response_).greeting = &Greeting{}
 		return nil
 	})
 }

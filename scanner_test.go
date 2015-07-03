@@ -12,9 +12,9 @@ import (
 
 func TestScanner(t *testing.T) {
 	s := NewScanner()
-	err := s.Handle("epp", debugScanFunc)
+	err := s.HandleStartElement("epp", debugScanFunc)
 	st.Expect(t, err, nil)
-	err = s.Handle("epp>response>result", debugScanFunc)
+	err = s.HandleStartElement("epp>response>result", debugScanFunc)
 	st.Expect(t, err, nil)
 
 	x := []byte(`<?xml version="1.0" encoding="utf-8"?>
