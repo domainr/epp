@@ -53,23 +53,33 @@ func (s *Scanner) MustHandle(path string, f ScanFunc) {
 // Handle returns ErrInvalidPath if the specified path
 // is malformed.
 func (s *Scanner) Handle(path string, f ScanFunc) error {
+	s2, err := s.makePath(path)
+	if err != nil {
+		return err
+	}
+	s2.f = f
+	return nil
+}
+
+// makePath finds or creates a tree of Scanners.
+// It returns the leaf node Scanner for the path or an error.
+func (s *Scanner) makePath(path string) (*Scanner, error) {
 	names := strings.SplitN(path, ">", 2)
 	fields := strings.Fields(names[0])
 	var name xml.Name
 	switch len(fields) {
 	case 0:
 		if len(names) > 1 {
-			return ErrInvalidPath
+			return nil, ErrInvalidPath
 		}
-		s.f = f
-		return nil
+		return s, nil
 	case 1:
 		name.Local = fields[0]
 	case 2:
 		name.Space = fields[0]
 		name.Local = fields[1]
 	default:
-		return ErrInvalidPath
+		return nil, ErrInvalidPath
 	}
 	s2, ok := s.tree[name]
 	if !ok {
@@ -77,9 +87,9 @@ func (s *Scanner) Handle(path string, f ScanFunc) error {
 		s.tree[name] = s2
 	}
 	if len(names) == 1 {
-		return s2.Handle("", f)
+		return s2.makePath("")
 	}
-	return s2.Handle(names[1], f)
+	return s2.makePath(names[1])
 }
 
 // ErrInvalidPath describes an invalid Scanner path
