@@ -30,6 +30,13 @@ func (r Result) Error() string {
 	return fmt.Sprintf("EPP result code %d: %s", r.Code, r.Message)
 }
 
+func init() {
+	scanResponse.MustHandleStartElement("epp > response > result", func(c *Context) error {
+		c.Value.(*response_).Result = Result{}
+		return nil
+	})
+}
+
 // decodeResult decodes Result r from Decoder d.
 // It does not reset the Decoder.
 func (d *Decoder) decodeResult(r *Result) error {

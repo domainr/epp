@@ -68,6 +68,13 @@ type DomainCharge struct {
 	CategoryName string
 }
 
+func init() {
+	scanResponse.MustHandleStartElement("epp > response > resData > urn:ietf:params:xml:ns:domain-1.0 chkData", func(c *Context) error {
+		c.Value.(*response_).DomainCheckResponse = DomainCheckResponse{}
+		return nil
+	})
+}
+
 func decodeDomainCheckResponse(d *Decoder) ([]DomainCheck_, error) {
 	var r Result
 	var dcs []DomainCheck_

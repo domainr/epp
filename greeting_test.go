@@ -21,11 +21,11 @@ func TestScanGreeting(t *testing.T) {
 	var res response_
 	err := IgnoreEOF(scanResponse.Scan(d, &res))
 	st.Expect(t, err, nil)
-	st.Expect(t, res.greeting.ServerName, "Example EPP server epp.example.com")
-	st.Expect(t, res.greeting.Objects[0], "urn:ietf:params:xml:ns:obj1")
-	st.Expect(t, res.greeting.Objects[1], "urn:ietf:params:xml:ns:obj2")
-	st.Expect(t, res.greeting.Objects[2], "urn:ietf:params:xml:ns:obj3")
-	st.Expect(t, res.greeting.Extensions[0], "http://custom/obj1ext-1.0")
+	st.Expect(t, res.Greeting.ServerName, "Example EPP server epp.example.com")
+	st.Expect(t, res.Greeting.Objects[0], "urn:ietf:params:xml:ns:obj1")
+	st.Expect(t, res.Greeting.Objects[1], "urn:ietf:params:xml:ns:obj2")
+	st.Expect(t, res.Greeting.Objects[2], "urn:ietf:params:xml:ns:obj3")
+	st.Expect(t, res.Greeting.Extensions[0], "http://custom/obj1ext-1.0")
 }
 
 func BenchmarkScanGreeting(b *testing.B) {

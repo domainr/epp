@@ -51,39 +51,38 @@ func (c *Conn) readGreeting() error {
 	if err != nil {
 		return err
 	}
-	c.Greeting = res.greeting
+	c.Greeting = res.Greeting
 	return nil
 }
 
 func init() {
-	scanResponse.MustHandleStartElement("epp>greeting", func(c *Context) error {
-		res := c.Value.(*response_)
-		res.greeting = Greeting{}
+	scanResponse.MustHandleStartElement("epp > greeting", func(c *Context) error {
+		c.Value.(*response_).Greeting = Greeting{}
 		return nil
 	})
-	scanResponse.MustHandleCharData("epp>greeting>svID", func(c *Context) error {
+	scanResponse.MustHandleCharData("epp > greeting > svID", func(c *Context) error {
 		res := c.Value.(*response_)
-		res.greeting.ServerName = string(c.CharData)
+		res.Greeting.ServerName = string(c.CharData)
 		return nil
 	})
-	scanResponse.MustHandleCharData("epp>greeting>svcMenu>version", func(c *Context) error {
+	scanResponse.MustHandleCharData("epp > greeting > svcMenu > version", func(c *Context) error {
 		res := c.Value.(*response_)
-		res.greeting.Versions = append(res.greeting.Versions, string(c.CharData))
+		res.Greeting.Versions = append(res.Greeting.Versions, string(c.CharData))
 		return nil
 	})
-	scanResponse.MustHandleCharData("epp>greeting>svcMenu>lang", func(c *Context) error {
+	scanResponse.MustHandleCharData("epp > greeting > svcMenu > lang", func(c *Context) error {
 		res := c.Value.(*response_)
-		res.greeting.Languages = append(res.greeting.Languages, string(c.CharData))
+		res.Greeting.Languages = append(res.Greeting.Languages, string(c.CharData))
 		return nil
 	})
-	scanResponse.MustHandleCharData("epp>greeting>svcMenu>objURI", func(c *Context) error {
+	scanResponse.MustHandleCharData("epp > greeting > svcMenu > objURI", func(c *Context) error {
 		res := c.Value.(*response_)
-		res.greeting.Objects = append(res.greeting.Objects, string(c.CharData))
+		res.Greeting.Objects = append(res.Greeting.Objects, string(c.CharData))
 		return nil
 	})
-	scanResponse.MustHandleCharData("epp>greeting>svcMenu>svcExtension>extURI", func(c *Context) error {
+	scanResponse.MustHandleCharData("epp > greeting > svcMenu > svcExtension > extURI", func(c *Context) error {
 		res := c.Value.(*response_)
-		res.greeting.Extensions = append(res.greeting.Extensions, string(c.CharData))
+		res.Greeting.Extensions = append(res.Greeting.Extensions, string(c.CharData))
 		return nil
 	})
 }
