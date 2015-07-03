@@ -7,12 +7,37 @@ type response_ struct {
 	// charges  []chargeCheckData
 }
 
-var scanResponse *Scanner
+var scanResponse = NewScanner()
 
 func init() {
-	scanResponse = NewScanner()
 	scanResponse.MustHandleStartElement("epp>greeting", func(c *Context) error {
-		c.Value.(*response_).greeting = &Greeting{}
+		res := c.Value.(*response_)
+		res.greeting = &Greeting{}
+		return nil
+	})
+	scanResponse.MustHandleCharData("epp>greeting>svID", func(c *Context) error {
+		g := c.Value.(*response_).greeting
+		g.ServerName = string(c.CharData)
+		return nil
+	})
+	scanResponse.MustHandleCharData("epp>greeting>svcMenu>version", func(c *Context) error {
+		g := c.Value.(*response_).greeting
+		g.Versions = append(g.Versions, string(c.CharData))
+		return nil
+	})
+	scanResponse.MustHandleCharData("epp>greeting>svcMenu>lang", func(c *Context) error {
+		g := c.Value.(*response_).greeting
+		g.Languages = append(g.Languages, string(c.CharData))
+		return nil
+	})
+	scanResponse.MustHandleCharData("epp>greeting>svcMenu>objURI", func(c *Context) error {
+		g := c.Value.(*response_).greeting
+		g.Objects = append(g.Objects, string(c.CharData))
+		return nil
+	})
+	scanResponse.MustHandleCharData("epp>greeting>svcMenu>svcExtension>extURI", func(c *Context) error {
+		g := c.Value.(*response_).greeting
+		g.Extensions = append(g.Extensions, string(c.CharData))
 		return nil
 	})
 }

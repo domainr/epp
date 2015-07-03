@@ -2,6 +2,7 @@ package epp
 
 import (
 	"bytes"
+	"encoding/xml"
 	"testing"
 
 	"github.com/nbio/st"
@@ -37,6 +38,35 @@ func TestDecodeGreeting(t *testing.T) {
 	st.Expect(t, g.Objects[1], "urn:ietf:params:xml:ns:obj2")
 	st.Expect(t, g.Objects[2], "urn:ietf:params:xml:ns:obj3")
 	st.Expect(t, g.Extensions[0], "http://custom/obj1ext-1.0")
+}
+
+func TestScanGreeting(t *testing.T) {
+	d := xml.NewDecoder(bytes.NewBuffer(testXMLGreeting))
+	var res response_
+	err := IgnoreEOF(scanResponse.Scan(d, &res))
+	st.Expect(t, err, nil)
+	st.Reject(t, res.greeting, nil)
+	st.Expect(t, res.greeting.ServerName, "Example EPP server epp.example.com")
+	st.Expect(t, res.greeting.Objects[0], "urn:ietf:params:xml:ns:obj1")
+	st.Expect(t, res.greeting.Objects[1], "urn:ietf:params:xml:ns:obj2")
+	st.Expect(t, res.greeting.Objects[2], "urn:ietf:params:xml:ns:obj3")
+	st.Expect(t, res.greeting.Extensions[0], "http://custom/obj1ext-1.0")
+}
+
+func BenchmarkScanGreeting(b *testing.B) {
+	b.StopTimer()
+	var buf bytes.Buffer
+	var res response_
+	d := NewDecoder(&buf)
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		buf.Reset()
+		buf.Write(testXMLGreeting)
+		d.Reset()
+		b.StartTimer()
+		scanResponse.Scan(&d.decoder, &res)
+	}
 }
 
 func BenchmarkDecodeGreeting(b *testing.B) {
