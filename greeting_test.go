@@ -56,15 +56,16 @@ func TestScanGreeting(t *testing.T) {
 func BenchmarkScanGreeting(b *testing.B) {
 	b.StopTimer()
 	var buf bytes.Buffer
-	var res response_
 	d := NewDecoder(&buf)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		buf.Reset()
 		buf.Write(testXMLGreeting)
+		deleteBufferRange(&buf, []byte(`<dcp>`), []byte(`</dcp>`))
 		d.Reset()
 		b.StartTimer()
+		var res response_
 		scanResponse.Scan(&d.decoder, &res)
 	}
 }
@@ -78,6 +79,7 @@ func BenchmarkDecodeGreeting(b *testing.B) {
 		b.StopTimer()
 		buf.Reset()
 		buf.Write(testXMLGreeting)
+		deleteBufferRange(&buf, []byte(`<dcp>`), []byte(`</dcp>`))
 		d.Reset()
 		b.StartTimer()
 		var g Greeting
@@ -94,6 +96,7 @@ func BenchmarkDecoderDecodeGreeting(b *testing.B) {
 		b.StopTimer()
 		buf.Reset()
 		buf.Write(testXMLGreeting)
+		deleteBufferRange(&buf, []byte(`<dcp>`), []byte(`</dcp>`))
 		d.Reset()
 		b.StartTimer()
 		var msg message
