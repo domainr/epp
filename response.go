@@ -9,18 +9,14 @@ type response_ struct {
 
 func (d *Decoder) decodeResponse(res *response_) error {
 	*res = response_{}
-	return d.DecodeWith(func(t xml.Token) error {
-		var err error
-		switch node := t.(type) {
-		case xml.StartElement:
-			switch node.Name.Local {
-			case "result":
-				err = d.decodeResult(&res.result)
-			case "resData":
-				err = d.decodeResData(&res.resData)
-			}
+	return d.DecodeElements(func(e xml.StartElement) error {
+		switch e.Name.Local {
+		case "result":
+			return d.decodeResult(&res.result)
+		case "resData":
+			return d.decodeResData(&res.resData)
 		}
-		return err
+		return nil
 	})
 }
 
@@ -35,7 +31,7 @@ func (d *Decoder) decodeResData(rd *resData) error {
 		switch node := t.(type) {
 		case xml.StartElement:
 			switch node.Name.Local {
-			case "domainChkData":
+			case "chkData":
 				err = d.decodeDomainChkData(&rd.domainChkData)
 			}
 		}

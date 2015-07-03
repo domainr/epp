@@ -129,3 +129,13 @@ func (d *Decoder) DecodeElementWith(e xml.StartElement, f func(xml.Token) error)
 	}
 	return d.DecodeWith(f)
 }
+
+func (d *Decoder) DecodeElements(f func(xml.StartElement) error) error {
+	return d.DecodeWith(func(t xml.Token) error {
+		e, ok := t.(xml.StartElement)
+		if ok {
+			return f(e)
+		}
+		return nil
+	})
+}
