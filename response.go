@@ -1,8 +1,8 @@
 package epp
 
 type response_ struct {
-	result   *Result
-	greeting *Greeting
+	result   Result
+	greeting Greeting
 	domains  []domainCheckData_
 	// charges  []chargeCheckData
 }
@@ -12,7 +12,7 @@ var scanResponse = NewScanner()
 func init() {
 	scanResponse.MustHandleStartElement("epp>greeting", func(c *Context) error {
 		res := c.Value.(*response_)
-		res.greeting = &Greeting{}
+		res.greeting = Greeting{}
 		return nil
 	})
 	scanResponse.MustHandleCharData("epp>greeting>svID", func(c *Context) error {
