@@ -29,7 +29,6 @@ func (r Result) Error() string {
 func init() {
 	scanResponse.MustHandleStartElement("epp > response > result", func(c *Context) error {
 		res := c.Value.(*response_)
-		res.Result = Result{}
 		res.Result.Code = c.AttrInt("", "code")
 		return nil
 	})

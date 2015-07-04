@@ -7,3 +7,10 @@ type response_ struct {
 }
 
 var scanResponse = NewScanner()
+
+func init() {
+	scanResponse.MustHandleStartElement("epp", func(c *Context) error {
+		*c.Value.(*response_) = response_{}
+		return nil
+	})
+}

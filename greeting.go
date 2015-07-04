@@ -55,10 +55,6 @@ func (c *Conn) readGreeting() error {
 }
 
 func init() {
-	scanResponse.MustHandleStartElement("epp > greeting", func(c *Context) error {
-		c.Value.(*response_).Greeting = Greeting{}
-		return nil
-	})
 	scanResponse.MustHandleCharData("epp > greeting > svID", func(c *Context) error {
 		res := c.Value.(*response_)
 		res.Greeting.ServerName = string(c.CharData)
