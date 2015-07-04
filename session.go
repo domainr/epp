@@ -7,6 +7,15 @@ import (
 
 // Login initializes an authenticated EPP session.
 func (c *Conn) Login(user, password, newPassword string) error {
+	err := c.writeLogin(user, password, newPassword)
+	if err != nil {
+		return err
+	}
+	var res response_
+	return c.readResponse(&res)
+}
+
+func (c *Conn) writeLogin(user, password, newPassword string) error {
 	ver, lang := "1.0", "en"
 	if len(c.Greeting.Versions) > 0 {
 		ver = c.Greeting.Versions[0]
@@ -18,12 +27,7 @@ func (c *Conn) Login(user, password, newPassword string) error {
 	if err != nil {
 		return err
 	}
-	err = c.flushDataUnit()
-	if err != nil {
-		return err
-	}
-	msg := message{}
-	return c.readMessage(&msg)
+	return c.flushDataUnit()
 }
 
 func encodeLogin(buf *bytes.Buffer, user, password, newPassword, version, language string, objects, extensions []string) error {
