@@ -39,6 +39,10 @@ func TestScanCheckDomainResponse(t *testing.T) {
 	st.Expect(t, dcr.Checks[0].Domain, "good.memorial")
 	st.Expect(t, dcr.Checks[0].Available, true)
 	st.Expect(t, dcr.Checks[0].Reason, "premium name")
+	st.Expect(t, len(dcr.Charges), 1)
+	st.Expect(t, dcr.Charges[0].Domain, "good.memorial")
+	st.Expect(t, dcr.Charges[0].Category, "premium")
+	st.Expect(t, dcr.Charges[0].CategoryName, "BBB+")
 }
 
 var testXMLDomainCheckResponse = `<?xml version="1.0" encoding="utf-8"?>

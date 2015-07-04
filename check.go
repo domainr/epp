@@ -61,3 +61,25 @@ func init() {
 		return nil
 	})
 }
+
+func init() {
+	path := "epp > response > extension > http://www.unitedtld.com/epp/charge-1.0 chkData"
+	scanResponse.MustHandleStartElement(path+">cd", func(c *Context) error {
+		dcd := &c.Value.(*response_).DomainCheckResponse
+		dcd.Charges = append(dcd.Charges, DomainCharge{})
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>name", func(c *Context) error {
+		charges := c.Value.(*response_).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		charge.Domain = string(c.CharData)
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>set>category", func(c *Context) error {
+		charges := c.Value.(*response_).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		charge.Category = string(c.CharData)
+		charge.CategoryName = c.Attr("", "name")
+		return nil
+	})
+}
