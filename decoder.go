@@ -21,36 +21,6 @@ func NewDecoder(r io.Reader) Decoder {
 	return Decoder{decoder: *d, saved: *d}
 }
 
-// Element returns StartElement indexed by i.
-// Indexes < 0 are offset from len(d.stack).
-// Returns a zero-value StartElement if i is out of bounds, or
-// the decoder is not inside an XML tag.
-func (d *Decoder) Element(i int) xml.StartElement {
-	if i < 0 {
-		i += len(d.Stack)
-	}
-	if i < 0 || i >= len(d.Stack) {
-		return xml.StartElement{}
-	}
-	return d.Stack[i]
-}
-
-// AtPath determines if the current local element
-// path ends with path.
-func (d *Decoder) AtPath(path ...string) bool {
-	ls := len(d.Stack)
-	lp := len(path)
-	if ls < lp {
-		return false
-	}
-	for i := 1; i <= lp; i++ {
-		if d.Stack[ls-i].Name.Local != path[lp-i] {
-			return false
-		}
-	}
-	return true
-}
-
 // Reset restores the original state of the underlying
 // xml.Decoder (pos 1, line 1, stack, etc.).
 func (d *Decoder) Reset() {
@@ -86,56 +56,4 @@ func (d *Decoder) Token() (xml.Token, error) {
 		d.Stack = d.Stack[:n-1]
 	}
 	return t, err
-}
-
-// DecodeWith wraps the standard xml.Decoder for loop + switch pattern.
-// It recursively calls d.DecodeWith for each StartElement encountered,
-// and returns when it encounters an xml.EndElement.
-// If a call to f returns an error, it exits early, returning that error.
-// It does not reset the decoder.
-func (d *Decoder) DecodeWith(f func(xml.Token) error) error {
-	top := len(d.Stack) == 0
-	for {
-		t, err := d.Token()
-		if err != nil {
-			return err
-		}
-		err = f(t)
-		if err != nil {
-			return err
-		}
-		switch t.(type) {
-		case xml.StartElement:
-			err = d.DecodeWith(f)
-			if err != nil {
-				return err
-			}
-			if top {
-				return nil
-			}
-		case xml.EndElement:
-			return nil
-		}
-	}
-	return nil
-}
-
-// DecodeElementWith decodes a single element e with func f,
-// returning any errors that occur.
-func (d *Decoder) DecodeElementWith(e xml.StartElement, f func(xml.Token) error) error {
-	err := f(e)
-	if err != nil {
-		return err
-	}
-	return d.DecodeWith(f)
-}
-
-func (d *Decoder) DecodeElements(f func(xml.StartElement) error) error {
-	return d.DecodeWith(func(t xml.Token) error {
-		e, ok := t.(xml.StartElement)
-		if ok {
-			return f(e)
-		}
-		return nil
-	})
 }
