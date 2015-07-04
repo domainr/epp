@@ -66,8 +66,3 @@ func encodeLogin(buf *bytes.Buffer, user, password, newPassword, version, langua
 	buf.Write(xmlCommandSuffix)
 	return nil
 }
-
-func (d *Decoder) decodeLoginResponse() error {
-	var r Result
-	return d.decodeResult(&r)
-}

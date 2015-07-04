@@ -1,7 +1,6 @@
 package epp
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/nbio/st"
@@ -34,22 +33,6 @@ func TestScanResult(t *testing.T) {
 	st.Expect(t, r.Message, "Authentication error; server closing connection")
 	st.Expect(t, r.IsError(), true)
 	st.Expect(t, r.IsFatal(), true)
-}
-
-func BenchmarkDecodeResult(b *testing.B) {
-	b.StopTimer()
-	var r Result
-	var buf bytes.Buffer
-	d := NewDecoder(&buf)
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		b.StopTimer()
-		buf.Reset()
-		buf.WriteString(`<epp><response><result code="1000"><msg>Command completed successfully</msg></result></response></epp>`)
-		d.Reset()
-		b.StartTimer()
-		d.decodeResult(&r)
-	}
 }
 
 func BenchmarkScanResult(b *testing.B) {

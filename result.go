@@ -1,7 +1,6 @@
 package epp
 
 import (
-	"encoding/xml"
 	"fmt"
 	"strconv"
 )
@@ -41,33 +40,4 @@ func init() {
 		c.Value.(*response_).Result.Message = string(c.CharData)
 		return nil
 	})
-}
-
-// decodeResult decodes Result r from Decoder d.
-// It does not reset the Decoder.
-func (d *Decoder) decodeResult(r *Result) error {
-	*r = Result{}
-	err := d.DecodeElementWith(d.Element(-1), func(t xml.Token) error {
-		switch node := t.(type) {
-		case xml.StartElement:
-			if node.Name.Local == "result" {
-				for _, a := range node.Attr {
-					if a.Name.Local == "code" {
-						r.Code, _ = strconv.Atoi(a.Value)
-						break
-					}
-				}
-			}
-
-		case xml.CharData:
-			if d.AtPath("result", "msg") {
-				r.Message = string(node)
-			}
-		}
-		return nil
-	})
-	if r.IsError() {
-		return r
-	}
-	return err
 }
