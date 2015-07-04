@@ -36,5 +36,5 @@ func TestNewConn(t *testing.T) {
 	c, err := NewConn(testDial(t))
 	st.Expect(t, err, nil)
 	st.Reject(t, c, nil)
-	st.Reject(t, c.Greeting, nil)
+	st.Reject(t, c.Greeting.ServerName, "")
 }
