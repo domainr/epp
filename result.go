@@ -1,9 +1,6 @@
 package epp
 
-import (
-	"fmt"
-	"strconv"
-)
+import "fmt"
 
 // Result represents an EPP <result> element.
 type Result struct {
@@ -33,7 +30,7 @@ func init() {
 	scanResponse.MustHandleStartElement("epp > response > result", func(c *Context) error {
 		res := c.Value.(*response_)
 		res.Result = Result{}
-		res.Result.Code, _ = strconv.Atoi(c.Attr("", "code"))
+		res.Result.Code = c.AttrInt("", "code")
 		return nil
 	})
 	scanResponse.MustHandleCharData("epp > response > result > msg", func(c *Context) error {

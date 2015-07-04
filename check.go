@@ -83,8 +83,7 @@ func init() {
 		checks := c.Value.(*response_).DomainCheckResponse.Checks
 		check := &checks[len(checks)-1]
 		check.Domain = string(c.CharData)
-		a := c.Attr("", "avail")
-		check.Available = (a == "1" || a == "true")
+		check.Available = c.AttrBool("", "avail")
 		return nil
 	})
 	scanResponse.MustHandleCharData("epp > response > resData > urn:ietf:params:xml:ns:domain-1.0 chkData > cd > reason", func(c *Context) error {
