@@ -84,13 +84,31 @@ func (c *Conn) writeDataUnit(x []byte) error {
 }
 
 // readMessage reads a single EPP response from c and parses the XML into req.
-// It returns an error if the EPP response contains an error result.
+// It returns an error if the EPP response contains an error Result.
 func (c *Conn) readMessage(msg *message) error {
 	err := c.readDataUnit()
 	if err != nil {
 		return err
 	}
 	return c.decoder.DecodeMessage(msg)
+}
+
+// readResponse reads a single EPP response from c and parses the XML into req.
+// It returns an error if the EPP response contains an error Result.
+func (c *Conn) readResponse(res *response_) error {
+	err := c.readDataUnit()
+	if err != nil {
+		return err
+	}
+	c.decoder.Reset()
+	err = IgnoreEOF(scanResponse.Scan(&c.decoder.decoder, res))
+	if err != nil {
+		return err
+	}
+	if res.Result.IsError() {
+		return res.Result
+	}
+	return nil
 }
 
 // readDataUnit reads a single EPP message from c into
