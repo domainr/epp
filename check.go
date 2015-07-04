@@ -24,11 +24,11 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
 }
 
 type DomainCheckResponse struct {
-	Checks  []DomainCheck_
+	Checks  []DomainCheck
 	Charges []DomainCharge
 }
 
-type DomainCheck_ struct {
+type DomainCheck struct {
 	Domain    string
 	Reason    string
 	Available bool
@@ -44,7 +44,7 @@ func init() {
 	path := "epp > response > resData > urn:ietf:params:xml:ns:domain-1.0 chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *Context) error {
 		dcd := &c.Value.(*response_).DomainCheckResponse
-		dcd.Checks = append(dcd.Checks, DomainCheck_{})
+		dcd.Checks = append(dcd.Checks, DomainCheck{})
 		return nil
 	})
 	scanResponse.MustHandleCharData(path+">cd>name", func(c *Context) error {
