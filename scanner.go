@@ -3,6 +3,7 @@ package epp
 import (
 	"encoding/xml"
 	"errors"
+	"strconv"
 	"strings"
 )
 
@@ -29,10 +30,18 @@ func (ctx *Context) Attr(space, local string) string {
 // Pass an empty string in space to match any namespace.
 func (ctx *Context) AttrBool(space, local string) bool {
 	v := ctx.Attr(space, local)
-	if len(v) > 0 && (v[0] == '1' || v[0] == 't' || v[0] == 'T') {
-		return true
+	if len(v) == 0 || v == "0" || v[0] == 'f' || v[0] == 'F' {
+		return false
 	}
-	return false
+	return true
+}
+
+// AttrInt returns a integer value for the XML attributed named space:local.
+// Pass an empty string in space to match any namespace.
+func (ctx *Context) AttrInt(space, local string) int {
+	v := ctx.Attr(space, local)
+	n, _ := strconv.Atoi(v)
+	return n
 }
 
 // ScanFunc is a callback that accepts an xml.StartElement, an
