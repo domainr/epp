@@ -45,7 +45,6 @@ func (c *Conn) readGreeting() error {
 		return err
 	}
 	deleteBufferRange(&c.buf, []byte(`<dcp>`), []byte(`</dcp>`))
-	c.decoder.Reset()
 	var res response_
 	err = IgnoreEOF(scanResponse.Scan(&c.decoder.decoder, &res))
 	if err != nil {

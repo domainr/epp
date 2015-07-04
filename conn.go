@@ -100,7 +100,6 @@ func (c *Conn) readResponse(res *response_) error {
 	if err != nil {
 		return err
 	}
-	c.decoder.Reset()
 	err = IgnoreEOF(scanResponse.Scan(&c.decoder.decoder, res))
 	if err != nil {
 		return err
@@ -115,6 +114,7 @@ func (c *Conn) readResponse(res *response_) error {
 // c.buf. The bytes in c.buf are valid until the next
 // call to readDataUnit.
 func (c *Conn) readDataUnit() error {
+	c.decoder.Reset()
 	c.buf.Reset()
 	var s int32
 	err := binary.Read(c.Conn, binary.BigEndian, &s)
