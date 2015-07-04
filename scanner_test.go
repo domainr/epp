@@ -1,6 +1,7 @@
 package epp
 
 import (
+	"bytes"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -8,6 +9,20 @@ import (
 
 	"github.com/nbio/st"
 )
+
+func decoder(s string) *xml.Decoder {
+	return xml.NewDecoder(bytes.NewBufferString(s))
+}
+
+func debugStartElement(ctx *Context) error {
+	fmt.Printf("xml.StartElement: <%s xmlns=\"%s\">\n", ctx.StartElement.Name.Local, ctx.StartElement.Name.Space)
+	return nil
+}
+
+func debugCharData(ctx *Context) error {
+	fmt.Printf("xml.CharData: %s\n", string(ctx.CharData))
+	return nil
+}
 
 func TestScanner(t *testing.T) {
 	s := NewScanner()
@@ -28,7 +43,7 @@ func TestScanner(t *testing.T) {
   </response>
 </epp>`
 
-	d := db(x)
+	d := decoder(x)
 	var res response_
 	err := s.Scan(d, &res)
 	st.Expect(t, err, io.EOF)
@@ -36,18 +51,8 @@ func TestScanner(t *testing.T) {
 
 func TestScannerInvalidXML(t *testing.T) {
 	s := NewScanner()
-	d := db(`<foo><bar/><baz/`)
+	d := decoder(`<foo><bar/><baz/`)
 	err := s.Scan(d, nil)
 	_, ok := err.(*xml.SyntaxError)
 	st.Expect(t, ok, true)
-}
-
-func debugStartElement(ctx *Context) error {
-	fmt.Printf("xml.StartElement: <%s xmlns=\"%s\">\n", ctx.StartElement.Name.Local, ctx.StartElement.Name.Space)
-	return nil
-}
-
-func debugCharData(ctx *Context) error {
-	fmt.Printf("xml.CharData: %s\n", string(ctx.CharData))
-	return nil
 }
