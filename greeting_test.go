@@ -2,6 +2,7 @@ package epp
 
 import (
 	"bytes"
+	"encoding/xml"
 	"testing"
 
 	"github.com/nbio/st"
@@ -30,17 +31,18 @@ func TestScanGreeting(t *testing.T) {
 func BenchmarkScanGreeting(b *testing.B) {
 	b.StopTimer()
 	var buf bytes.Buffer
-	d := NewDecoder(&buf)
+	d := xml.NewDecoder(&buf)
+	saved := *d
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		buf.Reset()
 		buf.WriteString(testXMLGreeting)
 		deleteBufferRange(&buf, []byte(`<dcp>`), []byte(`</dcp>`))
-		d.Reset()
+		*d = saved
 		b.StartTimer()
 		var res response_
-		scanResponse.Scan(&d.Decoder, &res)
+		scanResponse.Scan(d, &res)
 	}
 }
 

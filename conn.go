@@ -22,8 +22,9 @@ func IgnoreEOF(err error) error {
 type Conn struct {
 	net.Conn
 	buf     bytes.Buffer
-	decoder Decoder
 	encoder *xml.Encoder
+	decoder *xml.Decoder
+	saved   xml.Decoder
 
 	// Greeting holds the last received greeting message from the server,
 	// indicating server name, status, data policy and capabilities.
@@ -43,11 +44,24 @@ func NewConn(conn net.Conn) (*Conn, error) {
 // Used internally for testing.
 func newConn(conn net.Conn) *Conn {
 	c := Conn{Conn: conn}
-	c.decoder = NewDecoder(&c.buf)
 	c.encoder = xml.NewEncoder(&c.buf)
+	c.decoder = xml.NewDecoder(&c.buf)
+	c.saved = *c.decoder
 	c.Greeting.Objects = defaultObjects
 	c.Greeting.Extensions = defaultExtensions
 	return &c
+}
+
+// reset resets the underlying xml.Decoder and bytes.Buffer.
+func (c *Conn) reset() {
+	c.resetDecoder()
+	c.buf.Reset()
+}
+
+// resetDecoder restores the original state of the underlying
+// xml.Decoder (pos 1, line 1, stack, etc.) using a hack.
+func (c *Conn) resetDecoder() {
+	*c.decoder = c.saved // Heh.
 }
 
 // writeMessage serializes msg into XML and writes it to c.
@@ -90,7 +104,20 @@ func (c *Conn) readMessage(msg *message) error {
 	if err != nil {
 		return err
 	}
-	return c.decoder.DecodeMessage(msg)
+	return c.decodeMessage(msg)
+}
+
+// decodeMessage decodes an EPP XML message into msg,
+// returning any EPP protocol-level errors detected in the message.
+// It resets the underlying xml.Decoder before attempting to decode
+// the input stream.
+func (c *Conn) decodeMessage(msg *message) error {
+	c.resetDecoder()
+	err := c.decoder.Decode(msg)
+	if err != nil {
+		return err
+	}
+	return msg.error()
 }
 
 // readResponse reads a single EPP response from c and parses the XML into req.
@@ -100,7 +127,7 @@ func (c *Conn) readResponse(res *response_) error {
 	if err != nil {
 		return err
 	}
-	err = IgnoreEOF(scanResponse.Scan(&c.decoder.Decoder, res))
+	err = IgnoreEOF(scanResponse.Scan(c.decoder, res))
 	if err != nil {
 		return err
 	}
@@ -114,8 +141,7 @@ func (c *Conn) readResponse(res *response_) error {
 // c.buf. The bytes in c.buf are valid until the next
 // call to readDataUnit.
 func (c *Conn) readDataUnit() error {
-	c.decoder.Reset()
-	c.buf.Reset()
+	c.reset()
 	var s int32
 	err := binary.Read(c.Conn, binary.BigEndian, &s)
 	if err != nil {

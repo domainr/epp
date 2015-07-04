@@ -3,6 +3,7 @@ package epp
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/xml"
 	"net"
 	"testing"
 
@@ -38,6 +39,57 @@ func TestNewConn(t *testing.T) {
 	st.Expect(t, err, nil)
 	st.Reject(t, c, nil)
 	st.Reject(t, c.Greeting.ServerName, "")
+}
+
+func TestConnDecoderReuse(t *testing.T) {
+	c := newConn(nil)
+	v := struct {
+		XMLName struct{} `xml:"hello"`
+		Foo     string   `xml:"foo"`
+	}{}
+
+	c.reset()
+	c.buf.WriteString(`<hello><foo>foo</foo></hello>`)
+	st.Expect(t, c.decoder.InputOffset(), int64(0))
+	c.decoder.Decode(&v)
+	st.Expect(t, v.Foo, "foo")
+	st.Expect(t, c.decoder.InputOffset(), int64(29))
+
+	c.reset()
+	c.buf.WriteString(`<hello><foo>bar</foo></hello>`)
+	st.Expect(t, c.decoder.InputOffset(), int64(0))
+	tok, _ := c.decoder.Token()
+	se := tok.(xml.StartElement)
+	st.Expect(t, se.Name.Local, "hello")
+	tok, _ = c.decoder.Token()
+	se = tok.(xml.StartElement)
+	st.Expect(t, se.Name.Local, "foo")
+	st.Expect(t, c.decoder.InputOffset(), int64(12))
+
+	c.reset()
+	c.buf.WriteString(`<hello><foo>blam&lt;</foo></hello>`)
+	st.Expect(t, c.decoder.InputOffset(), int64(0))
+	c.decoder.Decode(&v)
+	st.Expect(t, v.Foo, "blam<")
+	st.Expect(t, c.decoder.InputOffset(), int64(34))
+}
+
+func logMarshal(t *testing.T, msg *message) {
+	x, err := xml.Marshal(&msg)
+	st.Expect(t, err, nil)
+	t.Logf("<!-- MARSHALED -->\n%s\n", string(x))
+}
+
+func TestConnDecodeMessage(t *testing.T) {
+	c := newConn(nil)
+	c.buf.WriteString(testXMLDomainCheckResponse)
+	var msg message
+	err := c.decodeMessage(&msg)
+	st.Expect(t, err, nil)
+	st.Reject(t, msg.Response, nil)
+	st.Expect(t, msg.Response.ResponseData.DomainCheckData.Results[0].Domain.Domain, "good.memorial")
+	st.Expect(t, msg.Response.ResponseData.DomainCheckData.Results[0].Domain.IsAvailable, true)
+	logMarshal(t, &msg)
 }
 
 func TestDeleteRange(t *testing.T) {
