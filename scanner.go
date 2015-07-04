@@ -14,6 +14,8 @@ type Context struct {
 	CharData     xml.CharData
 }
 
+// Attr returns the string value for the XML attributed named space:local.
+// Pass an empty string in space to match any namespace.
 func (ctx *Context) Attr(space, local string) string {
 	for _, a := range ctx.StartElement.Attr {
 		if (space == "" || a.Name.Space == space) && a.Name.Local == local {
@@ -21,6 +23,16 @@ func (ctx *Context) Attr(space, local string) string {
 		}
 	}
 	return ""
+}
+
+// AttrBool returns a boolean value for the XML attributed named space:local.
+// Pass an empty string in space to match any namespace.
+func (ctx *Context) AttrBool(space, local string) bool {
+	v := ctx.Attr(space, local)
+	if len(v) > 0 && (v[0] == '1' || v[0] == 't' || v[0] == 'T') {
+		return true
+	}
+	return false
 }
 
 // ScanFunc is a callback that accepts an xml.StartElement, an
