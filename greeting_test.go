@@ -40,7 +40,7 @@ func BenchmarkScanGreeting(b *testing.B) {
 		d.Reset()
 		b.StartTimer()
 		var res response_
-		scanResponse.Scan(&d.decoder, &res)
+		scanResponse.Scan(&d.Decoder, &res)
 	}
 }
 

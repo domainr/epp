@@ -100,7 +100,7 @@ func (c *Conn) readResponse(res *response_) error {
 	if err != nil {
 		return err
 	}
-	err = IgnoreEOF(scanResponse.Scan(&c.decoder.decoder, res))
+	err = IgnoreEOF(scanResponse.Scan(&c.decoder.Decoder, res))
 	if err != nil {
 		return err
 	}

@@ -2,30 +2,27 @@ package epp
 
 import (
 	"encoding/xml"
-	"fmt"
 	"io"
 )
 
 // Decoder implements a resettable XML decoder.
 // This is a dirty hack to reduce GC pressure.
 type Decoder struct {
-	decoder xml.Decoder
-	saved   xml.Decoder
-	Stack   []xml.StartElement
+	xml.Decoder
+	saved xml.Decoder
 }
 
 // NewDecoder returns an initialized decoder.
 // The initial state of the xml.Decoder is copied to saved.
 func NewDecoder(r io.Reader) Decoder {
 	d := xml.NewDecoder(r)
-	return Decoder{decoder: *d, saved: *d}
+	return Decoder{Decoder: *d, saved: *d}
 }
 
 // Reset restores the original state of the underlying
 // xml.Decoder (pos 1, line 1, stack, etc.).
 func (d *Decoder) Reset() {
-	d.decoder = d.saved
-	d.Stack = d.Stack[:0]
+	d.Decoder = d.saved
 }
 
 // DecodeMessage decodes an EPP XML message into msg,
@@ -34,26 +31,9 @@ func (d *Decoder) Reset() {
 // the input stream.
 func (d *Decoder) DecodeMessage(msg *message) error {
 	d.Reset()
-	err := d.decoder.Decode(msg)
+	err := d.Decoder.Decode(msg)
 	if err != nil {
 		return err
 	}
 	return msg.error()
-}
-
-// Token returns an xml.Token from its internal xml.Decoder or an error.
-// It maintains a stack of xml.StartElements.
-func (d *Decoder) Token() (xml.Token, error) {
-	t, err := d.decoder.Token()
-	switch node := t.(type) {
-	case xml.StartElement:
-		d.Stack = append(d.Stack, node)
-	case xml.EndElement:
-		n := len(d.Stack)
-		if n == 0 || node.Name != d.Stack[n-1].Name {
-			return t, fmt.Errorf("unbalanced end tag: %s", node.Name)
-		}
-		d.Stack = d.Stack[:n-1]
-	}
-	return t, err
 }
