@@ -87,8 +87,7 @@ func TestConnDecodeMessage(t *testing.T) {
 	err := c.decodeMessage(&msg)
 	st.Expect(t, err, nil)
 	st.Reject(t, msg.Response, nil)
-	st.Expect(t, msg.Response.ResponseData.DomainCheckData.Results[0].Domain.Domain, "good.memorial")
-	st.Expect(t, msg.Response.ResponseData.DomainCheckData.Results[0].Domain.IsAvailable, true)
+	st.Expect(t, len(msg.Response.Results), 1)
 	logMarshal(t, &msg)
 }
 

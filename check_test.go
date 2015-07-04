@@ -9,23 +9,23 @@ import (
 func TestConnCheck(t *testing.T) {
 	c := testLogin(t)
 
-	dc, err := c.CheckDomain("google.com")
+	dcr, err := c.CheckDomain("google.com")
 	st.Expect(t, err, nil)
-	st.Reject(t, dc, nil)
-	st.Expect(t, len(dc.Results), 1)
-	st.Expect(t, dc.Results[0].Domain.Domain, "google.com")
-	st.Expect(t, dc.Results[0].Domain.IsAvailable, false)
+	st.Reject(t, dcr, nil)
+	st.Expect(t, len(dcr.Checks), 1)
+	st.Expect(t, dcr.Checks[0].Domain, "google.com")
+	st.Expect(t, dcr.Checks[0].Available, false)
 
-	dc, err = c.CheckDomain("dmnr-test-x759824vim-i2.com")
+	dcr, err = c.CheckDomain("dmnr-test-x759824vim-i2.com")
 	st.Expect(t, err, nil)
-	st.Reject(t, dc, nil)
-	st.Expect(t, len(dc.Results), 1)
-	st.Expect(t, dc.Results[0].Domain.Domain, "dmnr-test-x759824vim-i2.com")
-	st.Expect(t, dc.Results[0].Domain.IsAvailable, true)
+	st.Reject(t, dcr, nil)
+	st.Expect(t, len(dcr.Checks), 1)
+	st.Expect(t, dcr.Checks[0].Domain, "dmnr-test-x759824vim-i2.com")
+	st.Expect(t, dcr.Checks[0].Available, true)
 
-	dc, err = c.CheckDomain("--dmnr-test--.com")
+	dcr, err = c.CheckDomain("--dmnr-test--.com")
 	st.Reject(t, err, nil)
-	st.Expect(t, dc, (*DomainCheck)(nil))
+	st.Expect(t, dcr, (*DomainCheckResponse)(nil))
 }
 
 func TestScanCheckDomainResponse(t *testing.T) {
