@@ -27,12 +27,13 @@ func (r Result) Error() string {
 }
 
 func init() {
-	scanResponse.MustHandleStartElement("epp > response > result", func(c *Context) error {
+	path := "epp>response>result"
+	scanResponse.MustHandleStartElement(path, func(c *Context) error {
 		res := c.Value.(*response_)
 		res.Result.Code = c.AttrInt("", "code")
 		return nil
 	})
-	scanResponse.MustHandleCharData("epp > response > result > msg", func(c *Context) error {
+	scanResponse.MustHandleCharData(path+">msg", func(c *Context) error {
 		c.Value.(*response_).Result.Message = string(c.CharData)
 		return nil
 	})

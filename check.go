@@ -41,23 +41,20 @@ type DomainCharge struct {
 }
 
 func init() {
-	scanResponse.MustHandleStartElement("epp > response > resData > urn:ietf:params:xml:ns:domain-1.0 chkData", func(c *Context) error {
-		c.Value.(*response_).DomainCheckResponse = DomainCheckResponse{}
-		return nil
-	})
-	scanResponse.MustHandleStartElement("epp > response > resData > urn:ietf:params:xml:ns:domain-1.0 chkData > cd", func(c *Context) error {
+	path := "epp > response > resData > urn:ietf:params:xml:ns:domain-1.0 chkData"
+	scanResponse.MustHandleStartElement(path+">cd", func(c *Context) error {
 		dcd := &c.Value.(*response_).DomainCheckResponse
 		dcd.Checks = append(dcd.Checks, DomainCheck_{})
 		return nil
 	})
-	scanResponse.MustHandleCharData("epp > response > resData > urn:ietf:params:xml:ns:domain-1.0 chkData > cd > name", func(c *Context) error {
+	scanResponse.MustHandleCharData(path+">cd>name", func(c *Context) error {
 		checks := c.Value.(*response_).DomainCheckResponse.Checks
 		check := &checks[len(checks)-1]
 		check.Domain = string(c.CharData)
 		check.Available = c.AttrBool("", "avail")
 		return nil
 	})
-	scanResponse.MustHandleCharData("epp > response > resData > urn:ietf:params:xml:ns:domain-1.0 chkData > cd > reason", func(c *Context) error {
+	scanResponse.MustHandleCharData(path+">cd>reason", func(c *Context) error {
 		checks := c.Value.(*response_).DomainCheckResponse.Checks
 		check := &checks[len(checks)-1]
 		check.Reason = string(c.CharData)
