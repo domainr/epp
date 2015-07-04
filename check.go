@@ -1,10 +1,5 @@
 package epp
 
-import (
-	"encoding/xml"
-	"io"
-)
-
 // <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
 //   <command>
 //     <check>
@@ -58,8 +53,14 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheck, error) {
 type DomainCheck domainCheckData
 
 type DomainCheckResponse struct {
-	Checks  []DomainCheck
+	Checks  []DomainCheck_
 	Charges []DomainCharge
+}
+
+type DomainCheck_ struct {
+	Domain    string
+	Reason    string
+	Available bool
 }
 
 type DomainCharge struct {
@@ -73,87 +74,23 @@ func init() {
 		c.Value.(*response_).DomainCheckResponse = DomainCheckResponse{}
 		return nil
 	})
-}
-
-func decodeDomainCheckResponse(d *Decoder) ([]DomainCheck_, error) {
-	var r Result
-	var dcs []DomainCheck_
-	for {
-		t, err := d.Token()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return dcs, err
-		}
-		switch node := t.(type) {
-		case xml.StartElement:
-			switch {
-			case d.AtPath("epp", "response", "result"):
-				err := d.decodeResult(&r)
-				if err != nil {
-					return dcs, err
-				}
-
-			case d.AtPath("resData", "chkData", "cd"):
-				_, err := decodeDomainCheckData(d)
-				if err != nil {
-					return dcs, err
-				}
-			}
-
-		case xml.CharData:
-			if string(node) != "" {
-
-			}
-		}
-		// fmt.Printf("Stack: %+v\n", d.Stack)
-	}
-	return dcs, nil
-}
-
-type DomainCheck_ struct {
-	Domain    string
-	Reason    string
-	Available bool
-}
-
-type domainCheckData_ struct {
-	domain    string
-	available Bool
-	reason    string
-}
-
-func decodeDomainCheckData(d *Decoder) (domainCheckData_, error) {
-	var data domainCheckData_
-outer:
-	for {
-		t, err := d.Token()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return data, err
-		}
-		switch node := t.(type) {
-		case xml.EndElement:
-			if node.Name.Local == "cd" {
-				break outer
-			}
-		case xml.CharData:
-			e := d.Element(-1)
-			switch e.Name.Local {
-			case "name":
-				data.domain = string(node)
-				for _, a := range e.Attr {
-					if a.Name.Local == "avail" {
-						data.available.UnmarshalXMLAttr(&a)
-					}
-				}
-			case "reason":
-				data.reason = string(node)
-			}
-		}
-	}
-	return data, nil
+	scanResponse.MustHandleStartElement("epp > response > resData > urn:ietf:params:xml:ns:domain-1.0 chkData > cd", func(c *Context) error {
+		dcd := &c.Value.(*response_).DomainCheckResponse
+		dcd.Checks = append(dcd.Checks, DomainCheck_{})
+		return nil
+	})
+	scanResponse.MustHandleCharData("epp > response > resData > urn:ietf:params:xml:ns:domain-1.0 chkData > cd > name", func(c *Context) error {
+		checks := c.Value.(*response_).DomainCheckResponse.Checks
+		check := &checks[len(checks)-1]
+		check.Domain = string(c.CharData)
+		a := c.Attr("", "avail")
+		check.Available = (a == "1" || a == "true")
+		return nil
+	})
+	scanResponse.MustHandleCharData("epp > response > resData > urn:ietf:params:xml:ns:domain-1.0 chkData > cd > reason", func(c *Context) error {
+		checks := c.Value.(*response_).DomainCheckResponse.Checks
+		check := &checks[len(checks)-1]
+		check.Reason = string(c.CharData)
+		return nil
+	})
 }

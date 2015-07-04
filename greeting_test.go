@@ -2,7 +2,6 @@ package epp
 
 import (
 	"bytes"
-	"encoding/xml"
 	"testing"
 
 	"github.com/nbio/st"
@@ -17,7 +16,7 @@ func TestHello(t *testing.T) {
 }
 
 func TestScanGreeting(t *testing.T) {
-	d := xml.NewDecoder(bytes.NewBuffer(testXMLGreeting))
+	d := decoder(testXMLGreeting)
 	var res response_
 	err := IgnoreEOF(scanResponse.Scan(d, &res))
 	st.Expect(t, err, nil)
@@ -36,7 +35,7 @@ func BenchmarkScanGreeting(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		buf.Reset()
-		buf.Write(testXMLGreeting)
+		buf.WriteString(testXMLGreeting)
 		deleteBufferRange(&buf, []byte(`<dcp>`), []byte(`</dcp>`))
 		d.Reset()
 		b.StartTimer()
@@ -45,7 +44,7 @@ func BenchmarkScanGreeting(b *testing.B) {
 	}
 }
 
-var testXMLGreeting = []byte(`<?xml version="1.0" encoding="utf-8"?>
+var testXMLGreeting = `<?xml version="1.0" encoding="utf-8"?>
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
 	<greeting>
 		<svID>Example EPP server epp.example.com</svID>
@@ -70,4 +69,4 @@ var testXMLGreeting = []byte(`<?xml version="1.0" encoding="utf-8"?>
 			</statement>
 		</dcp>
 	</greeting>
-</epp>`)
+</epp>`
