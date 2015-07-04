@@ -1,6 +1,7 @@
 package epp
 
 import (
+	"bytes"
 	"crypto/tls"
 	"net"
 	"testing"
@@ -37,4 +38,22 @@ func TestNewConn(t *testing.T) {
 	st.Expect(t, err, nil)
 	st.Reject(t, c, nil)
 	st.Reject(t, c.Greeting.ServerName, "")
+}
+
+func TestDeleteRange(t *testing.T) {
+	v := deleteRange([]byte(`<foo><bar><baz></baz></bar></foo>`), []byte(`<baz`), []byte(`</baz>`))
+	st.Expect(t, string(v), `<foo><bar></bar></foo>`)
+
+	v = deleteRange([]byte(`<foo><bar><baz></baz></bar></foo>`), []byte(`</bar>`), []byte(`o>`))
+	st.Expect(t, string(v), `<foo><bar><baz></baz>`)
+}
+
+func TestDeleteBufferRange(t *testing.T) {
+	buf := bytes.NewBufferString(`<foo><bar><baz></baz></bar></foo>`)
+	deleteBufferRange(buf, []byte(`<baz`), []byte(`</baz>`))
+	st.Expect(t, buf.String(), `<foo><bar></bar></foo>`)
+
+	buf = bytes.NewBufferString(`<foo><bar><baz></baz></bar></foo>`)
+	deleteBufferRange(buf, []byte(`</bar>`), []byte(`o>`))
+	st.Expect(t, buf.String(), `<foo><bar><baz></baz>`)
 }
