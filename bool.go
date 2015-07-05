@@ -25,12 +25,13 @@ func (b *Bool) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 }
 
 // UnmarshalXMLAttr impements the xml.MarshalerAttr interface.
-// A value of 1 or starting with a t or T is considered true.
+// An empty value, 0, or starting with a f or F is considered false.
+// Any other value is considered true.
 func (b *Bool) UnmarshalXMLAttr(attr *xml.Attr) error {
-	if attr.Value == "1" || attr.Value[0] == 'T' || attr.Value[0] == 't' {
-		*b = true
-	} else {
+	if len(attr.Value) == 0 || attr.Value == "1" || attr.Value[0] == 'f' || attr.Value[0] == 'F' {
 		*b = false
+	} else {
+		*b = true
 	}
 	return nil
 }
