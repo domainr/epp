@@ -1,6 +1,8 @@
 package epp
 
 import (
+	"bytes"
+	"encoding/xml"
 	"testing"
 
 	"github.com/nbio/st"
@@ -26,6 +28,17 @@ func TestConnCheck(t *testing.T) {
 	dcr, err = c.CheckDomain("--dmnr-test--.com")
 	st.Reject(t, err, nil)
 	st.Expect(t, dcr, (*DomainCheckResponse)(nil))
+}
+
+func TestEncodeDomainCheck(t *testing.T) {
+	var buf bytes.Buffer
+	err := encodeDomainCheck(&buf, []string{"hello.com", "foo.domains", "xn--ninja.net"})
+	st.Expect(t, err, nil)
+	st.Expect(t, buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
+<epp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd" xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:check><domain:name>hello.com</domain:name></domain:check><domain:check><domain:name>foo.domains</domain:name></domain:check><domain:check><domain:name>xn--ninja.net</domain:name></domain:check></check></command></epp>`)
+	var msg message
+	err = xml.Unmarshal(buf.Bytes(), &msg)
+	st.Expect(t, err, nil)
 }
 
 func TestScanCheckDomainResponse(t *testing.T) {

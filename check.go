@@ -1,5 +1,10 @@
 package epp
 
+import (
+	"bytes"
+	"encoding/xml"
+)
+
 // CheckDomain queries the EPP server for the availability status of one or more domains.
 func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
 	req := message{
@@ -21,6 +26,32 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
 		return nil, err
 	}
 	return &res.DomainCheckResponse, nil
+}
+
+var _ = `<?xml version="1.0" encoding="utf-8"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+      <domain:check>
+        <domain:name>ab.domains</domain:name>
+      </domain:check>
+    </check>
+    <clTRID>0000000000000002</clTRID>
+  </command>
+</epp>`
+
+func encodeDomainCheck(buf *bytes.Buffer, domains []string) error {
+	buf.Reset()
+	buf.Write(xmlCommandPrefix)
+	buf.WriteString(`<check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">`)
+	for _, domain := range domains {
+		buf.WriteString(`<domain:check><domain:name>`)
+		xml.EscapeText(buf, []byte(domain))
+		buf.WriteString(`</domain:name></domain:check>`)
+	}
+	buf.WriteString(`</check>`)
+	buf.Write(xmlCommandSuffix)
+	return nil
 }
 
 type DomainCheckResponse struct {
