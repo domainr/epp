@@ -15,7 +15,7 @@ var (
 	False = Bool(false)
 )
 
-// UnmarshalXML impements the xml.Marshaler interface.
+// UnmarshalXML impements the xml.Unmarshaler interface.
 // Any tag present with this type = true.
 func (b *Bool) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var v struct{}
