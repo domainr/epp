@@ -74,8 +74,8 @@ func TestConnDecoderReuse(t *testing.T) {
 	st.Expect(t, c.decoder.InputOffset(), int64(34))
 }
 
-func logMarshal(t *testing.T, msg *message) {
-	x, err := xml.Marshal(&msg)
+func logMarshal(t *testing.T, v interface{}) {
+	x, err := xml.Marshal(v)
 	st.Expect(t, err, nil)
 	t.Logf("<!-- MARSHALED -->\n%s\n", string(x))
 }
