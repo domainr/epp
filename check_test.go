@@ -58,6 +58,24 @@ func TestScanCheckDomainResponse(t *testing.T) {
 	st.Expect(t, dcr.Charges[0].CategoryName, "BBB+")
 }
 
+func BenchmarkEncodeDomainCheck(b *testing.B) {
+	var buf bytes.Buffer
+	domains := []string{"hello.com"}
+	for i := 0; i < b.N; i++ {
+		encodeDomainCheck(&buf, domains)
+	}
+}
+
+func BenchmarkScanDomainCheckResponse(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		d := decoder(testXMLDomainCheckResponse)
+		b.StartTimer()
+		var res response_
+		scanResponse.Scan(d, &res)
+	}
+}
+
 var testXMLDomainCheckResponse = `<?xml version="1.0" encoding="utf-8"?>
 <epp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd" xmlns="urn:ietf:params:xml:ns:epp-1.0">
 	<response>
