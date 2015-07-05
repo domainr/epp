@@ -7,16 +7,11 @@ import (
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
 func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
-	req := message{
-		Command: &command{
-			Check: &check{
-				DomainCheck: &domainCheck{
-					Domains: domains,
-				},
-			},
-		},
+	err := encodeDomainCheck(&c.buf, domains)
+	if err != nil {
+		return nil, err
 	}
-	err := c.writeMessage(&req)
+	err = c.flushDataUnit()
 	if err != nil {
 		return nil, err
 	}
