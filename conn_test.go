@@ -80,17 +80,6 @@ func logMarshal(t *testing.T, v interface{}) {
 	t.Logf("<!-- MARSHALED -->\n%s\n", string(x))
 }
 
-func TestConnDecodeMessage(t *testing.T) {
-	c := newConn(nil)
-	c.buf.WriteString(testXMLDomainCheckResponse)
-	var msg message
-	err := c.decodeMessage(&msg)
-	st.Expect(t, err, nil)
-	st.Reject(t, msg.Response, nil)
-	st.Expect(t, len(msg.Response.Results), 1)
-	logMarshal(t, &msg)
-}
-
 func TestDeleteRange(t *testing.T) {
 	v := deleteRange([]byte(`<foo><bar><baz></baz></bar></foo>`), []byte(`<baz`), []byte(`</baz>`))
 	st.Expect(t, string(v), `<foo><bar></bar></foo>`)

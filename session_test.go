@@ -53,27 +53,6 @@ var (
 	}
 )
 
-func BenchmarkMarshalLogin(b *testing.B) {
-	b.StopTimer()
-	msg := message{
-		Command: &command{
-			Login: &login{
-				User:        "jane",
-				Password:    "battery",
-				NewPassword: "horse",
-				Version:     "1.0",
-				Language:    "en",
-				Objects:     testObjects,
-				Extensions:  testExtensions,
-			},
-		},
-	}
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		xml.Marshal(&msg)
-	}
-}
-
 func BenchmarkEncodeLogin(b *testing.B) {
 	var buf bytes.Buffer
 	for i := 0; i < b.N; i++ {

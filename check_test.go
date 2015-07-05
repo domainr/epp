@@ -111,11 +111,3 @@ var testXMLDomainCheckResponse = `<?xml version="1.0" encoding="utf-8"?>
 		</trID>
 	</response>
 </epp>`
-
-func BenchmarkEncodeDomainCheck(b *testing.B) {
-	var buf bytes.Buffer
-	domains := []string{"hello.com"}
-	for i := 0; i < b.N; i++ {
-		encodeDomainCheck(&buf, domains)
-	}
-}

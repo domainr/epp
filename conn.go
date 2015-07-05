@@ -22,7 +22,6 @@ func IgnoreEOF(err error) error {
 type Conn struct {
 	net.Conn
 	buf     bytes.Buffer
-	encoder *xml.Encoder
 	decoder *xml.Decoder
 	saved   xml.Decoder
 
@@ -44,7 +43,6 @@ func NewConn(conn net.Conn) (*Conn, error) {
 // Used internally for testing.
 func newConn(conn net.Conn) *Conn {
 	c := Conn{Conn: conn}
-	c.encoder = xml.NewEncoder(&c.buf)
 	c.decoder = xml.NewDecoder(&c.buf)
 	c.saved = *c.decoder
 	c.Greeting.Objects = defaultObjects
@@ -62,19 +60,6 @@ func (c *Conn) reset() {
 // xml.Decoder (pos 1, line 1, stack, etc.) using a hack.
 func (c *Conn) resetDecoder() {
 	*c.decoder = c.saved // Heh.
-}
-
-// writeMessage serializes msg into XML and writes it to c.
-// It reuses (and therefore clobbers) the internal buffer
-// shared with the parsing side.
-func (c *Conn) writeMessage(msg *message) error {
-	c.buf.Reset()
-	c.buf.Write(xmlHeader)
-	err := c.encoder.Encode(msg)
-	if err != nil {
-		return err
-	}
-	return c.writeDataUnit(c.buf.Bytes())
 }
 
 // flushDataUnit writes bytes from c.buf to c using writeDataUnit.
@@ -95,29 +80,6 @@ func (c *Conn) writeDataUnit(x []byte) error {
 	}
 	_, err = c.Conn.Write(x)
 	return err
-}
-
-// readMessage reads a single EPP response from c and parses the XML into req.
-// It returns an error if the EPP response contains an error Result.
-func (c *Conn) readMessage(msg *message) error {
-	err := c.readDataUnit()
-	if err != nil {
-		return err
-	}
-	return c.decodeMessage(msg)
-}
-
-// decodeMessage decodes an EPP XML message into msg,
-// returning any EPP protocol-level errors detected in the message.
-// It resets the underlying xml.Decoder before attempting to decode
-// the input stream.
-func (c *Conn) decodeMessage(msg *message) error {
-	c.resetDecoder()
-	err := c.decoder.Decode(msg)
-	if err != nil {
-		return err
-	}
-	return msg.error()
 }
 
 // readResponse reads a single EPP response from c and parses the XML into req.
