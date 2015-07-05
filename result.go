@@ -1,6 +1,10 @@
 package epp
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/nbio/xx"
+)
 
 // Result represents an EPP <result> element.
 type Result struct {
@@ -28,12 +32,12 @@ func (r Result) Error() string {
 
 func init() {
 	path := "epp>response>result"
-	scanResponse.MustHandleStartElement(path, func(c *Context) error {
+	scanResponse.MustHandleStartElement(path, func(c *xx.Context) error {
 		res := c.Value.(*response_)
 		res.Result.Code = c.AttrInt("", "code")
 		return nil
 	})
-	scanResponse.MustHandleCharData(path+">msg", func(c *Context) error {
+	scanResponse.MustHandleCharData(path+">msg", func(c *xx.Context) error {
 		c.Value.(*response_).Result.Message = string(c.CharData)
 		return nil
 	})

@@ -1,15 +1,17 @@
 package epp
 
+import "github.com/nbio/xx"
+
 type response_ struct {
 	Result
 	Greeting
 	DomainCheckResponse
 }
 
-var scanResponse = NewScanner()
+var scanResponse = xx.NewScanner()
 
 func init() {
-	scanResponse.MustHandleStartElement("epp", func(c *Context) error {
+	scanResponse.MustHandleStartElement("epp", func(c *xx.Context) error {
 		*c.Value.(*response_) = response_{}
 		return nil
 	})

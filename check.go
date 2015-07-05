@@ -3,6 +3,8 @@ package epp
 import (
 	"bytes"
 	"encoding/xml"
+
+	"github.com/nbio/xx"
 )
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
@@ -68,19 +70,19 @@ type DomainCharge struct {
 
 func init() {
 	path := "epp > response > resData > urn:ietf:params:xml:ns:domain-1.0 chkData"
-	scanResponse.MustHandleStartElement(path+">cd", func(c *Context) error {
+	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
 		dcd := &c.Value.(*response_).DomainCheckResponse
 		dcd.Checks = append(dcd.Checks, DomainCheck{})
 		return nil
 	})
-	scanResponse.MustHandleCharData(path+">cd>name", func(c *Context) error {
+	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
 		checks := c.Value.(*response_).DomainCheckResponse.Checks
 		check := &checks[len(checks)-1]
 		check.Domain = string(c.CharData)
 		check.Available = c.AttrBool("", "avail")
 		return nil
 	})
-	scanResponse.MustHandleCharData(path+">cd>reason", func(c *Context) error {
+	scanResponse.MustHandleCharData(path+">cd>reason", func(c *xx.Context) error {
 		checks := c.Value.(*response_).DomainCheckResponse.Checks
 		check := &checks[len(checks)-1]
 		check.Reason = string(c.CharData)
@@ -90,18 +92,18 @@ func init() {
 
 func init() {
 	path := "epp > response > extension > http://www.unitedtld.com/epp/charge-1.0 chkData"
-	scanResponse.MustHandleStartElement(path+">cd", func(c *Context) error {
+	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
 		dcd := &c.Value.(*response_).DomainCheckResponse
 		dcd.Charges = append(dcd.Charges, DomainCharge{})
 		return nil
 	})
-	scanResponse.MustHandleCharData(path+">cd>name", func(c *Context) error {
+	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
 		charges := c.Value.(*response_).DomainCheckResponse.Charges
 		charge := &charges[len(charges)-1]
 		charge.Domain = string(c.CharData)
 		return nil
 	})
-	scanResponse.MustHandleCharData(path+">cd>set>category", func(c *Context) error {
+	scanResponse.MustHandleCharData(path+">cd>set>category", func(c *xx.Context) error {
 		charges := c.Value.(*response_).DomainCheckResponse.Charges
 		charge := &charges[len(charges)-1]
 		charge.Category = string(c.CharData)

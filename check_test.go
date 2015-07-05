@@ -8,6 +8,10 @@ import (
 	"github.com/nbio/st"
 )
 
+func decoder(s string) *xml.Decoder {
+	return xml.NewDecoder(bytes.NewBufferString(s))
+}
+
 func TestConnCheck(t *testing.T) {
 	c := testLogin(t)
 

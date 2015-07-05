@@ -1,6 +1,10 @@
 package epp
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+
+	"github.com/nbio/xx"
+)
 
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
 func (c *Conn) Hello() error {
@@ -56,27 +60,27 @@ func (c *Conn) readGreeting() error {
 
 func init() {
 	path := "epp>greeting"
-	scanResponse.MustHandleCharData(path+">svID", func(c *Context) error {
+	scanResponse.MustHandleCharData(path+">svID", func(c *xx.Context) error {
 		res := c.Value.(*response_)
 		res.Greeting.ServerName = string(c.CharData)
 		return nil
 	})
-	scanResponse.MustHandleCharData(path+">svcMenu>version", func(c *Context) error {
+	scanResponse.MustHandleCharData(path+">svcMenu>version", func(c *xx.Context) error {
 		res := c.Value.(*response_)
 		res.Greeting.Versions = append(res.Greeting.Versions, string(c.CharData))
 		return nil
 	})
-	scanResponse.MustHandleCharData(path+">svcMenu>lang", func(c *Context) error {
+	scanResponse.MustHandleCharData(path+">svcMenu>lang", func(c *xx.Context) error {
 		res := c.Value.(*response_)
 		res.Greeting.Languages = append(res.Greeting.Languages, string(c.CharData))
 		return nil
 	})
-	scanResponse.MustHandleCharData(path+">svcMenu>objURI", func(c *Context) error {
+	scanResponse.MustHandleCharData(path+">svcMenu>objURI", func(c *xx.Context) error {
 		res := c.Value.(*response_)
 		res.Greeting.Objects = append(res.Greeting.Objects, string(c.CharData))
 		return nil
 	})
-	scanResponse.MustHandleCharData(path+">svcMenu>svcExtension>extURI", func(c *Context) error {
+	scanResponse.MustHandleCharData(path+">svcMenu>svcExtension>extURI", func(c *xx.Context) error {
 		res := c.Value.(*response_)
 		res.Greeting.Extensions = append(res.Greeting.Extensions, string(c.CharData))
 		return nil
