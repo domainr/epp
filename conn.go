@@ -45,8 +45,6 @@ func newConn(conn net.Conn) *Conn {
 	c := Conn{Conn: conn}
 	c.decoder = xml.NewDecoder(&c.buf)
 	c.saved = *c.decoder
-	c.Greeting.Objects = defaultObjects
-	c.Greeting.Extensions = defaultExtensions
 	return &c
 }
 

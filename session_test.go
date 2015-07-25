@@ -39,17 +39,18 @@ func TestEncodeLoginChangePassword(t *testing.T) {
 
 var (
 	testObjects = []string{
-		"urn:ietf:params:xml:ns:domain-1.0",
-		"urn:ietf:params:xml:ns:host-1.0",
-		"urn:ietf:params:xml:ns:contact-1.0",
-		"http://www.unitedtld.com/epp/finance-1.0",
+		ObjContact,
+		ObjDomain,
+		ObjFinance,
+		ObjHost,
 	}
 	testExtensions = []string{
-		"urn:ietf:params:xml:ns:secDNS-1.1",
-		"urn:ietf:params:xml:ns:rgp-1.0",
-		"urn:ietf:params:xml:ns:launch-1.0",
-		"urn:ietf:params:xml:ns:idn-1.0",
-		"http://www.unitedtld.com/epp/charge-1.0",
+		ExtCharge,
+		ExtFee,
+		ExtIDN,
+		ExtLaunch,
+		ExtRGP,
+		ExtSecDNS,
 	}
 )
 

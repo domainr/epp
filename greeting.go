@@ -27,20 +27,39 @@ type Greeting struct {
 	Extensions []string `xml:"svcMenu>svcExtension>extURI,omitempty"`
 }
 
-var (
-	defaultObjects = []string{
-		"urn:ietf:params:xml:ns:domain-1.0",
-		"urn:ietf:params:xml:ns:host-1.0",
-		"urn:ietf:params:xml:ns:contact-1.0",
-		"http://www.unitedtld.com/epp/finance-1.0",
+// SupportsExtension returns true if the EPP server supports
+// the object specified by uri.
+func (g *Greeting) SupportsObject(uri string) bool {
+	for _, v := range g.Objects {
+		if v == uri {
+			return true
+		}
 	}
-	defaultExtensions = []string{
-		"urn:ietf:params:xml:ns:secDNS-1.1",
-		"urn:ietf:params:xml:ns:rgp-1.0",
-		"urn:ietf:params:xml:ns:launch-1.0",
-		"urn:ietf:params:xml:ns:idn-1.0",
-		"http://www.unitedtld.com/epp/charge-1.0",
+	return false
+}
+
+// SupportsExtension returns true if the EPP server supports
+// the extension specified by uri.
+func (g *Greeting) SupportsExtension(uri string) bool {
+	for _, v := range g.Extensions {
+		if v == uri {
+			return true
+		}
 	}
+	return false
+}
+
+const (
+	ObjDomain  = "urn:ietf:params:xml:ns:domain-1.0"
+	ObjHost    = "urn:ietf:params:xml:ns:host-1.0"
+	ObjContact = "urn:ietf:params:xml:ns:contact-1.0"
+	ObjFinance = "http://www.unitedtld.com/epp/finance-1.0"
+	ExtSecDNS  = "urn:ietf:params:xml:ns:secDNS-1.1"
+	ExtRGP     = "urn:ietf:params:xml:ns:rgp-1.0"
+	ExtLaunch  = "urn:ietf:params:xml:ns:launch-1.0"
+	ExtIDN     = "urn:ietf:params:xml:ns:idn-1.0"
+	ExtCharge  = "http://www.unitedtld.com/epp/charge-1.0"
+	ExtFee     = "urn:ietf:params:xml:ns:fee-0.5"
 )
 
 func (c *Conn) readGreeting() error {

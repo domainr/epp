@@ -16,6 +16,24 @@ func TestHello(t *testing.T) {
 	st.Expect(t, c.Greeting.ServerName, "ISPAPI EPP Server") // FIXME: brittle external dependency
 }
 
+func TestGreetingSupportsObject(t *testing.T) {
+	g := Greeting{}
+	st.Expect(t, g.SupportsObject(ObjDomain), false)
+	st.Expect(t, g.SupportsObject(ObjHost), false)
+	g.Objects = testObjects
+	st.Expect(t, g.SupportsObject(ObjDomain), true)
+	st.Expect(t, g.SupportsObject(ObjHost), true)
+}
+
+func TestGreetingSupportsExtension(t *testing.T) {
+	g := Greeting{}
+	st.Expect(t, g.SupportsExtension(ExtCharge), false)
+	st.Expect(t, g.SupportsExtension(ExtIDN), false)
+	g.Extensions = testExtensions
+	st.Expect(t, g.SupportsExtension(ExtCharge), true)
+	st.Expect(t, g.SupportsExtension(ExtIDN), true)
+}
+
 func TestScanGreeting(t *testing.T) {
 	d := decoder(testXMLGreeting)
 	var res response_
