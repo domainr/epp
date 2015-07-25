@@ -25,18 +25,6 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
 	return &res.DomainCheckResponse, nil
 }
 
-var _ = `<?xml version="1.0" encoding="utf-8"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
-  <command>
-    <check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-      <domain:check>
-        <domain:name>ab.domains</domain:name>
-      </domain:check>
-    </check>
-    <clTRID>0000000000000002</clTRID>
-  </command>
-</epp>`
-
 func encodeDomainCheck(buf *bytes.Buffer, domains []string) error {
 	buf.Reset()
 	buf.Write(xmlCommandPrefix)

@@ -20,7 +20,7 @@ func TestEncodeLogin(t *testing.T) {
 	err := encodeLogin(&buf, "jane", "battery", "", "1.0", "en", nil, nil)
 	st.Expect(t, err, nil)
 	st.Expect(t, buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
-<epp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd" xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><login><clID>jane</clID><pw>battery</pw><options><version>1.0</version><lang>en</lang></options><svcs></svcs></login></command></epp>`)
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><login><clID>jane</clID><pw>battery</pw><options><version>1.0</version><lang>en</lang></options><svcs></svcs></login></command></epp>`)
 	var v struct{}
 	err = xml.Unmarshal(buf.Bytes(), &v)
 	st.Expect(t, err, nil)
@@ -31,7 +31,7 @@ func TestEncodeLoginChangePassword(t *testing.T) {
 	err := encodeLogin(&buf, "jane", "battery", "horse", "1.0", "en", nil, nil)
 	st.Expect(t, err, nil)
 	st.Expect(t, buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
-<epp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd" xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><login><clID>jane</clID><pw>battery</pw><newPW>horse</newPW><options><version>1.0</version><lang>en</lang></options><svcs></svcs></login></command></epp>`)
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><login><clID>jane</clID><pw>battery</pw><newPW>horse</newPW><options><version>1.0</version><lang>en</lang></options><svcs></svcs></login></command></epp>`)
 	var v struct{}
 	err = xml.Unmarshal(buf.Bytes(), &v)
 	st.Expect(t, err, nil)

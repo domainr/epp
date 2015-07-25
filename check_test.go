@@ -39,7 +39,7 @@ func TestEncodeDomainCheck(t *testing.T) {
 	err := encodeDomainCheck(&buf, []string{"hello.com", "foo.domains", "xn--ninja.net"})
 	st.Expect(t, err, nil)
 	st.Expect(t, buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
-<epp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd" xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:check><domain:name>hello.com</domain:name></domain:check><domain:check><domain:name>foo.domains</domain:name></domain:check><domain:check><domain:name>xn--ninja.net</domain:name></domain:check></check></command></epp>`)
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:check><domain:name>hello.com</domain:name></domain:check><domain:check><domain:name>foo.domains</domain:name></domain:check><domain:check><domain:name>xn--ninja.net</domain:name></domain:check></check></command></epp>`)
 	var v struct{}
 	err = xml.Unmarshal(buf.Bytes(), &v)
 	st.Expect(t, err, nil)
@@ -81,7 +81,7 @@ func BenchmarkScanDomainCheckResponse(b *testing.B) {
 }
 
 var testXMLDomainCheckResponse = `<?xml version="1.0" encoding="utf-8"?>
-<epp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd" xmlns="urn:ietf:params:xml:ns:epp-1.0">
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
 	<response>
 		<result code="1000">
 			<msg>Command completed successfully</msg>
