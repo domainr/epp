@@ -9,7 +9,7 @@ import (
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
 func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
-	err := encodeDomainCheck(&c.buf, domains)
+	err := encodeDomainCheck(&c.buf, domains, c.Greeting.SupportsExtension(ExtFee))
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
 	return &res.DomainCheckResponse, nil
 }
 
-func encodeDomainCheck(buf *bytes.Buffer, domains []string) error {
+func encodeDomainCheck(buf *bytes.Buffer, domains []string, extFee bool) error {
 	buf.Reset()
 	buf.Write(xmlCommandPrefix)
 	buf.WriteString(`<check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">`)
@@ -35,6 +35,26 @@ func encodeDomainCheck(buf *bytes.Buffer, domains []string) error {
 		buf.WriteString(`</domain:name></domain:check>`)
 	}
 	buf.WriteString(`</check>`)
+
+	if extFee && false {
+		// Extensions
+		buf.WriteString(`<extension>`)
+
+		// CentralNic fee extension
+		buf.WriteString(`<fee:check xmlns:fee="urn:ietf:params:xml:ns:fee-0.5">`)
+		for _, domain := range domains {
+			buf.WriteString(`<fee:domain>`)
+			buf.WriteString(`<fee:name>`)
+			xml.EscapeText(buf, []byte(domain))
+			buf.WriteString(`</fee:name>`)
+			buf.WriteString(`<fee:command>create</fee:command>`)
+			buf.WriteString(`</fee:domain>`)
+		}
+		buf.WriteString(`</fee:check>`)
+
+		buf.WriteString(`</extension>`)
+	}
+
 	buf.Write(xmlCommandSuffix)
 	return nil
 }

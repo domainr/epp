@@ -36,7 +36,7 @@ func TestConnCheck(t *testing.T) {
 
 func TestEncodeDomainCheck(t *testing.T) {
 	var buf bytes.Buffer
-	err := encodeDomainCheck(&buf, []string{"hello.com", "foo.domains", "xn--ninja.net"})
+	err := encodeDomainCheck(&buf, []string{"hello.com", "foo.domains", "xn--ninja.net"}, false)
 	st.Expect(t, err, nil)
 	st.Expect(t, buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:check><domain:name>hello.com</domain:name></domain:check><domain:check><domain:name>foo.domains</domain:name></domain:check><domain:check><domain:name>xn--ninja.net</domain:name></domain:check></check></command></epp>`)
@@ -66,7 +66,7 @@ func BenchmarkEncodeDomainCheck(b *testing.B) {
 	var buf bytes.Buffer
 	domains := []string{"hello.com"}
 	for i := 0; i < b.N; i++ {
-		encodeDomainCheck(&buf, domains)
+		encodeDomainCheck(&buf, domains, false)
 	}
 }
 
