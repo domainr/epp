@@ -54,6 +54,15 @@ var (
 	}
 )
 
+func TestConnLogout(t *testing.T) {
+	c, err := NewConn(testDial(t))
+	st.Assert(t, err, nil)
+	err = c.Login(user, password, "")
+	st.Assert(t, err, nil)
+	err = c.Logout()
+	st.Assert(t, err, nil)
+}
+
 func BenchmarkEncodeLogin(b *testing.B) {
 	var buf bytes.Buffer
 	for i := 0; i < b.N; i++ {

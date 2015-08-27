@@ -6,6 +6,7 @@ import (
 )
 
 // Login initializes an authenticated EPP session.
+// https://tools.ietf.org/html/rfc5730#section-2.9.1.1
 func (c *Conn) Login(user, password, newPassword string) error {
 	err := c.writeLogin(user, password, newPassword)
 	if err != nil {
@@ -66,3 +67,16 @@ func encodeLogin(buf *bytes.Buffer, user, password, newPassword, version, langua
 	buf.WriteString(xmlCommandSuffix)
 	return nil
 }
+
+// Logout sends a <logout> command to terminate an EPP session.
+// https://tools.ietf.org/html/rfc5730#section-2.9.1.2
+func (c *Conn) Logout() error {
+	err := c.writeDataUnit(xmlLogout)
+	if err != nil {
+		return err
+	}
+	var res response_
+	return c.readResponse(&res)
+}
+
+var xmlLogout = []byte(xmlCommandPrefix + `<logout/>` + xmlCommandSuffix)
