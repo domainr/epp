@@ -41,6 +41,15 @@ func TestNewConn(t *testing.T) {
 	st.Reject(t, c.Greeting.ServerName, "")
 }
 
+func TestConnClose(t *testing.T) {
+	c, err := NewConn(testDial(t))
+	st.Expect(t, err, nil)
+	st.Reject(t, c, nil)
+	st.Reject(t, c.Greeting.ServerName, "")
+	err = c.Close()
+	st.Expect(t, err, nil)
+}
+
 func TestConnDecoderReuse(t *testing.T) {
 	c := newConn(nil)
 	v := struct {

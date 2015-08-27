@@ -39,6 +39,12 @@ func NewConn(conn net.Conn) (*Conn, error) {
 	return c, err
 }
 
+// Close sends an EPP <logout> command and closes the connection c.
+func (c *Conn) Close() error {
+	c.Logout()
+	return c.Conn.Close()
+}
+
 // newConn initializes an epp.Conn from a net.Conn.
 // Used internally for testing.
 func newConn(conn net.Conn) *Conn {
