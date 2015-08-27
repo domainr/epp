@@ -32,7 +32,7 @@ func (c *Conn) writeLogin(user, password, newPassword string) error {
 
 func encodeLogin(buf *bytes.Buffer, user, password, newPassword, version, language string, objects, extensions []string) error {
 	buf.Reset()
-	buf.Write(xmlCommandPrefix)
+	buf.WriteString(xmlCommandPrefix)
 	buf.WriteString(`<login><clID>`)
 	xml.EscapeText(buf, []byte(user))
 	buf.WriteString(`</clID><pw>`)
@@ -63,6 +63,6 @@ func encodeLogin(buf *bytes.Buffer, user, password, newPassword, version, langua
 		buf.WriteString(`</svcExtension>`)
 	}
 	buf.WriteString(`</svcs></login>`)
-	buf.Write(xmlCommandSuffix)
+	buf.WriteString(xmlCommandSuffix)
 	return nil
 }
