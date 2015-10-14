@@ -28,12 +28,14 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
 func encodeDomainCheck(buf *bytes.Buffer, domains []string, extFee bool) error {
 	buf.Reset()
 	buf.WriteString(xmlCommandPrefix)
-	buf.WriteString(`<check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">`)
+	buf.WriteString(`<check>`)
+	buf.WriteString(`<domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">`)
 	for _, domain := range domains {
-		buf.WriteString(`<domain:check><domain:name>`)
+		buf.WriteString(`<domain:name>`)
 		xml.EscapeText(buf, []byte(domain))
-		buf.WriteString(`</domain:name></domain:check>`)
+		buf.WriteString(`</domain:name>`)
 	}
+	buf.WriteString(`</domain:check>`)
 	buf.WriteString(`</check>`)
 
 	if extFee {
