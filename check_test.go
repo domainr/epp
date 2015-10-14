@@ -39,7 +39,7 @@ func TestEncodeDomainCheck(t *testing.T) {
 	err := encodeDomainCheck(&buf, []string{"hello.com", "foo.domains", "xn--ninja.net"}, false)
 	st.Expect(t, err, nil)
 	st.Expect(t, buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:check><domain:name>hello.com</domain:name></domain:check><domain:check><domain:name>foo.domains</domain:name></domain:check><domain:check><domain:name>xn--ninja.net</domain:name></domain:check></check></command></epp>`)
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check><domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:name>hello.com</domain:name><domain:name>foo.domains</domain:name><domain:name>xn--ninja.net</domain:name></domain:check></check></command></epp>`)
 	var v struct{}
 	err = xml.Unmarshal(buf.Bytes(), &v)
 	st.Expect(t, err, nil)
