@@ -132,6 +132,9 @@ func init() {
 		charges := c.Value.(*response_).DomainCheckResponse.Charges
 		charge := &charges[len(charges)-1]
 		charge.Domain = string(c.CharData)
+		if c.AttrBool("", "premium") {
+			charge.Category = "premium"
+		}
 		return nil
 	})
 	scanResponse.MustHandleCharData(path+">cd>class", func(c *xx.Context) error {
