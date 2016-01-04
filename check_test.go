@@ -194,6 +194,45 @@ func TestScanCheckDomainResponseWithPremiumAttribute(t *testing.T) {
 	st.Expect(t, dcr.Charges[0].CategoryName, "Registration Fee")
 }
 
+func TestScanCheckDomainResponsePriceExtension(t *testing.T) {
+	x := `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+	<response>
+		<result code="1000">
+			<msg lang="en">Command completed successfully</msg>
+		</result>
+		<extension>
+			<chkData xmlns="urn:ar:params:xml:ns:price-1.2">
+				<cd>
+					<name>foundations.build</name>
+					<category>Premium_4_1500</category>
+					<period unit="y">1</period>
+					<createPrice>1500</createPrice>
+					<renewPrice>1500</renewPrice>
+					<restorePrice>40</restorePrice>
+					<transferPrice>1500</transferPrice>
+				</cd>
+			</chkData>
+		</extension>
+		<trID>
+			<svTRID>aaa39bf9-12dd-4810-bdb2-98f629cfbbbb</svTRID>
+		</trID>
+	</response>
+</epp>`
+
+	var res response_
+	dcr := &res.DomainCheckResponse
+
+	d := decoder(x)
+	err := IgnoreEOF(scanResponse.Scan(d, &res))
+	st.Expect(t, err, nil)
+	st.Expect(t, len(dcr.Checks), 0)
+	st.Expect(t, len(dcr.Charges), 1)
+	st.Expect(t, dcr.Charges[0].Domain, "foundations.build")
+	st.Expect(t, dcr.Charges[0].Category, "premium")
+	st.Expect(t, dcr.Charges[0].CategoryName, "")
+}
+
 func BenchmarkEncodeDomainCheck(b *testing.B) {
 	var buf bytes.Buffer
 	domains := []string{"hello.com"}
