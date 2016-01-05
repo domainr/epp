@@ -3,7 +3,6 @@ package epp
 import (
 	"bytes"
 	"encoding/xml"
-	"strings"
 
 	"github.com/nbio/xx"
 )
@@ -95,7 +94,7 @@ func encodePriceCheck(buf *bytes.Buffer, domains []string) error {
 	// Extensions
 	buf.WriteString(`<extension>`)
 	// ARI price extension
-	buf.WriteString(`<price:check xmlns:price="urn:ar:params:xml:ns:price-1.2"></price:check>`)
+	buf.WriteString(`<price:check xmlns:price="urn:ar:params:xml:ns:price-1.1"></price:check>`)
 	buf.WriteString(`</extension>`)
 
 	buf.WriteString(xmlCommandSuffix)
@@ -191,7 +190,7 @@ func init() {
 		return nil
 	})
 
-	// Scan price-1.2 extension into Charges
+	// Scan price-1.1 extension into Charges
 	path = "epp > response > extension > " + ExtPrice + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
 		dcd := &c.Value.(*response_).DomainCheckResponse
@@ -202,12 +201,7 @@ func init() {
 		charges := c.Value.(*response_).DomainCheckResponse.Charges
 		charge := &charges[len(charges)-1]
 		charge.Domain = string(c.CharData)
-		return nil
-	})
-	scanResponse.MustHandleCharData(path+">cd>category", func(c *xx.Context) error {
-		charges := c.Value.(*response_).DomainCheckResponse.Charges
-		charge := &charges[len(charges)-1]
-		if strings.Index(strings.ToLower(string(c.CharData)), "premium") != -1 {
+		if c.AttrBool("", "premium") {
 			charge.Category = "premium"
 		}
 		return nil

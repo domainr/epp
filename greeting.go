@@ -60,7 +60,7 @@ const (
 	ExtIDN     = "urn:ietf:params:xml:ns:idn-1.0"
 	ExtCharge  = "http://www.unitedtld.com/epp/charge-1.0"
 	ExtFee     = "urn:ietf:params:xml:ns:fee-0.5"
-	ExtPrice   = "urn:ar:params:xml:ns:price-1.2"
+	ExtPrice   = "urn:ar:params:xml:ns:price-1.1"
 )
 
 func (c *Conn) readGreeting() error {
