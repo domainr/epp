@@ -202,10 +202,9 @@ func TestScanCheckDomainResponsePriceExtension(t *testing.T) {
 			<msg lang="en">Command completed successfully</msg>
 		</result>
 		<extension>
-			<chkData xmlns="urn:ar:params:xml:ns:price-1.2">
+			<chkData xmlns="urn:ar:params:xml:ns:price-1.1">
 				<cd>
-					<name>foundations.build</name>
-					<category>Premium_4_1500</category>
+					<name premium="1">foundations.build</name>
 					<period unit="y">1</period>
 					<createPrice>1500</createPrice>
 					<renewPrice>1500</renewPrice>
