@@ -3,13 +3,14 @@ package epp
 import (
 	"bytes"
 	"encoding/xml"
+	"strings"
 
 	"github.com/nbio/xx"
 )
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
 func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
-	err := encodeDomainCheck(&c.buf, domains, c.Greeting.SupportsExtension(ExtFee))
+	err := encodeDomainCheck(&c.buf, domains, c.Greeting)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +43,7 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
 	return &res.DomainCheckResponse, nil
 }
 
-func encodeDomainCheck(buf *bytes.Buffer, domains []string, extFee bool) error {
+func encodeDomainCheck(buf *bytes.Buffer, domains []string, greeting Greeting) error {
 	buf.Reset()
 	buf.WriteString(xmlCommandPrefix)
 	buf.WriteString(`<check>`)
@@ -55,12 +56,20 @@ func encodeDomainCheck(buf *bytes.Buffer, domains []string, extFee bool) error {
 	buf.WriteString(`</domain:check>`)
 	buf.WriteString(`</check>`)
 
-	if extFee {
+	supportsFee05 := greeting.SupportsExtension(ExtFee05)
+	supportsFee06 := greeting.SupportsExtension(ExtFee06)
+
+	if supportsFee05 || supportsFee06 {
+		feeURN := ExtFee06
+		if supportsFee05 {
+			feeURN = ExtFee06
+		}
+
 		// Extensions
 		buf.WriteString(`<extension>`)
 
 		// CentralNic fee extension
-		buf.WriteString(`<fee:check xmlns:fee="urn:ietf:params:xml:ns:fee-0.5">`)
+		buf.WriteString(`<fee:check xmlns:fee="` + feeURN + `">`)
 		for _, domain := range domains {
 			buf.WriteString(`<fee:domain>`)
 			buf.WriteString(`<fee:name>`)
@@ -161,8 +170,7 @@ func init() {
 		return nil
 	})
 
-	// Scan fee-0.5 extension into Charges
-	path = "epp > response > extension > " + ExtFee + " chkData"
+	path = "epp > response > extension > " + ExtFee05 + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
 		dcd := &c.Value.(*response_).DomainCheckResponse
 		dcd.Charges = append(dcd.Charges, DomainCharge{})
@@ -187,6 +195,31 @@ func init() {
 		charges := c.Value.(*response_).DomainCheckResponse.Charges
 		charge := &charges[len(charges)-1]
 		charge.CategoryName = c.Attr("", "description")
+		return nil
+	})
+
+	path = "epp > response > extension > " + ExtFee06 + " chkData"
+	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
+		dcd := &c.Value.(*response_).DomainCheckResponse
+		dcd.Charges = append(dcd.Charges, DomainCharge{})
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
+		charges := c.Value.(*response_).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		charge.Domain = string(c.CharData)
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>class", func(c *xx.Context) error {
+		charges := c.Value.(*response_).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		className := strings.ToLower(string(c.CharData))
+		isDefault := strings.Index(className, "default") != -1
+		isNormal := strings.Index(className, "normal") != -1
+		isDiscount := strings.Index(className, "discount") != -1
+		if isDefault == false && isNormal == false && isDiscount == false {
+			charge.Category = "premium"
+		}
 		return nil
 	})
 

@@ -46,7 +46,8 @@ var (
 	}
 	testExtensions = []string{
 		ExtCharge,
-		ExtFee,
+		ExtFee05,
+		ExtFee06,
 		ExtIDN,
 		ExtLaunch,
 		ExtRGP,
