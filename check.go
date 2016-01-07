@@ -62,7 +62,7 @@ func encodeDomainCheck(buf *bytes.Buffer, domains []string, greeting Greeting) e
 	if supportsFee05 || supportsFee06 {
 		feeURN := ExtFee06
 		if supportsFee05 {
-			feeURN = ExtFee06
+			feeURN = ExtFee05
 		}
 
 		// Extensions
