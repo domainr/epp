@@ -61,6 +61,7 @@ const (
 	ExtCharge  = "http://www.unitedtld.com/epp/charge-1.0"
 	ExtFee05   = "urn:ietf:params:xml:ns:fee-0.5"
 	ExtFee06   = "urn:ietf:params:xml:ns:fee-0.6"
+	ExtFee07   = "urn:ietf:params:xml:ns:fee-0.7"
 	ExtPrice   = "urn:ar:params:xml:ns:price-1.1"
 )
 

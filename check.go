@@ -56,15 +56,17 @@ func encodeDomainCheck(buf *bytes.Buffer, domains []string, greeting Greeting) e
 	buf.WriteString(`</domain:check>`)
 	buf.WriteString(`</check>`)
 
-	supportsFee05 := greeting.SupportsExtension(ExtFee05)
-	supportsFee06 := greeting.SupportsExtension(ExtFee06)
+	var feeURN string
+	switch {
+	case greeting.SupportsExtension(ExtFee05):
+		feeURN = ExtFee05
+	case greeting.SupportsExtension(ExtFee06):
+		feeURN = ExtFee06
+	case greeting.SupportsExtension(ExtFee07):
+		feeURN = ExtFee07
+	}
 
-	if supportsFee05 || supportsFee06 {
-		feeURN := ExtFee06
-		if supportsFee05 {
-			feeURN = ExtFee05
-		}
-
+	if len(feeURN) > 0 {
 		// Extensions
 		buf.WriteString(`<extension>`)
 
@@ -220,6 +222,25 @@ func init() {
 		if isDefault == false && isNormal == false && isDiscount == false {
 			charge.Category = "premium"
 		}
+		return nil
+	})
+
+	path = "epp > response > extension > " + ExtFee07 + " chkData"
+	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
+		dcd := &c.Value.(*response_).DomainCheckResponse
+		dcd.Charges = append(dcd.Charges, DomainCharge{})
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
+		charges := c.Value.(*response_).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		charge.Domain = string(c.CharData)
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>class", func(c *xx.Context) error {
+		charges := c.Value.(*response_).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		charge.Category = string(c.CharData)
 		return nil
 	})
 
