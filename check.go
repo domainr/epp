@@ -10,11 +10,84 @@ import (
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
 func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
-	err := encodeDomainCheck(&c.buf, domains, c.Greeting)
+	err := c.encodeDomainCheck(domains, "")
 	if err != nil {
 		return nil, err
 	}
-	err = c.flushDataUnit()
+	return c.processDomainCheck(domains)
+}
+
+// CheckDomainLaunchPhase allows specifying a launch phase for the check request.
+func (c *Conn) CheckDomainLaunchPhase(launchPhase string, domains ...string) (*DomainCheckResponse, error) {
+	err := c.encodeDomainCheck(domains, launchPhase)
+	if err != nil {
+		return nil, err
+	}
+	return c.processDomainCheck(domains)
+}
+
+func (c *Conn) encodeDomainCheck(domains []string, launchPhase string) error {
+	c.buf.Reset()
+	c.buf.WriteString(xmlCommandPrefix)
+	c.buf.WriteString(`<check>`)
+	c.buf.WriteString(`<domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">`)
+	for _, domain := range domains {
+		c.buf.WriteString(`<domain:name>`)
+		xml.EscapeText(&c.buf, []byte(domain))
+		c.buf.WriteString(`</domain:name>`)
+	}
+	c.buf.WriteString(`</domain:check>`)
+	c.buf.WriteString(`</check>`)
+
+	greeting := c.Greeting
+
+	var feeURN string
+	switch {
+	case greeting.SupportsExtension(ExtFee05):
+		feeURN = ExtFee05
+	case greeting.SupportsExtension(ExtFee06):
+		feeURN = ExtFee06
+	case greeting.SupportsExtension(ExtFee07):
+		feeURN = ExtFee07
+	}
+
+	supportsLaunch := greeting.SupportsExtension(ExtLaunch) && launchPhase != ""
+	hasExtension := feeURN != "" || supportsLaunch
+
+	if hasExtension {
+		c.buf.WriteString(`<extension>`)
+	}
+
+	if supportsLaunch {
+		c.buf.WriteString(`<launch:check xmlns:launch="` + ExtLaunch + `" type="avail">`)
+		c.buf.WriteString(`<launch:phase>` + launchPhase + `</launch:phase>`)
+		c.buf.WriteString(`</launch:check>`)
+	}
+
+	if len(feeURN) > 0 {
+		// CentralNic fee extension
+		c.buf.WriteString(`<fee:check xmlns:fee="` + feeURN + `">`)
+		for _, domain := range domains {
+			c.buf.WriteString(`<fee:domain>`)
+			c.buf.WriteString(`<fee:name>`)
+			xml.EscapeText(&c.buf, []byte(domain))
+			c.buf.WriteString(`</fee:name>`)
+			c.buf.WriteString(`<fee:command>create</fee:command>`)
+			c.buf.WriteString(`</fee:domain>`)
+		}
+		c.buf.WriteString(`</fee:check>`)
+	}
+
+	if hasExtension {
+		c.buf.WriteString(`</extension>`)
+	}
+
+	c.buf.WriteString(xmlCommandSuffix)
+	return nil
+}
+
+func (c *Conn) processDomainCheck(domains []string) (*DomainCheckResponse, error) {
+	err := c.flushDataUnit()
 	if err != nil {
 		return nil, err
 	}
@@ -41,52 +114,6 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
 	}
 
 	return &res.DomainCheckResponse, nil
-}
-
-func encodeDomainCheck(buf *bytes.Buffer, domains []string, greeting Greeting) error {
-	buf.Reset()
-	buf.WriteString(xmlCommandPrefix)
-	buf.WriteString(`<check>`)
-	buf.WriteString(`<domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">`)
-	for _, domain := range domains {
-		buf.WriteString(`<domain:name>`)
-		xml.EscapeText(buf, []byte(domain))
-		buf.WriteString(`</domain:name>`)
-	}
-	buf.WriteString(`</domain:check>`)
-	buf.WriteString(`</check>`)
-
-	var feeURN string
-	switch {
-	case greeting.SupportsExtension(ExtFee05):
-		feeURN = ExtFee05
-	case greeting.SupportsExtension(ExtFee06):
-		feeURN = ExtFee06
-	case greeting.SupportsExtension(ExtFee07):
-		feeURN = ExtFee07
-	}
-
-	if len(feeURN) > 0 {
-		// Extensions
-		buf.WriteString(`<extension>`)
-
-		// CentralNic fee extension
-		buf.WriteString(`<fee:check xmlns:fee="` + feeURN + `">`)
-		for _, domain := range domains {
-			buf.WriteString(`<fee:domain>`)
-			buf.WriteString(`<fee:name>`)
-			xml.EscapeText(buf, []byte(domain))
-			buf.WriteString(`</fee:name>`)
-			buf.WriteString(`<fee:command>create</fee:command>`)
-			buf.WriteString(`</fee:domain>`)
-		}
-		buf.WriteString(`</fee:check>`)
-
-		buf.WriteString(`</extension>`)
-	}
-
-	buf.WriteString(xmlCommandSuffix)
-	return nil
 }
 
 func encodePriceCheck(buf *bytes.Buffer, domains []string) error {

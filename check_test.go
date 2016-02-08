@@ -35,13 +35,25 @@ func TestConnCheck(t *testing.T) {
 }
 
 func TestEncodeDomainCheck(t *testing.T) {
-	var buf bytes.Buffer
-	err := encodeDomainCheck(&buf, []string{"hello.com", "foo.domains", "xn--ninja.net"}, Greeting{})
+	con := &Conn{}
+	err := con.encodeDomainCheck([]string{"hello.com", "foo.domains", "xn--ninja.net"}, "")
 	st.Expect(t, err, nil)
-	st.Expect(t, buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
+	st.Expect(t, con.buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check><domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:name>hello.com</domain:name><domain:name>foo.domains</domain:name><domain:name>xn--ninja.net</domain:name></domain:check></check></command></epp>`)
 	var v struct{}
-	err = xml.Unmarshal(buf.Bytes(), &v)
+	err = xml.Unmarshal(con.buf.Bytes(), &v)
+	st.Expect(t, err, nil)
+}
+
+func TestEncodeDomainCheckLaunchPhase(t *testing.T) {
+	con := &Conn{}
+	con.Greeting.Extensions = []string{ExtLaunch}
+	err := con.encodeDomainCheck([]string{"hello.com", "foo.domains", "xn--ninja.net"}, "claims")
+	st.Expect(t, err, nil)
+	st.Expect(t, con.buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check><domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:name>hello.com</domain:name><domain:name>foo.domains</domain:name><domain:name>xn--ninja.net</domain:name></domain:check></check><extension><launch:check xmlns:launch="urn:ietf:params:xml:ns:launch-1.0" type="avail"><launch:phase>claims</launch:phase></launch:check></extension></command></epp>`)
+	var v struct{}
+	err = xml.Unmarshal(con.buf.Bytes(), &v)
 	st.Expect(t, err, nil)
 }
 
@@ -331,10 +343,10 @@ func TestScanCheckDomainResponsePriceExtension(t *testing.T) {
 }
 
 func BenchmarkEncodeDomainCheck(b *testing.B) {
-	var buf bytes.Buffer
+	con := &Conn{}
 	domains := []string{"hello.com"}
 	for i := 0; i < b.N; i++ {
-		encodeDomainCheck(&buf, domains, Greeting{})
+		con.encodeDomainCheck(domains, "")
 	}
 }
 
