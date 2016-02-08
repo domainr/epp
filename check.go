@@ -52,9 +52,7 @@ func (c *Conn) encodeDomainCheck(domains []string, launchPhase string) error {
 	}
 
 	supportsLaunch := greeting.SupportsExtension(ExtLaunch) && launchPhase != ""
-	supportsNeulevel := greeting.SupportsExtension(ExtNeulevel) || greeting.SupportsExtension(ExtNeulevel10)
-
-	hasExtension := feeURN != "" || supportsLaunch || supportsNeulevel
+	hasExtension := feeURN != "" || supportsLaunch
 
 	if hasExtension {
 		c.buf.WriteString(`<extension>`)
@@ -64,12 +62,6 @@ func (c *Conn) encodeDomainCheck(domains []string, launchPhase string) error {
 		c.buf.WriteString(`<launch:check xmlns:launch="` + ExtLaunch + `" type="avail">`)
 		c.buf.WriteString(`<launch:phase>` + launchPhase + `</launch:phase>`)
 		c.buf.WriteString(`</launch:check>`)
-	}
-
-	if supportsNeulevel {
-		c.buf.WriteString(`<neulevel:extension xmlns:neulevel="` + ExtNeulevel10 + `">`)
-		c.buf.WriteString(`<neulevel:unspec>FeeCheck=Y</neulevel:unspec>`)
-		c.buf.WriteString(`</neulevel:extension>`)
 	}
 
 	if len(feeURN) > 0 {
@@ -293,26 +285,6 @@ func init() {
 		if c.AttrBool("", "premium") {
 			charge.Category = "premium"
 		}
-		return nil
-	})
-
-	// Scan neulevel-1.0 extension
-	path = "epp > response > extension > " + ExtNeulevel10 + " extension > unspec"
-	scanResponse.MustHandleCharData(path, func(c *xx.Context) error {
-		dcd := &c.Value.(*response_).DomainCheckResponse
-		check := &dcd.Checks[len(dcd.Checks)-1]
-		charge := DomainCharge{Domain: check.Domain}
-		data := string(c.CharData)
-		pairs := strings.Split(data, " ")
-		for _, pair := range pairs {
-			parts := strings.SplitN(pair, "=", 2)
-			if parts[0] == "TierName" {
-				charge.Category = parts[1]
-				break
-			}
-		}
-		dcd.Charges = append(dcd.Charges, charge)
-
 		return nil
 	})
 }
