@@ -36,7 +36,7 @@ func TestConnCheck(t *testing.T) {
 
 func TestEncodeDomainCheck(t *testing.T) {
 	con := &Conn{}
-	err := con.encodeDomainCheck([]string{"hello.com", "foo.domains", "xn--ninja.net"}, "")
+	err := con.encodeDomainCheck([]string{"hello.com", "foo.domains", "xn--ninja.net"}, nil)
 	st.Expect(t, err, nil)
 	st.Expect(t, con.buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check><domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:name>hello.com</domain:name><domain:name>foo.domains</domain:name><domain:name>xn--ninja.net</domain:name></domain:check></check></command></epp>`)
@@ -48,10 +48,22 @@ func TestEncodeDomainCheck(t *testing.T) {
 func TestEncodeDomainCheckLaunchPhase(t *testing.T) {
 	con := &Conn{}
 	con.Greeting.Extensions = []string{ExtLaunch}
-	err := con.encodeDomainCheck([]string{"hello.com", "foo.domains", "xn--ninja.net"}, "claims")
+	err := con.encodeDomainCheck([]string{"hello.com", "foo.domains", "xn--ninja.net"}, map[string]string{"launch:phase": "claims"})
 	st.Expect(t, err, nil)
 	st.Expect(t, con.buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check><domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:name>hello.com</domain:name><domain:name>foo.domains</domain:name><domain:name>xn--ninja.net</domain:name></domain:check></check><extension><launch:check xmlns:launch="urn:ietf:params:xml:ns:launch-1.0" type="avail"><launch:phase>claims</launch:phase></launch:check></extension></command></epp>`)
+	var v struct{}
+	err = xml.Unmarshal(con.buf.Bytes(), &v)
+	st.Expect(t, err, nil)
+}
+
+func TestEncodeDomainCheckNeulevelUnspec(t *testing.T) {
+	con := &Conn{}
+	con.Greeting.Extensions = []string{ExtNeulevel}
+	err := con.encodeDomainCheck([]string{"hello.com", "foo.domains", "xn--ninja.net"}, map[string]string{"neulevel:unspec": "FeeCheck=Y"})
+	st.Expect(t, err, nil)
+	st.Expect(t, con.buf.String(), `<?xml version="1.0" encoding="UTF-8"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check><domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:name>hello.com</domain:name><domain:name>foo.domains</domain:name><domain:name>xn--ninja.net</domain:name></domain:check></check><extension><neulevel:extension xmlns:neulevel="urn:ietf:params:xml:ns:neulevel-1.0"><neulevel:unspec>FeeCheck=Y</neulevel:unspec></neulevel:extension></extension></command></epp>`)
 	var v struct{}
 	err = xml.Unmarshal(con.buf.Bytes(), &v)
 	st.Expect(t, err, nil)
@@ -304,6 +316,48 @@ func TestScanCheckDomainResponseWithPremiumAttribute(t *testing.T) {
 	st.Expect(t, dcr.Charges[0].CategoryName, "Registration Fee")
 }
 
+func TestScanCheckDomainResponseNeulevelExtension(t *testing.T) {
+	x := `<?xml version="1.0" encoding="utf-8"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+	<response>
+		<result code="1000">
+			<msg>Command completed successfully</msg>
+		</result>
+		<resData>
+			<domain:chkData xmlns="urn:ietf:params:xml:ns:domain-1.0" xmlns:domain="urn:ietf:params:xml:ns:domain-1.0" xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd">
+				<domain:cd>
+					<domain:name avail="1">420.earth</domain:name>
+				</domain:cd>
+			</domain:chkData>
+		</resData>
+		<extension>
+			<neulevel:extension xmlns="urn:ietf:params:xml:ns:neulevel-1.0" xmlns:neulevel="urn:ietf:params:xml:ns:neulevel-1.0" xsi:schemaLocation="urn:ietf:params:xml:ns:neulevel-1.0 neulevel-1.0.xsd">
+				<neulevel:unspec>TierName=EARTH_Tier3 AnnualTierPrice=120.00</neulevel:unspec>
+			</neulevel:extension>
+		</extension>
+		<trID>
+			<clTRID>0000000000000002</clTRID>
+			<svTRID>83fa5767-5624-4be5-9e54-0b3a52f9de5b:1</svTRID>
+		</trID>
+	</response>
+</epp>`
+
+	var res response_
+	dcr := &res.DomainCheckResponse
+
+	d := decoder(x)
+	err := IgnoreEOF(scanResponse.Scan(d, &res))
+	st.Expect(t, err, nil)
+	st.Expect(t, len(dcr.Checks), 1)
+	st.Expect(t, dcr.Checks[0].Domain, "420.earth")
+	st.Expect(t, dcr.Checks[0].Available, true)
+	st.Expect(t, dcr.Checks[0].Reason, "")
+	st.Expect(t, len(dcr.Charges), 1)
+	st.Expect(t, dcr.Charges[0].Domain, "420.earth")
+	st.Expect(t, dcr.Charges[0].Category, "EARTH_Tier3")
+	st.Expect(t, dcr.Charges[0].CategoryName, "")
+}
+
 func TestScanCheckDomainResponsePriceExtension(t *testing.T) {
 	x := `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
@@ -346,7 +400,7 @@ func BenchmarkEncodeDomainCheck(b *testing.B) {
 	con := &Conn{}
 	domains := []string{"hello.com"}
 	for i := 0; i < b.N; i++ {
-		con.encodeDomainCheck(domains, "")
+		con.encodeDomainCheck(domains, nil)
 	}
 }
 

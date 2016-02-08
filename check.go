@@ -10,23 +10,25 @@ import (
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
 func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
-	err := c.encodeDomainCheck(domains, "")
+	err := c.encodeDomainCheck(domains, nil)
 	if err != nil {
 		return nil, err
 	}
 	return c.processDomainCheck(domains)
 }
 
-// CheckDomainLaunchPhase allows specifying a launch phase for the check request.
-func (c *Conn) CheckDomainLaunchPhase(launchPhase string, domains ...string) (*DomainCheckResponse, error) {
-	err := c.encodeDomainCheck(domains, launchPhase)
+// CheckDomainExtensions allows specifying extension data for the following:
+//  - "neulevel:unspec": a string of the Key=Value data for the unspec tag
+//  - "launch:phase": a string of the launch phase
+func (c *Conn) CheckDomainExtensions(domains []string, extData map[string]string) (*DomainCheckResponse, error) {
+	err := c.encodeDomainCheck(domains, extData)
 	if err != nil {
 		return nil, err
 	}
 	return c.processDomainCheck(domains)
 }
 
-func (c *Conn) encodeDomainCheck(domains []string, launchPhase string) error {
+func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) error {
 	c.buf.Reset()
 	c.buf.WriteString(xmlCommandPrefix)
 	c.buf.WriteString(`<check>`)
@@ -51,8 +53,11 @@ func (c *Conn) encodeDomainCheck(domains []string, launchPhase string) error {
 		feeURN = ExtFee07
 	}
 
-	supportsLaunch := greeting.SupportsExtension(ExtLaunch) && launchPhase != ""
-	hasExtension := feeURN != "" || supportsLaunch
+	supportsLaunch := extData["launch:phase"] != "" && greeting.SupportsExtension(ExtLaunch)
+	supportsNeulevel := extData["neulevel:unspec"] != "" && (
+		greeting.SupportsExtension(ExtNeulevel) || greeting.SupportsExtension(ExtNeulevel10))
+
+	hasExtension := feeURN != "" || supportsLaunch || supportsNeulevel
 
 	if hasExtension {
 		c.buf.WriteString(`<extension>`)
@@ -60,8 +65,14 @@ func (c *Conn) encodeDomainCheck(domains []string, launchPhase string) error {
 
 	if supportsLaunch {
 		c.buf.WriteString(`<launch:check xmlns:launch="` + ExtLaunch + `" type="avail">`)
-		c.buf.WriteString(`<launch:phase>` + launchPhase + `</launch:phase>`)
+		c.buf.WriteString(`<launch:phase>` + extData["launch:phase"] + `</launch:phase>`)
 		c.buf.WriteString(`</launch:check>`)
+	}
+
+	if supportsNeulevel {
+		c.buf.WriteString(`<neulevel:extension xmlns:neulevel="` + ExtNeulevel10 + `">`)
+		c.buf.WriteString(`<neulevel:unspec>` + extData["neulevel:unspec"] + `</neulevel:unspec>`)
+		c.buf.WriteString(`</neulevel:extension>`)
 	}
 
 	if len(feeURN) > 0 {
@@ -285,6 +296,30 @@ func init() {
 		if c.AttrBool("", "premium") {
 			charge.Category = "premium"
 		}
+		return nil
+	})
+
+	// Scan neulevel-1.0 extension
+	path = "epp > response > extension > " + ExtNeulevel10 + " extension > unspec"
+	scanResponse.MustHandleCharData(path, func(c *xx.Context) error {
+		dcr := &c.Value.(*response_).DomainCheckResponse
+		if len(dcr.Checks) == 0 {
+			return nil;
+		}
+
+		check := &dcr.Checks[len(dcr.Checks)-1]
+		charge := DomainCharge{Domain: check.Domain}
+		data := string(c.CharData)
+		pairs := strings.Split(data, " ")
+		for _, pair := range pairs {
+			parts := strings.SplitN(pair, "=", 2)
+			if len(parts) == 2 && parts[0] == "TierName" {
+				charge.Category = parts[1]
+				break
+			}
+		}
+		dcr.Charges = append(dcr.Charges, charge)
+
 		return nil
 	})
 }
