@@ -45,8 +45,17 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 
 	var feeURN string
 	switch {
+	// Versions 0.8-0.9 require the returned class to be "standard" for
+	// non-premium domains
+	case greeting.SupportsExtension(ExtFee08):
+		feeURN = ExtFee08
+	case greeting.SupportsExtension(ExtFee09):
+		feeURN = ExtFee09
+	// Version 0.5 has an attribute premium="1" for premium domains
 	case greeting.SupportsExtension(ExtFee05):
 		feeURN = ExtFee05
+	// Version 0.6 and 0.7 don't have a standard way of detecting premiums,
+	// so instead there must be matching done on class names
 	case greeting.SupportsExtension(ExtFee06):
 		feeURN = ExtFee06
 	case greeting.SupportsExtension(ExtFee07):
@@ -76,15 +85,24 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 	}
 
 	if len(feeURN) > 0 {
-		// CentralNic fee extension
 		c.buf.WriteString(`<fee:check xmlns:fee="` + feeURN + `">`)
 		for _, domain := range domains {
-			c.buf.WriteString(`<fee:domain>`)
-			c.buf.WriteString(`<fee:name>`)
-			xml.EscapeText(&c.buf, []byte(domain))
-			c.buf.WriteString(`</fee:name>`)
-			c.buf.WriteString(`<fee:command>create</fee:command>`)
-			c.buf.WriteString(`</fee:domain>`)
+			if feeURN == ExtFee09 {
+				// Version 0.9 changes the XML structure
+				c.buf.WriteString(`<fee:object objURI="urn:ietf:params:xml:ns:domain-1.0">`)
+				c.buf.WriteString(`<fee:objID element="name">`)
+				xml.EscapeText(&c.buf, []byte(domain))
+				c.buf.WriteString(`</fee:objID>`)
+				c.buf.WriteString(`<fee:command>create</fee:command>`)
+				c.buf.WriteString(`</fee:object>`)
+			} else {
+				c.buf.WriteString(`<fee:domain>`)
+				c.buf.WriteString(`<fee:name>`)
+				xml.EscapeText(&c.buf, []byte(domain))
+				c.buf.WriteString(`</fee:name>`)
+				c.buf.WriteString(`<fee:command>create</fee:command>`)
+				c.buf.WriteString(`</fee:domain>`)
+			}
 		}
 		c.buf.WriteString(`</fee:check>`)
 	}
@@ -279,6 +297,48 @@ func init() {
 		charges := c.Value.(*response_).DomainCheckResponse.Charges
 		charge := &charges[len(charges)-1]
 		charge.Category = string(c.CharData)
+		return nil
+	})
+
+	path = "epp > response > extension > " + ExtFee08 + " chkData"
+	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
+		dcd := &c.Value.(*response_).DomainCheckResponse
+		dcd.Charges = append(dcd.Charges, DomainCharge{})
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
+		charges := c.Value.(*response_).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		charge.Domain = string(c.CharData)
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>class", func(c *xx.Context) error {
+		charges := c.Value.(*response_).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		if string(c.CharData) != "standard" {
+			charge.Category = "premium"
+		}
+		return nil
+	})
+
+	path = "epp > response > extension > " + ExtFee09 + " chkData"
+	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
+		dcd := &c.Value.(*response_).DomainCheckResponse
+		dcd.Charges = append(dcd.Charges, DomainCharge{})
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>objID", func(c *xx.Context) error {
+		charges := c.Value.(*response_).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		charge.Domain = string(c.CharData)
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>class", func(c *xx.Context) error {
+		charges := c.Value.(*response_).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		if string(c.CharData) != "standard" {
+			charge.Category = "premium"
+		}
 		return nil
 	})
 
