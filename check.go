@@ -63,8 +63,7 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 	}
 
 	supportsLaunch := extData["launch:phase"] != "" && greeting.SupportsExtension(ExtLaunch)
-	supportsNeulevel := extData["neulevel:unspec"] != "" && (
-		greeting.SupportsExtension(ExtNeulevel) || greeting.SupportsExtension(ExtNeulevel10))
+	supportsNeulevel := extData["neulevel:unspec"] != "" && (greeting.SupportsExtension(ExtNeulevel) || greeting.SupportsExtension(ExtNeulevel10))
 
 	hasExtension := feeURN != "" || supportsLaunch || supportsNeulevel
 
@@ -364,7 +363,7 @@ func init() {
 	scanResponse.MustHandleCharData(path, func(c *xx.Context) error {
 		dcr := &c.Value.(*response_).DomainCheckResponse
 		if len(dcr.Checks) == 0 {
-			return nil;
+			return nil
 		}
 
 		check := &dcr.Checks[len(dcr.Checks)-1]
