@@ -269,6 +269,105 @@ func TestScanCheckDomainResponseWithFee07(t *testing.T) {
 	st.Expect(t, dcr.Charges[0].CategoryName, "")
 }
 
+func TestScanCheckDomainResponseWithFee08(t *testing.T) {
+	x := `<?xml version="1.0" encoding="UTF-8"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+	<response>
+		<result code="1000">
+			<msg>Command completed successfully</msg>
+		</result>
+		<resData>
+			<domain:chkData xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+				<domain:cd>
+					<domain:name avail="1">crrc.yln</domain:name>
+				</domain:cd>
+			</domain:chkData>
+		</resData>
+		<extension>
+			<fee:chkData xmlns:fee="urn:ietf:params:xml:ns:fee-0.8">
+				<fee:cd>
+					<fee:name>crrc.yln</fee:name>
+					<fee:currency>CNY</fee:currency>
+					<fee:command>create</fee:command>
+					<fee:period unit="y">1</fee:period>
+					<fee:fee applied="delayed" description="Registration Fee" grace-period="P5D" refundable="1">100.00</fee:fee>
+					<fee:class>premium</fee:class>
+				</fee:cd>
+			</fee:chkData>
+		</extension>
+		<trID>
+			<clTRID>testnn-domain-check-f193d63b-1ab7-43bc-bc9d-4e835fb0fece</clTRID>
+			<svTRID>SERVER-4aafbfa9-cd31-4e89-b585-25a753d3c69a</svTRID>
+		</trID>
+	</response>
+</epp>`
+
+	var res response_
+	dcr := &res.DomainCheckResponse
+
+	d := decoder(x)
+	err := IgnoreEOF(scanResponse.Scan(d, &res))
+	st.Expect(t, err, nil)
+	st.Expect(t, len(dcr.Checks), 1)
+	st.Expect(t, dcr.Checks[0].Domain, "crrc.yln")
+	st.Expect(t, dcr.Checks[0].Available, true)
+	st.Expect(t, dcr.Checks[0].Reason, "")
+	st.Expect(t, len(dcr.Charges), 1)
+	st.Expect(t, dcr.Charges[0].Domain, "crrc.yln")
+	st.Expect(t, dcr.Charges[0].Category, "premium")
+	st.Expect(t, dcr.Charges[0].CategoryName, "")
+}
+
+func TestScanCheckDomainResponseWithFee09(t *testing.T) {
+	x := `<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+	<response>
+		<result code="1000">
+			<msg>Command completed successfully</msg>
+		</result>
+		<resData>
+			<domain:chkData xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+				<domain:cd>
+					<domain:name avail="1">example.com</domain:name>
+				</domain:cd>
+			</domain:chkData>
+		</resData>
+		<extension>
+			<fee:chkData xmlns:fee="urn:ietf:params:xml:ns:fee-0.9">
+				<fee:cd>
+					<fee:objID>example.com</fee:objID>
+					<fee:currency>USD</fee:currency>
+					<fee:command phase="sunrise">create</fee:command>
+					<fee:period unit="y">1</fee:period>
+					<fee:fee description="Application Fee" refundable="0">5.00</fee:fee>
+					<fee:fee description="Registration Fee" refundable="1" grace-period="P5D">5.00</fee:fee>
+					<fee:class>premium-tier1</fee:class>
+				</fee:cd>
+			</fee:chkData>
+		</extension>
+		<trID>
+			<clTRID>ABC-12345</clTRID>
+			<svTRID>54322-XYZ</svTRID>
+		</trID>
+	</response>
+</epp>`
+
+	var res response_
+	dcr := &res.DomainCheckResponse
+
+	d := decoder(x)
+	err := IgnoreEOF(scanResponse.Scan(d, &res))
+	st.Expect(t, err, nil)
+	st.Expect(t, len(dcr.Checks), 1)
+	st.Expect(t, dcr.Checks[0].Domain, "example.com")
+	st.Expect(t, dcr.Checks[0].Available, true)
+	st.Expect(t, dcr.Checks[0].Reason, "")
+	st.Expect(t, len(dcr.Charges), 1)
+	st.Expect(t, dcr.Charges[0].Domain, "example.com")
+	st.Expect(t, dcr.Charges[0].Category, "premium")
+	st.Expect(t, dcr.Charges[0].CategoryName, "")
+}
+
 func TestScanCheckDomainResponseWithPremiumAttribute(t *testing.T) {
 	x := `<?xml version="1.0" encoding="UTF-8"?>
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">
