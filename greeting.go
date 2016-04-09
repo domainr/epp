@@ -65,6 +65,7 @@ const (
 	ExtFee08      = "urn:ietf:params:xml:ns:fee-0.8"
 	ExtFee09      = "urn:ietf:params:xml:ns:fee-0.9"
 	ExtPrice      = "urn:ar:params:xml:ns:price-1.1"
+	ExtNamestore  = "http://www.verisign-grs.com/epp/namestoreExt-1.1"
 	ExtNeulevel   = "urn:ietf:params:xml:ns:neulevel"
 	ExtNeulevel10 = "urn:ietf:params:xml:ns:neulevel-1.0"
 )
