@@ -72,12 +72,24 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 			// These sub product IDs aren't publicly documented anywhere, and
 			// were found via Google and testing.
 			switch {
+			case strings.HasSuffix(domain, ".career"):
+				domainSubProduct = "CAREER"
+			case strings.HasSuffix(domain, ".cfd"):
+				domainSubProduct = "CFD"
 			case strings.HasSuffix(domain, ".com"):
 				domainSubProduct = "dotCOM"
-			case strings.HasSuffix(domain, ".net"):
-				domainSubProduct = "dotNET"
 			case strings.HasSuffix(domain, ".edu"):
 				domainSubProduct = "dotEDU"
+			case strings.HasSuffix(domain, ".jobs"):
+				domainSubProduct = "dotJOBS"
+			case strings.HasSuffix(domain, ".markets"):
+				domainSubProduct = "MARKETS"
+			case strings.HasSuffix(domain, ".net"):
+				domainSubProduct = "dotNET"
+			case strings.HasSuffix(domain, ".spreadbetting"):
+				domainSubProduct = "SPREADBETTING"
+			case strings.HasSuffix(domain, ".trading"):
+				domainSubProduct = "TRADING"
 			}
 
 			if domainSubProduct == "" {
