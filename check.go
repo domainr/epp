@@ -3,6 +3,7 @@ package epp
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"strings"
 
 	"github.com/nbio/xx"
@@ -62,13 +63,50 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 		feeURN = ExtFee07
 	}
 
+	requiresNamestore := greeting.SupportsExtension(ExtNamestore)
+	subProduct := ""
+	if requiresNamestore {
+		for _, domain := range domains {
+			domainSubProduct := ""
+
+			// These sub product IDs aren't publicly documented anywhere, and
+			// were found via Google and testing.
+			switch {
+			case strings.HasSuffix(domain, ".com"):
+				domainSubProduct = "dotCOM"
+			case strings.HasSuffix(domain, ".net"):
+				domainSubProduct = "dotNET"
+			case strings.HasSuffix(domain, ".edu"):
+				domainSubProduct = "dotEDU"
+			}
+
+			if domainSubProduct == "" {
+				return errors.New("EPP namestore extension is required, but the " +
+					"domain does not match a known sub product ID")
+			}
+
+			if subProduct == "" {
+				subProduct = domainSubProduct
+			} else if subProduct != domainSubProduct {
+				return errors.New("Unable to check multiple domains from different " +
+					"zones because the server uses the EPP namestore extension")
+			}
+		}
+	}
+
 	supportsLaunch := extData["launch:phase"] != "" && greeting.SupportsExtension(ExtLaunch)
 	supportsNeulevel := extData["neulevel:unspec"] != "" && (greeting.SupportsExtension(ExtNeulevel) || greeting.SupportsExtension(ExtNeulevel10))
 
-	hasExtension := feeURN != "" || supportsLaunch || supportsNeulevel
+	hasExtension := feeURN != "" || supportsLaunch || supportsNeulevel || requiresNamestore
 
 	if hasExtension {
 		c.buf.WriteString(`<extension>`)
+	}
+
+	if requiresNamestore {
+		c.buf.WriteString(`<namestoreExt:namestoreExt xmlns:namestoreExt="` + ExtNamestore + `">`)
+		c.buf.WriteString(`<namestoreExt:subProduct>` + subProduct + `</namestoreExt:subProduct>`)
+		c.buf.WriteString(`</namestoreExt:namestoreExt>`)
 	}
 
 	if supportsLaunch {
