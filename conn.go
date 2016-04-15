@@ -23,7 +23,6 @@ type Conn struct {
 	net.Conn
 	buf     bytes.Buffer
 	decoder *xml.Decoder
-	saved   xml.Decoder
 
 	// Greeting holds the last received greeting message from the server,
 	// indicating server name, status, data policy and capabilities.
@@ -50,20 +49,13 @@ func (c *Conn) Close() error {
 func newConn(conn net.Conn) *Conn {
 	c := Conn{Conn: conn}
 	c.decoder = xml.NewDecoder(&c.buf)
-	c.saved = *c.decoder
 	return &c
 }
 
 // reset resets the underlying xml.Decoder and bytes.Buffer.
 func (c *Conn) reset() {
-	c.resetDecoder()
 	c.buf.Reset()
-}
-
-// resetDecoder restores the original state of the underlying
-// xml.Decoder (pos 1, line 1, stack, etc.) using a hack.
-func (c *Conn) resetDecoder() {
-	*c.decoder = c.saved // Heh.
+	c.decoder = xml.NewDecoder(&c.buf)
 }
 
 // flushDataUnit writes bytes from c.buf to c using writeDataUnit.
