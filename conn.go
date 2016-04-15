@@ -48,19 +48,13 @@ func (c *Conn) Close() error {
 // Used internally for testing.
 func newConn(conn net.Conn) *Conn {
 	c := Conn{Conn: conn}
-	c.resetDecoder()
+	c.reset()
 	return &c
 }
 
 // reset resets the underlying xml.Decoder and bytes.Buffer.
 func (c *Conn) reset() {
-	c.resetDecoder()
 	c.buf.Reset()
-}
-
-// resetDecoder restores the original state of the underlying
-// xml.Decoder (pos 1, line 1, stack, etc.) using a hack.
-func (c *Conn) resetDecoder() {
 	c.decoder = xml.NewDecoder(&c.buf)
 }
 
