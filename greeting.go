@@ -12,7 +12,8 @@ func (c *Conn) Hello() error {
 	if err != nil {
 		return err
 	}
-	return c.readGreeting()
+	_, err = c.readGreeting()
+	return err
 }
 
 var xmlHello = []byte(xml.Header + startEPP + `<hello/>` + endEPP)
@@ -70,19 +71,18 @@ const (
 	ExtNeulevel10 = "urn:ietf:params:xml:ns:neulevel-1.0"
 )
 
-func (c *Conn) readGreeting() error {
+func (c *Conn) readGreeting() (Greeting, error) {
 	err := c.readDataUnit()
 	if err != nil {
-		return err
+		return Greeting{}, err
 	}
 	deleteBufferRange(&c.buf, []byte(`<dcp>`), []byte(`</dcp>`))
 	var res response_
 	err = IgnoreEOF(scanResponse.Scan(c.decoder, &res))
 	if err != nil {
-		return err
+		return Greeting{}, err
 	}
-	c.Greeting = res.Greeting
-	return nil
+	return res.Greeting, nil
 }
 
 func init() {
