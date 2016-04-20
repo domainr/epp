@@ -74,6 +74,8 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 			switch {
 			case strings.HasSuffix(domain, ".career"):
 				domainSubProduct = "CAREER"
+			case strings.HasSuffix(domain, ".cc"):
+				domainSubProduct = "dotCC"
 			case strings.HasSuffix(domain, ".cfd"):
 				domainSubProduct = "CFD"
 			case strings.HasSuffix(domain, ".com"):
@@ -90,6 +92,8 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 				domainSubProduct = "SPREADBETTING"
 			case strings.HasSuffix(domain, ".trading"):
 				domainSubProduct = "TRADING"
+			case strings.HasSuffix(domain, ".tv"):
+				domainSubProduct = "dotTV"
 			}
 
 			if domainSubProduct == "" {
