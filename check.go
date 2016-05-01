@@ -3,7 +3,6 @@ package epp
 import (
 	"bytes"
 	"encoding/xml"
-	"errors"
 	"strings"
 
 	"github.com/nbio/xx"
@@ -63,82 +62,50 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 		feeURN = ExtFee07
 	}
 
-	requiresNamestore := greeting.SupportsExtension(ExtNamestore)
-	subProduct := ""
-	if requiresNamestore {
-		for _, domain := range domains {
-			domainSubProduct := ""
-
-			// These sub product IDs aren't publicly documented anywhere, and
-			// were found via Google and testing.
-			switch {
-			case strings.HasSuffix(domain, ".career"):
-				domainSubProduct = "CAREER"
-			case strings.HasSuffix(domain, ".cc"):
-				domainSubProduct = "dotCC"
-			case strings.HasSuffix(domain, ".cfd"):
-				domainSubProduct = "CFD"
-			case strings.HasSuffix(domain, ".com"):
-				domainSubProduct = "dotCOM"
-			case strings.HasSuffix(domain, ".edu"):
-				domainSubProduct = "dotEDU"
-			case strings.HasSuffix(domain, ".jobs"):
-				domainSubProduct = "dotJOBS"
-			case strings.HasSuffix(domain, ".markets"):
-				domainSubProduct = "MARKETS"
-			case strings.HasSuffix(domain, ".net"):
-				domainSubProduct = "dotNET"
-			case strings.HasSuffix(domain, ".spreadbetting"):
-				domainSubProduct = "SPREADBETTING"
-			case strings.HasSuffix(domain, ".trading"):
-				domainSubProduct = "TRADING"
-			case strings.HasSuffix(domain, ".tv"):
-				domainSubProduct = "dotTV"
-			}
-
-			if domainSubProduct == "" {
-				return errors.New("EPP namestore extension is required, but the " +
-					"domain does not match a known sub product ID")
-			}
-
-			if subProduct == "" {
-				subProduct = domainSubProduct
-			} else if subProduct != domainSubProduct {
-				return errors.New("Unable to check multiple domains from different " +
-					"zones because the server uses the EPP namestore extension")
-			}
-		}
-	}
-
 	supportsLaunch := extData["launch:phase"] != "" && greeting.SupportsExtension(ExtLaunch)
 	supportsNeulevel := extData["neulevel:unspec"] != "" && (greeting.SupportsExtension(ExtNeulevel) || greeting.SupportsExtension(ExtNeulevel10))
+	supportsNamestore := extData["namestoreExt:subProduct"] != "" && greeting.SupportsExtension(ExtNamestore)
 
-	hasExtension := feeURN != "" || supportsLaunch || supportsNeulevel || requiresNamestore
+	hasExtension := feeURN != "" || supportsLaunch || supportsNeulevel || supportsNamestore
 
 	if hasExtension {
 		c.buf.WriteString(`<extension>`)
 	}
 
-	if requiresNamestore {
-		c.buf.WriteString(`<namestoreExt:namestoreExt xmlns:namestoreExt="` + ExtNamestore + `">`)
-		c.buf.WriteString(`<namestoreExt:subProduct>` + subProduct + `</namestoreExt:subProduct>`)
+	if supportsNamestore {
+		c.buf.WriteString(`<namestoreExt:namestoreExt xmlns:namestoreExt="`)
+		c.buf.WriteString(ExtNamestore)
+		c.buf.WriteString(`">`)
+		c.buf.WriteString(`<namestoreExt:subProduct>`)
+		c.buf.WriteString(extData["namestoreExt:subProduct"])
+		c.buf.WriteString(`</namestoreExt:subProduct>`)
 		c.buf.WriteString(`</namestoreExt:namestoreExt>`)
 	}
 
 	if supportsLaunch {
-		c.buf.WriteString(`<launch:check xmlns:launch="` + ExtLaunch + `" type="avail">`)
-		c.buf.WriteString(`<launch:phase>` + extData["launch:phase"] + `</launch:phase>`)
+		c.buf.WriteString(`<launch:check xmlns:launch="`)
+		c.buf.WriteString(ExtLaunch)
+		c.buf.WriteString(`" type="avail">`)
+		c.buf.WriteString(`<launch:phase>`)
+		c.buf.WriteString(extData["launch:phase"])
+		c.buf.WriteString(`</launch:phase>`)
 		c.buf.WriteString(`</launch:check>`)
 	}
 
 	if supportsNeulevel {
-		c.buf.WriteString(`<neulevel:extension xmlns:neulevel="` + ExtNeulevel10 + `">`)
-		c.buf.WriteString(`<neulevel:unspec>` + extData["neulevel:unspec"] + `</neulevel:unspec>`)
+		c.buf.WriteString(`<neulevel:extension xmlns:neulevel="`)
+		c.buf.WriteString(ExtNeulevel10)
+		c.buf.WriteString(`">`)
+		c.buf.WriteString(`<neulevel:unspec>`)
+		c.buf.WriteString(extData["neulevel:unspec"])
+		c.buf.WriteString(`</neulevel:unspec>`)
 		c.buf.WriteString(`</neulevel:extension>`)
 	}
 
 	if len(feeURN) > 0 {
-		c.buf.WriteString(`<fee:check xmlns:fee="` + feeURN + `">`)
+		c.buf.WriteString(`<fee:check xmlns:fee="`)
+		c.buf.WriteString(feeURN)
+		c.buf.WriteString(`">`)
 		for _, domain := range domains {
 			if feeURN == ExtFee09 {
 				// Version 0.9 changes the XML structure
