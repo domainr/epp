@@ -73,25 +73,39 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 	}
 
 	if supportsNamestore {
-		c.buf.WriteString(`<namestoreExt:namestoreExt xmlns:namestoreExt="` + ExtNamestore + `">`)
-		c.buf.WriteString(`<namestoreExt:subProduct>` + extData["namestoreExt:subProduct"] + `</namestoreExt:subProduct>`)
+		c.buf.WriteString(`<namestoreExt:namestoreExt xmlns:namestoreExt="`)
+		c.buf.WriteString(ExtNamestore)
+		c.buf.WriteString(`">`)
+		c.buf.WriteString(`<namestoreExt:subProduct>`)
+		c.buf.WriteString(extData["namestoreExt:subProduct"])
+		c.buf.WriteString(`</namestoreExt:subProduct>`)
 		c.buf.WriteString(`</namestoreExt:namestoreExt>`)
 	}
 
 	if supportsLaunch {
-		c.buf.WriteString(`<launch:check xmlns:launch="` + ExtLaunch + `" type="avail">`)
-		c.buf.WriteString(`<launch:phase>` + extData["launch:phase"] + `</launch:phase>`)
+		c.buf.WriteString(`<launch:check xmlns:launch="`)
+		c.buf.WriteString(ExtLaunch)
+		c.buf.WriteString(`" type="avail">`)
+		c.buf.WriteString(`<launch:phase>`)
+		c.buf.WriteString(extData["launch:phase"])
+		c.buf.WriteString(`</launch:phase>`)
 		c.buf.WriteString(`</launch:check>`)
 	}
 
 	if supportsNeulevel {
-		c.buf.WriteString(`<neulevel:extension xmlns:neulevel="` + ExtNeulevel10 + `">`)
-		c.buf.WriteString(`<neulevel:unspec>` + extData["neulevel:unspec"] + `</neulevel:unspec>`)
+		c.buf.WriteString(`<neulevel:extension xmlns:neulevel="`)
+		c.buf.WriteString(ExtNeulevel10)
+		c.buf.WriteString(`">`)
+		c.buf.WriteString(`<neulevel:unspec>`)
+		c.buf.WriteString(extData["neulevel:unspec"])
+		c.buf.WriteString(`</neulevel:unspec>`)
 		c.buf.WriteString(`</neulevel:extension>`)
 	}
 
 	if len(feeURN) > 0 {
-		c.buf.WriteString(`<fee:check xmlns:fee="` + feeURN + `">`)
+		c.buf.WriteString(`<fee:check xmlns:fee="`)
+		c.buf.WriteString(feeURN)
+		c.buf.WriteString(`">`)
 		for _, domain := range domains {
 			if feeURN == ExtFee09 {
 				// Version 0.9 changes the XML structure
