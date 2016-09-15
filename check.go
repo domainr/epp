@@ -189,6 +189,7 @@ func encodePriceCheck(buf *bytes.Buffer, domains []string) error {
 }
 
 type DomainCheckResponse struct {
+	Domain  string
 	Checks  []DomainCheck
 	Charges []DomainCharge
 }
@@ -229,20 +230,19 @@ func init() {
 
 	// Scan charge-1.0 extension into Charges
 	path = "epp > response > extension > " + ExtCharge + " chkData"
-	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
-		dcd := &c.Value.(*response_).DomainCheckResponse
-		dcd.Charges = append(dcd.Charges, DomainCharge{})
+	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
+		c.Value.(*response_).DomainCheckResponse.Domain = string(c.CharData)
 		return nil
 	})
-	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
-		charges := c.Value.(*response_).DomainCheckResponse.Charges
-		charge := &charges[len(charges)-1]
-		charge.Domain = string(c.CharData)
+	scanResponse.MustHandleStartElement(path+">cd>set", func(c *xx.Context) error {
+		dcr := &c.Value.(*response_).DomainCheckResponse
+		dcr.Charges = append(dcr.Charges, DomainCharge{})
 		return nil
 	})
 	scanResponse.MustHandleCharData(path+">cd>set>category", func(c *xx.Context) error {
 		charges := c.Value.(*response_).DomainCheckResponse.Charges
 		charge := &charges[len(charges)-1]
+		charge.Domain = c.Value.(*response_).DomainCheckResponse.Domain
 		charge.Category = string(c.CharData)
 		charge.CategoryName = c.Attr("", "name")
 		return nil
