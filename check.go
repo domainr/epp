@@ -295,7 +295,8 @@ func init() {
 		isDefault := strings.Index(className, "default") != -1
 		isNormal := strings.Index(className, "normal") != -1
 		isDiscount := strings.Index(className, "discount") != -1
-		if isDefault == false && isNormal == false && isDiscount == false {
+		isOpen := className == "open" // nic.nrw returns a fee class of "open" for standard-priced domains
+		if !isDefault && !isNormal && !isDiscount && !isOpen {
 			charge.Category = "premium"
 		}
 		return nil
