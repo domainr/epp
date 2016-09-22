@@ -3,6 +3,7 @@ package epp
 import (
 	"bytes"
 	"encoding/xml"
+	"fmt"
 	"strings"
 
 	"github.com/nbio/xx"
@@ -63,6 +64,7 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 	}
 
 	supportsLaunch := extData["launch:phase"] != "" && greeting.SupportsExtension(ExtLaunch)
+	supportsFeePhase := extData["fee:phase"] != ""
 	supportsNeulevel := extData["neulevel:unspec"] != "" && (greeting.SupportsExtension(ExtNeulevel) || greeting.SupportsExtension(ExtNeulevel10))
 	supportsNamestore := extData["namestoreExt:subProduct"] != "" && greeting.SupportsExtension(ExtNamestore)
 
@@ -106,6 +108,10 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 		c.buf.WriteString(`<fee:check xmlns:fee="`)
 		c.buf.WriteString(feeURN)
 		c.buf.WriteString(`">`)
+		feePhase := ""
+		if supportsFeePhase {
+			feePhase = fmt.Sprintf(" phase=%q", extData["fee:phase"])
+		}
 		for _, domain := range domains {
 			if feeURN == ExtFee09 {
 				// Version 0.9 changes the XML structure
@@ -113,14 +119,14 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 				c.buf.WriteString(`<fee:objID element="name">`)
 				xml.EscapeText(&c.buf, []byte(domain))
 				c.buf.WriteString(`</fee:objID>`)
-				c.buf.WriteString(`<fee:command>create</fee:command>`)
+				c.buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
 				c.buf.WriteString(`</fee:object>`)
 			} else {
 				c.buf.WriteString(`<fee:domain>`)
 				c.buf.WriteString(`<fee:name>`)
 				xml.EscapeText(&c.buf, []byte(domain))
 				c.buf.WriteString(`</fee:name>`)
-				c.buf.WriteString(`<fee:command>create</fee:command>`)
+				c.buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
 				c.buf.WriteString(`</fee:domain>`)
 			}
 		}
