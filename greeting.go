@@ -72,13 +72,20 @@ const (
 )
 
 var ExtURNNames = map[string]string{
-	"fee-0.5":    ExtFee05,
-	"fee-0.6":    ExtFee06,
-	"fee-0.7":    ExtFee07,
-	"fee-0.8":    ExtFee08,
-	"fee-0.9":    ExtFee09,
-	"price-1.1":  ExtPrice,
-	"launch-1.0": ExtLaunch,
+	"secDNS-1.1":       ExtSecDNS,
+	"rgp-1.0":          ExtRGP,
+	"launch-1.0":       ExtLaunch,
+	"idn-1.0":          ExtIDN,
+	"charge-1.0":       ExtCharge,
+	"fee-0.5":          ExtFee05,
+	"fee-0.6":          ExtFee06,
+	"fee-0.7":          ExtFee07,
+	"fee-0.8":          ExtFee08,
+	"fee-0.9":          ExtFee09,
+	"price-1.1":        ExtPrice,
+	"namestoreExt-1.1": ExtNamestore,
+	"neulevel":         ExtNeulevel,
+	"neulevel-1.0":     ExtNeulevel10,
 }
 
 func (c *Conn) readGreeting() (Greeting, error) {
