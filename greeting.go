@@ -71,6 +71,16 @@ const (
 	ExtNeulevel10 = "urn:ietf:params:xml:ns:neulevel-1.0"
 )
 
+var ExtURNNames = map[string]string{
+	"fee-0.5":    ExtFee05,
+	"fee-0.6":    ExtFee06,
+	"fee-0.7":    ExtFee07,
+	"fee-0.8":    ExtFee08,
+	"fee-0.9":    ExtFee09,
+	"price-1.1":  ExtPrice,
+	"launch-1.0": ExtLaunch,
+}
+
 func (c *Conn) readGreeting() (Greeting, error) {
 	err := c.readDataUnit()
 	if err != nil {
