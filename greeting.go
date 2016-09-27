@@ -50,6 +50,7 @@ func (g *Greeting) SupportsExtension(uri string) bool {
 	return false
 }
 
+// EPP extension URNs
 const (
 	ObjDomain     = "urn:ietf:params:xml:ns:domain-1.0"
 	ObjHost       = "urn:ietf:params:xml:ns:host-1.0"
@@ -71,6 +72,7 @@ const (
 	ExtNeulevel10 = "urn:ietf:params:xml:ns:neulevel-1.0"
 )
 
+// ExtURNNames maps short extension names to their full URN.
 var ExtURNNames = map[string]string{
 	"secDNS-1.1":       ExtSecDNS,
 	"rgp-1.0":          ExtRGP,
