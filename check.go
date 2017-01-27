@@ -46,6 +46,8 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 
 	var feeURN string
 	switch {
+	case greeting.SupportsExtension(ExtFee11):
+		feeURN = ExtFee11
 	// Versions 0.8-0.9 require the returned class to be "standard" for
 	// non-premium domains
 	case greeting.SupportsExtension(ExtFee08):
