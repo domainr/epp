@@ -475,6 +475,55 @@ func TestScanCheckDomainResponseWithPremiumAttribute(t *testing.T) {
 	st.Expect(t, dcr.Charges[0].CategoryName, "Registration Fee")
 }
 
+func TestScanCheckDomainResponseArtZone(t *testing.T) {
+	x := `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+	<response>
+		<result code="1000">
+			<msg>Command completed successfully.</msg>
+		</result>
+		<resData>
+			<domain:chkData xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+				<domain:cd>
+					<domain:name avail="0">1.art</domain:name>
+					<domain:reason>blocked</domain:reason>
+				</domain:cd>
+			</domain:chkData>
+		</resData>
+		<extension>
+			<fee:chkData xmlns:fee="urn:ietf:params:xml:ns:fee-0.5">
+				<fee:cd>
+					<fee:name>1.art</fee:name>
+					<fee:currency>USD</fee:currency>
+					<fee:command>create</fee:command>
+					<fee:period unit="y">1</fee:period>
+					<fee:fee description="Registration Fee" refundable="1" grace-period="P5D">9.00</fee:fee>
+					<fee:class>standard</fee:class>
+				</fee:cd>
+			</fee:chkData>
+		</extension>
+		<trID>
+			<svTRID>CNIC-8193749E0FB4FE0E44876C15756A36CB3EF11D129A3CD7F970BD367D33A</svTRID>
+		</trID>
+	</response>
+</epp>`
+
+	var res response_
+	dcr := &res.DomainCheckResponse
+
+	d := decoder(x)
+	err := IgnoreEOF(scanResponse.Scan(d, &res))
+	st.Expect(t, err, nil)
+	st.Expect(t, len(dcr.Checks), 1)
+	st.Expect(t, dcr.Checks[0].Domain, "1.art")
+	st.Expect(t, dcr.Checks[0].Available, false)
+	st.Expect(t, dcr.Checks[0].Reason, "blocked")
+	st.Expect(t, len(dcr.Charges), 1)
+	st.Expect(t, dcr.Charges[0].Domain, "1.art")
+	st.Expect(t, dcr.Charges[0].Category, "standard")
+	st.Expect(t, dcr.Charges[0].CategoryName, "Registration Fee")
+}
+
 func TestScanCheckDomainResponseNeulevelExtension(t *testing.T) {
 	x := `<?xml version="1.0" encoding="utf-8"?>
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
