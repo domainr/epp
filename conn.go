@@ -97,7 +97,7 @@ func (c *Conn) readResponse(res *response_) error {
 		return err
 	}
 	if res.Result.IsError() {
-		return res.Result
+		return &res.Result
 	}
 	return nil
 }
