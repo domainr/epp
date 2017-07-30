@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"io"
 	"net"
+	"time"
 )
 
 // IgnoreEOF returns err unless err == io.EOF,
@@ -28,6 +29,9 @@ type Conn struct {
 	// Greeting holds the last received greeting message from the server,
 	// indicating server name, status, data policy and capabilities.
 	Greeting
+
+	// Timeout defines the timeout for network operations.
+	Timeout time.Duration
 }
 
 // NewConn initializes an epp.Conn from a net.Conn and performs the EPP
@@ -35,6 +39,18 @@ type Conn struct {
 // https://tools.ietf.org/html/rfc5730#section-2.4
 func NewConn(conn net.Conn) (*Conn, error) {
 	c := newConn(conn)
+	g, err := c.readGreeting()
+	if err == nil {
+		c.Greeting = g
+	}
+	return c, err
+}
+
+// NewTimeoutConn initializes an epp.Conn like NewConn, limiting the duration of network
+// operations on conn using Set(Read|Write)Deadline.
+func NewTimeoutConn(conn net.Conn, timeout time.Duration) (*Conn, error) {
+	c := newConn(conn)
+	c.Timeout = timeout
 	g, err := c.readGreeting()
 	if err == nil {
 		c.Greeting = g
@@ -77,6 +93,9 @@ func (c *Conn) flushDataUnit() error {
 func (c *Conn) writeDataUnit(x []byte) error {
 	logXML("<-- WRITE DATA UNIT -->", x)
 	s := uint32(4 + len(x))
+	if c.Timeout > 0 {
+		c.Conn.SetWriteDeadline(time.Now().Add(c.Timeout))
+	}
 	err := binary.Write(c.Conn, binary.BigEndian, s)
 	if err != nil {
 		return err
@@ -108,6 +127,9 @@ func (c *Conn) readResponse(res *response_) error {
 func (c *Conn) readDataUnit() error {
 	c.reset()
 	var s int32
+	if c.Timeout > 0 {
+		c.Conn.SetReadDeadline(time.Now().Add(c.Timeout))
+	}
 	err := binary.Read(c.Conn, binary.BigEndian, &s)
 	if err != nil {
 		return err
