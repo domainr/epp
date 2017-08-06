@@ -428,6 +428,108 @@ func TestScanCheckDomainResponseWithFee09(t *testing.T) {
 	st.Expect(t, dcr.Charges[0].CategoryName, "")
 }
 
+func TestScanCheckDomainResponseWithFee21(t *testing.T) {
+	x := `<?xml version="1.0" encoding="UTF-8"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+	<response>
+		<result code="1000">
+			<msg>Command completed successfully</msg>
+		</result>
+		<resData>
+			<chkData xmlns="urn:ietf:params:xml:ns:domain-1.0">
+				<cd>
+					<name avail="true">example.com</name>
+				</cd>
+			</chkData>
+		</resData>
+		<extension>
+			<chkData xmlns="urn:ietf:params:xml:ns:fee-0.21">
+				<currency>EUR</currency>
+				<cd>
+					<objID>example.com</objID>
+					<command name="create" phase="open">
+						<period unit="y">1</period>
+						<fee applied="immediate" description="domain creation in phase &#39;open&#39;" grace-period="P5D" refundable="true">25.00</fee>
+					</command>
+					<command name="create" phase="custom" subphase="open-50">
+						<reason>the requested launch phase is not suitable for the domain</reason>
+					</command>
+				</cd>
+			</chkData>
+		</extension>
+		<trID>
+			<svTRID>1501792511080-81912</svTRID>
+		</trID>
+	</response>
+</epp>`
+
+	var res response_
+	dcr := &res.DomainCheckResponse
+
+	d := decoder(x)
+	err := IgnoreEOF(scanResponse.Scan(d, &res))
+	st.Expect(t, err, nil)
+	st.Expect(t, len(dcr.Checks), 1)
+	st.Expect(t, dcr.Checks[0].Domain, "example.com")
+	st.Expect(t, dcr.Checks[0].Available, true)
+	st.Expect(t, dcr.Checks[0].Reason, "")
+	st.Expect(t, len(dcr.Charges), 1)
+	st.Expect(t, dcr.Charges[0].Domain, "example.com")
+	st.Expect(t, dcr.Charges[0].Category, "")
+	st.Expect(t, dcr.Charges[0].CategoryName, "")
+}
+
+func TestScanCheckDomainResponseWithFee21Premium(t *testing.T) {
+	x := `<?xml version="1.0" encoding="UTF-8"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+	<response>
+		<result code="1000">
+			<msg>Command completed successfully</msg>
+		</result>
+		<resData>
+			<chkData xmlns="urn:ietf:params:xml:ns:domain-1.0">
+				<cd>
+					<name avail="true">example.com</name>
+				</cd>
+			</chkData>
+		</resData>
+		<extension>
+			<chkData xmlns="urn:ietf:params:xml:ns:fee-0.21">
+				<currency>EUR</currency>
+				<cd>
+					<objID>example.com</objID>
+					<command name="create" phase="open">
+						<reason>the requested launch phase is not suitable for the domain</reason>
+					</command>
+					<command name="create" phase="custom" subphase="open-1000">
+						<period unit="y">1</period>
+						<fee applied="immediate" description="domain creation in phase &#39;open-1000&#39;" grace-period="P5D" refundable="true">800.00</fee>
+					</command>
+				</cd>
+			</chkData>
+		</extension>
+		<trID>
+			<svTRID>1501792511080-81912</svTRID>
+		</trID>
+	</response>
+</epp>`
+
+	var res response_
+	dcr := &res.DomainCheckResponse
+
+	d := decoder(x)
+	err := IgnoreEOF(scanResponse.Scan(d, &res))
+	st.Expect(t, err, nil)
+	st.Expect(t, len(dcr.Checks), 1)
+	st.Expect(t, dcr.Checks[0].Domain, "example.com")
+	st.Expect(t, dcr.Checks[0].Available, true)
+	st.Expect(t, dcr.Checks[0].Reason, "")
+	st.Expect(t, len(dcr.Charges), 1)
+	st.Expect(t, dcr.Charges[0].Domain, "example.com")
+	st.Expect(t, dcr.Charges[0].Category, "premium")
+	st.Expect(t, dcr.Charges[0].CategoryName, "open-1000")
+}
+
 func TestScanCheckDomainResponseWithPremiumAttribute(t *testing.T) {
 	x := `<?xml version="1.0" encoding="UTF-8"?>
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0 epp-1.0.xsd">

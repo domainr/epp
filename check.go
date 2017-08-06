@@ -117,15 +117,17 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 			feePhase = fmt.Sprintf(" phase=%q", extData["fee:phase"])
 		}
 		for _, domain := range domains {
-			if feeURN == ExtFee09 {
-				// Version 0.9 changes the XML structure
+			switch feeURN {
+			case ExtFee09: // Version 0.9 changes the XML structure
 				c.buf.WriteString(`<fee:object objURI="urn:ietf:params:xml:ns:domain-1.0">`)
 				c.buf.WriteString(`<fee:objID element="name">`)
 				xml.EscapeText(&c.buf, []byte(domain))
 				c.buf.WriteString(`</fee:objID>`)
 				c.buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
 				c.buf.WriteString(`</fee:object>`)
-			} else {
+			case ExtFee21: // Version 0.21 changes the XML structure
+				c.buf.WriteString(`<fee:command name="create"/>`)
+			default:
 				c.buf.WriteString(`<fee:domain>`)
 				c.buf.WriteString(`<fee:name>`)
 				xml.EscapeText(&c.buf, []byte(domain))
@@ -369,6 +371,35 @@ func init() {
 		if string(c.CharData) != "standard" {
 			charge.Category = "premium"
 		}
+		return nil
+	})
+
+	// Fee-0.21 requires separately parsing this XML subtree.
+	path = "epp > response > extension > " + ExtFee21 + " chkData > cd"
+	scanResponse.MustHandleStartElement(path, func(c *xx.Context) error {
+		type fee21cd struct {
+			Name     string `xml:"objID"`
+			Commands []struct {
+				Name     string `xml:"name,attr"`
+				Phase    string `xml:"phase,attr"`
+				Subphase string `xml:"subphase,attr"`
+				Fee      string `xml:"fee"`
+			} `xml:"command"`
+		}
+		cd := &fee21cd{}
+		err := c.Decoder.DecodeElement(cd, &c.StartElement)
+		if err != nil {
+			return err
+		}
+		dcd := &c.Value.(*response_).DomainCheckResponse
+		dc := DomainCharge{Domain: cd.Name}
+		for _, cmd := range cd.Commands {
+			if cmd.Fee != "" && cmd.Phase != "open" {
+				dc.Category = "premium"
+				dc.CategoryName = cmd.Subphase
+			}
+		}
+		dcd.Charges = append(dcd.Charges, dc)
 		return nil
 	})
 
