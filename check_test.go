@@ -524,7 +524,7 @@ func TestScanCheckDomainResponseWithFee21Premium(t *testing.T) {
 	st.Expect(t, len(dcr.Charges), 1)
 	st.Expect(t, dcr.Charges[0].Domain, "example.com")
 	st.Expect(t, dcr.Charges[0].Category, "premium")
-	st.Expect(t, dcr.Charges[0].CategoryName, "")
+	st.Expect(t, dcr.Charges[0].CategoryName, "open-1000")
 }
 
 func TestScanCheckDomainResponseWithPremiumAttribute(t *testing.T) {

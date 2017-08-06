@@ -374,24 +374,32 @@ func init() {
 		return nil
 	})
 
-	path = "epp > response > extension > " + ExtFee21 + " chkData"
-	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
-		dcd := &c.Value.(*response_).DomainCheckResponse
-		dcd.Charges = append(dcd.Charges, DomainCharge{})
-		return nil
-	})
-	scanResponse.MustHandleCharData(path+">cd>objID", func(c *xx.Context) error {
-		charges := c.Value.(*response_).DomainCheckResponse.Charges
-		charge := &charges[len(charges)-1]
-		charge.Domain = string(c.CharData)
-		return nil
-	})
-	scanResponse.MustHandleCharData(path+">cd>command[phase!='open']>fee", func(c *xx.Context) error {
-		charges := c.Value.(*response_).DomainCheckResponse.Charges
-		charge := &charges[len(charges)-1]
-		if len(c.CharData) > 0 {
-			charge.Category = "premium"
+	// Fee-0.21 requires separately parsing this XML subtree.
+	path = "epp > response > extension > " + ExtFee21 + " chkData > cd"
+	scanResponse.MustHandleStartElement(path, func(c *xx.Context) error {
+		type fee21cd struct {
+			Name     string `xml:"objID"`
+			Commands []struct {
+				Name     string `xml:"name,attr"`
+				Phase    string `xml:"phase,attr"`
+				Subphase string `xml:"subphase,attr"`
+				Fee      string `xml:"fee"`
+			} `xml:"command"`
 		}
+		cd := &fee21cd{}
+		err := c.Decoder.DecodeElement(cd, &c.StartElement)
+		if err != nil {
+			return err
+		}
+		dcd := &c.Value.(*response_).DomainCheckResponse
+		dc := DomainCharge{Domain: cd.Name}
+		for _, cmd := range cd.Commands {
+			if cmd.Fee != "" && cmd.Phase != "open" {
+				dc.Category = "premium"
+				dc.CategoryName = cmd.Subphase
+			}
+		}
+		dcd.Charges = append(dcd.Charges, dc)
 		return nil
 	})
 
