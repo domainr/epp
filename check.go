@@ -376,17 +376,17 @@ func init() {
 
 	// Scan fee-0.21 phase and subphase into Charges Category and CategoryName, respectively
 	// FIXME: stop mangling fee extensions into charges
-	path = "epp > response > extension > " + ExtFee21 + " chkData > cd > command"
-	scanResponse.MustHandleStartElement(path, func(c *xx.Context) error {
-		if c.Attr("", "name") != "create" {
+	path = "epp > response > extension > " + ExtFee21 + " chkData > cd > command > fee"
+	scanResponse.MustHandleCharData(path, func(c *xx.Context) error {
+		if c.Parent.Attr("", "name") != "create" {
 			return nil
 		}
 		dcr := &c.Value.(*response_).DomainCheckResponse
 		check := &dcr.Checks[len(dcr.Checks)-1]
 		charge := DomainCharge{
 			Domain:       check.Domain,
-			Category:     c.Attr("", "phase"),
-			CategoryName: c.Attr("", "subphase"),
+			Category:     c.Parent.Attr("", "phase"),
+			CategoryName: c.Parent.Attr("", "subphase"),
 		}
 		dcr.Charges = append(dcr.Charges, charge)
 		return nil
