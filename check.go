@@ -374,32 +374,21 @@ func init() {
 		return nil
 	})
 
-	// Fee-0.21 requires separately parsing this XML subtree.
-	path = "epp > response > extension > " + ExtFee21 + " chkData > cd"
+	// Scan fee-0.21 phase and subphase into Charges Category and CategoryName, respectively
+	// FIXME: stop mangling fee extensions into charges
+	path = "epp > response > extension > " + ExtFee21 + " chkData > cd > command"
 	scanResponse.MustHandleStartElement(path, func(c *xx.Context) error {
-		type fee21cd struct {
-			Name     string `xml:"objID"`
-			Commands []struct {
-				Name     string `xml:"name,attr"`
-				Phase    string `xml:"phase,attr"`
-				Subphase string `xml:"subphase,attr"`
-				Fee      string `xml:"fee"`
-			} `xml:"command"`
+		if c.Attr("", "name") != "create" {
+			return nil
 		}
-		cd := &fee21cd{}
-		err := c.Decoder.DecodeElement(cd, &c.StartElement)
-		if err != nil {
-			return err
+		dcr := &c.Value.(*response_).DomainCheckResponse
+		check := &dcr.Checks[len(dcr.Checks)-1]
+		charge := DomainCharge{
+			Domain:       check.Domain,
+			Category:     c.Attr("", "phase"),
+			CategoryName: c.Attr("", "subphase"),
 		}
-		dcd := &c.Value.(*response_).DomainCheckResponse
-		dc := DomainCharge{Domain: cd.Name}
-		for _, cmd := range cd.Commands {
-			if cmd.Fee != "" && cmd.Phase != "open" {
-				dc.Category = "premium"
-				dc.CategoryName = cmd.Subphase
-			}
-		}
-		dcd.Charges = append(dcd.Charges, dc)
+		dcr.Charges = append(dcr.Charges, charge)
 		return nil
 	})
 
