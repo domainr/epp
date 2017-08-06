@@ -451,6 +451,9 @@ func TestScanCheckDomainResponseWithFee21(t *testing.T) {
 						<period unit="y">1</period>
 						<fee applied="immediate" description="domain creation in phase &#39;open&#39;" grace-period="P5D" refundable="true">25.00</fee>
 					</command>
+					<command name="create" phase="custom" subphase="open-50">
+						<reason>the requested launch phase is not suitable for the domain</reason>
+					</command>
 				</cd>
 			</chkData>
 		</extension>
