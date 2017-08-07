@@ -489,7 +489,8 @@ func TestScanCheckDomainResponseWithFee21Premium(t *testing.T) {
 		<resData>
 			<chkData xmlns="urn:ietf:params:xml:ns:domain-1.0">
 				<cd>
-					<name avail="true">example.com</name>
+					<name avail="false">example.com</name>
+					<reason>not registrable in this phase</reason>
 				</cd>
 			</chkData>
 		</resData>
@@ -522,8 +523,8 @@ func TestScanCheckDomainResponseWithFee21Premium(t *testing.T) {
 	st.Expect(t, err, nil)
 	st.Expect(t, len(dcr.Checks), 1)
 	st.Expect(t, dcr.Checks[0].Domain, "example.com")
-	st.Expect(t, dcr.Checks[0].Available, true)
-	st.Expect(t, dcr.Checks[0].Reason, "")
+	st.Expect(t, dcr.Checks[0].Available, false)
+	st.Expect(t, dcr.Checks[0].Reason, "not registrable in this phase")
 	st.Expect(t, len(dcr.Charges), 1)
 	st.Expect(t, dcr.Charges[0].Domain, "example.com")
 	st.Expect(t, dcr.Charges[0].Category, "custom")
