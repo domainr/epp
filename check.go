@@ -117,15 +117,17 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 			feePhase = fmt.Sprintf(" phase=%q", extData["fee:phase"])
 		}
 		for _, domain := range domains {
-			if feeURN == ExtFee09 {
-				// Version 0.9 changes the XML structure
+			switch feeURN {
+			case ExtFee09: // Version 0.9 changes the XML structure
 				c.buf.WriteString(`<fee:object objURI="urn:ietf:params:xml:ns:domain-1.0">`)
 				c.buf.WriteString(`<fee:objID element="name">`)
 				xml.EscapeText(&c.buf, []byte(domain))
 				c.buf.WriteString(`</fee:objID>`)
 				c.buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
 				c.buf.WriteString(`</fee:object>`)
-			} else {
+			case ExtFee21: // Version 0.21 changes the XML structure
+				c.buf.WriteString(`<fee:command name="create"/>`)
+			default:
 				c.buf.WriteString(`<fee:domain>`)
 				c.buf.WriteString(`<fee:name>`)
 				xml.EscapeText(&c.buf, []byte(domain))
@@ -220,8 +222,8 @@ func init() {
 	// Default EPP check data
 	path := "epp > response > resData > " + ObjDomain + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
-		dcd := &c.Value.(*response_).DomainCheckResponse
-		dcd.Checks = append(dcd.Checks, DomainCheck{})
+		dcr := &c.Value.(*response_).DomainCheckResponse
+		dcr.Checks = append(dcr.Checks, DomainCheck{})
 		return nil
 	})
 	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
@@ -260,8 +262,8 @@ func init() {
 
 	path = "epp > response > extension > " + ExtFee05 + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
-		dcd := &c.Value.(*response_).DomainCheckResponse
-		dcd.Charges = append(dcd.Charges, DomainCharge{})
+		dcr := &c.Value.(*response_).DomainCheckResponse
+		dcr.Charges = append(dcr.Charges, DomainCharge{})
 		return nil
 	})
 	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
@@ -288,8 +290,8 @@ func init() {
 
 	path = "epp > response > extension > " + ExtFee06 + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
-		dcd := &c.Value.(*response_).DomainCheckResponse
-		dcd.Charges = append(dcd.Charges, DomainCharge{})
+		dcr := &c.Value.(*response_).DomainCheckResponse
+		dcr.Charges = append(dcr.Charges, DomainCharge{})
 		return nil
 	})
 	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
@@ -313,8 +315,8 @@ func init() {
 
 	path = "epp > response > extension > " + ExtFee07 + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
-		dcd := &c.Value.(*response_).DomainCheckResponse
-		dcd.Charges = append(dcd.Charges, DomainCharge{})
+		dcr := &c.Value.(*response_).DomainCheckResponse
+		dcr.Charges = append(dcr.Charges, DomainCharge{})
 		return nil
 	})
 	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
@@ -332,8 +334,8 @@ func init() {
 
 	path = "epp > response > extension > " + ExtFee08 + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
-		dcd := &c.Value.(*response_).DomainCheckResponse
-		dcd.Charges = append(dcd.Charges, DomainCharge{})
+		dcr := &c.Value.(*response_).DomainCheckResponse
+		dcr.Charges = append(dcr.Charges, DomainCharge{})
 		return nil
 	})
 	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
@@ -353,8 +355,8 @@ func init() {
 
 	path = "epp > response > extension > " + ExtFee09 + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
-		dcd := &c.Value.(*response_).DomainCheckResponse
-		dcd.Charges = append(dcd.Charges, DomainCharge{})
+		dcr := &c.Value.(*response_).DomainCheckResponse
+		dcr.Charges = append(dcr.Charges, DomainCharge{})
 		return nil
 	})
 	scanResponse.MustHandleCharData(path+">cd>objID", func(c *xx.Context) error {
@@ -372,11 +374,29 @@ func init() {
 		return nil
 	})
 
+	// Scan fee-0.21 phase and subphase into Charges Category and CategoryName, respectively
+	// FIXME: stop mangling fee extensions into charges
+	path = "epp > response > extension > " + ExtFee21 + " chkData > cd > command > fee"
+	scanResponse.MustHandleCharData(path, func(c *xx.Context) error {
+		if c.Parent.Attr("", "name") != "create" {
+			return nil
+		}
+		dcr := &c.Value.(*response_).DomainCheckResponse
+		check := &dcr.Checks[len(dcr.Checks)-1]
+		charge := DomainCharge{
+			Domain:       check.Domain,
+			Category:     c.Parent.Attr("", "phase"),
+			CategoryName: c.Parent.Attr("", "subphase"),
+		}
+		dcr.Charges = append(dcr.Charges, charge)
+		return nil
+	})
+
 	// Scan price-1.1 extension into Charges
 	path = "epp > response > extension > " + ExtPrice + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
-		dcd := &c.Value.(*response_).DomainCheckResponse
-		dcd.Charges = append(dcd.Charges, DomainCharge{})
+		dcr := &c.Value.(*response_).DomainCheckResponse
+		dcr.Charges = append(dcr.Charges, DomainCharge{})
 		return nil
 	})
 	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
