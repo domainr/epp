@@ -200,18 +200,22 @@ func encodePriceCheck(buf *bytes.Buffer, domains []string) error {
 	return nil
 }
 
+// DomainCheckResponse represents an EPP <response> for a domain check.
 type DomainCheckResponse struct {
 	Domain  string
 	Checks  []DomainCheck
 	Charges []DomainCharge
 }
 
+// DomainCheck represents an EPP <chkData> and associated extension data.
 type DomainCheck struct {
 	Domain    string
 	Reason    string
 	Available bool
 }
 
+// DomainCharge represents various EPP charge and fee extension data.
+// FIXME: unpack into multiple types for different extensions.
 type DomainCharge struct {
 	Domain       string
 	Category     string
