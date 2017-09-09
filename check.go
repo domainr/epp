@@ -3,10 +3,12 @@ package epp
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/nbio/xx"
+	"github.com/zonedb/zonedb"
 )
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
@@ -71,8 +73,9 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 	supportsFeePhase := extData["fee:phase"] != ""
 	supportsNeulevel := extData["neulevel:unspec"] != "" && (greeting.SupportsExtension(ExtNeulevel) || greeting.SupportsExtension(ExtNeulevel10))
 	supportsNamestore := extData["namestoreExt:subProduct"] != "" && greeting.SupportsExtension(ExtNamestore)
+	supportsAfiliasIDN := greeting.SupportsExtension(ExtAfiliasIDN)
 
-	hasExtension := feeURN != "" || supportsLaunch || supportsNeulevel || supportsNamestore
+	hasExtension := feeURN != "" || supportsLaunch || supportsNeulevel || supportsNamestore || supportsAfiliasIDN
 
 	if hasExtension {
 		c.buf.WriteString(`<extension>`)
@@ -106,6 +109,25 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 		c.buf.WriteString(extData["neulevel:unspec"])
 		c.buf.WriteString(`</neulevel:unspec>`)
 		c.buf.WriteString(`</neulevel:extension>`)
+	}
+
+	if supportsAfiliasIDN {
+		var script, temp string
+		var err error
+		for _, domain := range domains {
+			temp, err = idnTable(domain)
+			if err != nil {
+				return err
+			}
+			if script == "" {
+				script = temp
+			} else if script != temp {
+				return errors.New("checking multiple domains in different IDN tables in the same request is not supported")
+			}
+		}
+		c.buf.WriteString(`<idn:check xmlns:idn="` + ExtAfiliasIDN + `">`)
+		c.buf.WriteString(`<idn:script>` + script + `</idn:script>`)
+		c.buf.WriteString(`</idn:check>`)
 	}
 
 	if len(feeURN) > 0 {
@@ -147,6 +169,20 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 
 	c.buf.WriteString(xmlCommandSuffix)
 	return nil
+}
+
+func idnTable(domain string) (string, error) {
+	labels := strings.Split(domain, ".")
+	var o int
+	var z string
+	var zone *zonedb.Zone
+	for o = 1; o < len(labels) && zone == nil; o++ {
+		z = strings.Join(labels[o:], ".")
+		if zone, ok := zonedb.ZoneMap[z]; ok {
+			return zone.IDNTable(domain)
+		}
+	}
+	return "", errors.New("zone not found")
 }
 
 func (c *Conn) processDomainCheck(domains []string) (*DomainCheckResponse, error) {
