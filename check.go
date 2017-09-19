@@ -125,7 +125,7 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 				c.buf.WriteString(`</fee:objID>`)
 				c.buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
 				c.buf.WriteString(`</fee:object>`)
-			case ExtFee11: // Version 0.11 changes the XML structure (https://tools.ietf.org/html/draft-brown-epp-fees-07#section-5.1.1)
+			case ExtFee11: // https://tools.ietf.org/html/draft-brown-epp-fees-07#section-5.1.1
 				c.buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
 			case ExtFee21: // Version 0.21 changes the XML structure
 				c.buf.WriteString(`<fee:command name="create"/>`)
@@ -377,6 +377,25 @@ func init() {
 		if string(c.CharData) != "standard" {
 			charge.Category = "premium"
 		}
+		return nil
+	})
+
+	path = "epp > response > extension > " + ExtFee11 + " chkData"
+	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
+		dcr := &c.Value.(*response_).DomainCheckResponse
+		dcr.Charges = append(dcr.Charges, DomainCharge{})
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>objID", func(c *xx.Context) error {
+		charges := c.Value.(*response_).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		charge.Domain = string(c.CharData)
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>class", func(c *xx.Context) error {
+		charges := c.Value.(*response_).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		charge.Category = string(c.CharData)
 		return nil
 	})
 
