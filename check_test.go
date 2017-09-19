@@ -428,6 +428,55 @@ func TestScanCheckDomainResponseWithFee09(t *testing.T) {
 	st.Expect(t, dcr.Charges[0].CategoryName, "")
 }
 
+func TestScanCheckDomainResponseWithFee11(t *testing.T) {
+	x := `<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+	<response>
+		<result code="1000">
+			<msg>Command completed successfully</msg>
+		</result>
+		<resData>
+			<domain:chkData xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+				<domain:cd>
+					<domain:name avail="1">example.com</domain:name>
+				</domain:cd>
+			</domain:chkData>
+		</resData>
+		<extension>
+			<fee:chkData xmlns:fee="urn:ietf:params:xml:ns:fee-0.11">
+				<fee:cd>
+					<fee:objID>example.com</fee:objID>
+					<fee:currency>USD</fee:currency>
+					<fee:command phase="sunrise">create</fee:command>
+					<fee:period unit="y">1</fee:period>
+					<fee:fee refundable="true" grace-period="P5D">50.00</fee:fee>
+					<fee:class>premium</fee:class>
+				</fee:cd>
+			</fee:chkData>
+		</extension>
+		<trID>
+			<clTRID>ABC-12345</clTRID>
+			<svTRID>54322-XYZ</svTRID>
+		</trID>
+	</response>
+</epp>`
+
+	var res response_
+	dcr := &res.DomainCheckResponse
+
+	d := decoder(x)
+	err := IgnoreEOF(scanResponse.Scan(d, &res))
+	st.Expect(t, err, nil)
+	st.Expect(t, len(dcr.Checks), 1)
+	st.Expect(t, dcr.Checks[0].Domain, "example.com")
+	st.Expect(t, dcr.Checks[0].Available, true)
+	st.Expect(t, dcr.Checks[0].Reason, "")
+	st.Expect(t, len(dcr.Charges), 1)
+	st.Expect(t, dcr.Charges[0].Domain, "example.com")
+	st.Expect(t, dcr.Charges[0].Category, "premium")
+	st.Expect(t, dcr.Charges[0].CategoryName, "")
+}
+
 func TestScanCheckDomainResponseWithFee21(t *testing.T) {
 	x := `<?xml version="1.0" encoding="UTF-8"?>
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
