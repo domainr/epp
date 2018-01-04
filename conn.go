@@ -31,7 +31,7 @@ type Conn struct {
 	Greeting
 
 	// LoginResult holds the last received login response message's Result
-	// from the server, which for some servers might include diagnostics such
+	// from the server, in which some servers might include diagnostics such
 	// as connection count limits.
 	LoginResult Result
 
