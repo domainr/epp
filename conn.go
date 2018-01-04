@@ -30,6 +30,11 @@ type Conn struct {
 	// indicating server name, status, data policy and capabilities.
 	Greeting
 
+	// LoginResult holds the last received login response message's Result
+	// from the server, which for some servers might include diagnostics such
+	// as connection count limits.
+	LoginResult Result
+
 	// Timeout defines the timeout for network operations.
 	Timeout time.Duration
 }

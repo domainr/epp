@@ -13,7 +13,12 @@ func (c *Conn) Login(user, password, newPassword string) error {
 		return err
 	}
 	var res response_
-	return c.readResponse(&res)
+	err = c.readResponse(&res)
+	if err != nil {
+		return err
+	}
+	c.LoginResult = res.Result
+	return nil
 }
 
 func (c *Conn) writeLogin(user, password, newPassword string) error {
