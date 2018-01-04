@@ -13,7 +13,12 @@ func (c *Conn) Login(user, password, newPassword string) error {
 		return err
 	}
 	var res response_
-	return c.readResponse(&res)
+	err = c.readResponse(&res)
+	// We always have a .Result in our non-pointer, but it might be meaningless.
+	// We might not have read anything.  We think that the worst case is we
+	// have the same zero values we'd get without the assignment-even-in-error-case.
+	c.LoginResult = res.Result
+	return err
 }
 
 func (c *Conn) writeLogin(user, password, newPassword string) error {
