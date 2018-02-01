@@ -3,10 +3,7 @@ jobs:
   build:
     working_directory: /go/src/github.com/domainr/epp
     docker:
-      - image: domainr/ci
-        environment:
-          CACHE_VERSION: 1
-          TEST_RESULTS: /tmp/test-results
+      - image: domainr/ci:latest
     steps:
 # Get Code
 # Workaround for {{ .Environment.VAR_NAME }} not reading custom environment keys
@@ -16,30 +13,20 @@ jobs:
             echo "$CACHE_VERSION" > ~/CACHE_VERSION
             echo "$GOLANG_VERSION" > ~/GOLANG_VERSION
 # Checkout Code
-      - restore_cache:
-          keys: # Allow cache fetch to fall back to previous revision
-            - v({{ checksum "~/CACHE_VERSION" }})-build-go({{ checksum "~/GOLANG_VERSION" }})-{{ .Revision }}
-            - v({{ checksum "~/CACHE_VERSION" }})-build-go({{ checksum "~/GOLANG_VERSION" }})-
       - checkout
       - run: git branch --set-upstream-to=origin/$CIRCLE_BRANCH $CIRCLE_BRANCH
 # Build
-      - run: go get -v -u github.com/jstemmer/go-junit-report
       - run: go get -v -u -t -d ./...
       - run: test $(git rev-parse HEAD) = $CIRCLE_SHA1
       - run: go build -v -i
       - run: go test -v -i -race ./...
-      - save_cache:
-          key: v({{ checksum "~/CACHE_VERSION" }})-build-go({{ checksum "~/GOLANG_VERSION" }})-{{ .Revision }}
-          paths:
-            - /go/src
-            - /go/pkg
 # Test
       - run: mkdir -p /tmp/test-results
       - run:
           name: Run Tests
           command: |
-            trap "go-junit-report < ${TEST_RESULTS}/go-test.log > ${TEST_RESULTS}/go-test-report.xml" EXIT
-            go test -v -race ./... | tee ${TEST_RESULTS}/go-test.log
+            trap "go-junit-report < /tmp/test-results/go-test.log > /tmp/test-results/go-test-report.xml" EXIT
+            go test -v -race ./... | tee /tmp/test-results/go-test.log
 # Report
       - store_test_results:
           path: /tmp/test-results
