@@ -1,9 +1,9 @@
 version: 2
 jobs:
   build:
-    working_directory: /go/src/github.com/domainr/epp
+    working_directory: ~/go/src/github.com/domainr/epp
     docker:
-      - image: domainr/ci:latest
+      - image: domainr/ci:swan
     steps:
 # Get Code
 # Workaround for {{ .Environment.VAR_NAME }} not reading custom environment keys
