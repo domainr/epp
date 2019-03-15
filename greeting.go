@@ -28,7 +28,7 @@ type Greeting struct {
 	Extensions []string `xml:"svcMenu>svcExtension>extURI,omitempty"`
 }
 
-// SupportsExtension returns true if the EPP server supports
+// SupportsObject returns true if the EPP server supports
 // the object specified by uri.
 func (g *Greeting) SupportsObject(uri string) bool {
 	for _, v := range g.Objects {
