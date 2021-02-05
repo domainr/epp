@@ -68,6 +68,8 @@ const (
 	ExtFee09      = "urn:ietf:params:xml:ns:fee-0.9"
 	ExtFee11      = "urn:ietf:params:xml:ns:fee-0.11"
 	ExtFee21      = "urn:ietf:params:xml:ns:fee-0.21"
+	ExtFee23      = "urn:ietf:params:xml:ns:fee-0.23"
+	ExtFee10      = "urn:ietf:params:xml:ns:epp:fee-1.0"
 	ExtPrice      = "urn:ar:params:xml:ns:price-1.1"
 	ExtNamestore  = "http://www.verisign-grs.com/epp/namestoreExt-1.1"
 	ExtNeulevel   = "urn:ietf:params:xml:ns:neulevel"
@@ -88,6 +90,8 @@ var ExtURNNames = map[string]string{
 	"fee-0.9":          ExtFee09,
 	"fee-0.11":         ExtFee11,
 	"fee-0.21":         ExtFee21,
+	"fee-0.23":         ExtFee23,
+	"fee-1.0":          ExtFee10,
 	"price-1.1":        ExtPrice,
 	"namestoreExt-1.1": ExtNamestore,
 	"neulevel":         ExtNeulevel,
