@@ -46,6 +46,10 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 
 	var feeURN string
 	switch {
+	case greeting.SupportsExtension(ExtFee10):
+		feeURN = ExtFee10
+	case greeting.SupportsExtension(ExtFee23):
+		feeURN = ExtFee23
 	case greeting.SupportsExtension(ExtFee21):
 		feeURN = ExtFee21
 	case greeting.SupportsExtension(ExtFee11):
