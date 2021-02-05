@@ -1,5 +1,7 @@
 module github.com/domainr/epp
 
+go 1.15
+
 require (
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32
 	github.com/nbio/xx v0.0.0-20171204172743-d97a23099bf2
