@@ -3,12 +3,15 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"golang.org/x/net/proxy"
@@ -18,9 +21,11 @@ import (
 )
 
 func main() {
-	var uri, addr, user, pass, proxyAddr, crtPath, caPath, keyPath string
+	var cmd, obj, uri, addr, user, pass, proxyAddr, crtPath, caPath, keyPath string
 	var useTLS, batch, verbose bool
 
+	flag.StringVar(&cmd, "cmd", "check", "EPP Command")
+	flag.StringVar(&obj, "obj", "domain", "EPP object type (i.e. domain, contact, host etc.")
 	flag.StringVar(&uri, "url", "", "EPP server URL, e.g. epp://user:pass@api.1api.net:700")
 	flag.StringVar(&addr, "addr", "", "EPP server address (HOST:PORT)")
 	flag.StringVar(&user, "u", "", "EPP user name")
@@ -47,9 +52,9 @@ func main() {
 		epp.DebugLogger = os.Stderr
 	}
 
-	domains := make([]string, len(flag.Args()))
+	objs := make([]string, len(flag.Args()))
 	for i, arg := range flag.Args() {
-		domains[i] = arg // FIXME: convert unicode to Punycode?
+		objs[i] = arg // FIXME: convert unicode to Punycode?
 	}
 
 	// Parse URL
@@ -123,20 +128,59 @@ func main() {
 
 	// Check
 	start = time.Now()
-	if batch {
-		dc, err := c.CheckDomain(domains...)
-		logif(err)
-		printDCR(dc)
-	} else {
-		for _, domain := range domains {
-			dc, err := c.CheckDomain(domain)
-			logif(err)
-			printDCR(dc)
-		}
+	cmd = strings.ToLower(cmd)
+	switch cmd {
+	case "check":
+		handleCheck(c, obj, objs, batch)
+	case "info":
+		handleInfo(c, obj, objs)
+	default:
+		log.Fatal("Unknown command:", cmd)
 	}
 	qdur := time.Since(start)
 
-	color.Fprintf(os.Stderr, "@{.}Query: %s Avg: %s\n", qdur, qdur/time.Duration(len(domains)))
+	color.Fprintf(os.Stderr, "@{.}Query: %s Avg: %s\n", qdur, qdur/time.Duration(len(objs)))
+}
+
+func handleCheck(c *epp.Conn, objKind string, objs []string, batch bool) error {
+	objKind = strings.ToLower(objKind)
+	switch objKind {
+	case "domain":
+		if batch {
+			dc, err := c.CheckDomain(objs...)
+			logif(err)
+			printDCR(dc)
+			return err
+		} else {
+			for _, domain := range objs {
+				dc, err := c.CheckDomain(domain)
+				logif(err)
+				printDCR(dc)
+				return err
+			}
+		}
+	default:
+		return errors.New("Unknown epp object type: " + objKind)
+	}
+	return nil
+}
+
+func handleInfo(c *epp.Conn, objKind string, objs []string) error {
+	objKind = strings.ToLower(objKind)
+	switch objKind {
+	case "domain":
+		for _, domain := range objs {
+			res, err := c.DomainInfo(domain)
+			logif(err)
+			printDIR(domain, res)
+			if err != nil {
+				return err
+			}
+		}
+	default:
+		return errors.New("Unknown epp object type: " + objKind)
+	}
+	return nil
 }
 
 func parseURL(uri string) (addr, user, pass string) {
@@ -196,5 +240,17 @@ func printDCR(dcr *epp.DomainCheckResponse) {
 		} else {
 			color.Printf("@{y}%s\tcategory=%s\tname=%q\n", c.Domain, c.Category, c.CategoryName)
 		}
+	}
+}
+
+func printDIR(name string, dir *epp.DomainInfoResponse) {
+	if dir == nil {
+		return
+	}
+
+	if dir.Result.Code == 1000 {
+		color.Printf("@{g}domain=%s\tcreated=%s\texpires=%s\n", dir.Name, dir.CreatedDate, dir.Expiration)
+	} else {
+		color.Printf("@{y}domain=%s\tcode=%d\tmsg=%s\n", name, dir.Result.Code, dir.Result.Message)
 	}
 }
