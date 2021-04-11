@@ -177,6 +177,15 @@ func handleInfo(c *epp.Conn, objKind string, objs []string) error {
 				return err
 			}
 		}
+	case "contact":
+		for _, roid := range objs {
+			res, err := c.ContactInfo(roid)
+			logif(err)
+			printCIR(roid, res)
+			if err != nil {
+				return err
+			}
+		}
 	default:
 		return errors.New("Unknown epp object type: " + objKind)
 	}
@@ -252,5 +261,17 @@ func printDIR(name string, dir *epp.DomainInfoResponse) {
 		color.Printf("@{g}domain=%s\tcreated=%s\texpires=%s\n", dir.Name, dir.CreatedDate, dir.Expiration)
 	} else {
 		color.Printf("@{y}domain=%s\tcode=%d\tmsg=%s\n", name, dir.Result.Code, dir.Result.Message)
+	}
+}
+
+func printCIR(roid string, r *epp.ContactInfoResponse) {
+	if r == nil {
+		return
+	}
+
+	if r.Result.Code == 1000 {
+		color.Printf("@{g}name=%s\troid=%s\tcreated=%s\temail=%s\n", r.PostalInfo.Name, roid, r.CreatedDate, r.Email)
+	} else {
+		color.Printf("@{y}roid=%s\tcode=%d\tmsg=%s\n", roid, r.Result.Code, r.Result.Message)
 	}
 }
