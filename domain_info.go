@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
+	"strings"
 )
 
 type DomainStatus struct {
@@ -41,6 +42,16 @@ type DomainInfoResponse struct {
 	TransferDate string          `xml:"response>resData>infData>trDate"`
 	AuID         string          `xml:"response>resData>infData>auID,omitempty"`
 	AuthInfo     AuthInfo        `xml:"response>resData>infData>authInfo"`
+}
+
+func (d *DomainInfoResponse) HasStatus(status string) bool {
+	for i := range d.Status {
+		if strings.ToLower(d.Status[i].S) == strings.ToLower(status) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (c *Conn) DomainInfo(domain string) (*DomainInfoResponse, error) {
