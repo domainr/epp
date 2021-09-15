@@ -111,7 +111,7 @@ func (c *Conn) writeDataUnit(x []byte) error {
 
 // readResponse reads a single EPP response from c and parses the XML into req.
 // It returns an error if the EPP response contains an error Result.
-func (c *Conn) readResponse(res *response_) error {
+func (c *Conn) readResponse(res *Response) error {
 	err := c.readDataUnit()
 	if err != nil {
 		return err
@@ -139,7 +139,7 @@ func (c *Conn) readDataUnit() error {
 	if err != nil {
 		return err
 	}
-	s -= 4
+	s -= 4 // https://tools.ietf.org/html/rfc5734#section-4
 	if s < 0 {
 		return io.ErrUnexpectedEOF
 	}

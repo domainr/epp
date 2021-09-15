@@ -10,6 +10,7 @@ import (
 type Result struct {
 	Code    int    `xml:"code,attr"`
 	Message string `xml:"msg"`
+	Reason  string `xml:"extValue>reason,omitempty"`
 }
 
 // IsError determines whether an EPP status code is an error.
@@ -31,14 +32,18 @@ func (r *Result) Error() string {
 }
 
 func init() {
-	path := "epp>response>result"
+	path := "epp > response > result"
 	scanResponse.MustHandleStartElement(path, func(c *xx.Context) error {
-		res := c.Value.(*response_)
+		res := c.Value.(*Response)
 		res.Result.Code = c.AttrInt("", "code")
 		return nil
 	})
-	scanResponse.MustHandleCharData(path+">msg", func(c *xx.Context) error {
-		c.Value.(*response_).Result.Message = string(c.CharData)
+	scanResponse.MustHandleCharData(path+"> msg", func(c *xx.Context) error {
+		c.Value.(*Response).Result.Message = string(c.CharData)
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+"> extValue > reason", func(c *xx.Context) error {
+		c.Value.(*Response).Result.Reason = string(c.CharData)
 		return nil
 	})
 }

@@ -3,17 +3,35 @@ package epp
 import (
 	"bytes"
 	"encoding/xml"
+	"net"
 	"testing"
 
 	"github.com/nbio/st"
 )
 
 func TestHello(t *testing.T) {
-	c, err := NewConn(testDial(t))
+	ls, err := newLocalServer()
+	st.Assert(t, err, nil)
+	defer ls.teardown()
+	ls.buildup(func(ls *localServer, ln net.Listener) {
+		conn, err := ls.Accept()
+		st.Assert(t, err, nil)
+		sc := newConn(conn)
+		// Respond with greeting
+		err = sc.writeDataUnit([]byte(testXMLGreeting))
+		st.Assert(t, err, nil)
+		// Respond with greeting for <hello>
+		err = sc.writeDataUnit([]byte(testXMLGreeting))
+		st.Assert(t, err, nil)
+	})
+	nc, err := net.Dial(ls.Listener.Addr().Network(), ls.Listener.Addr().String())
+	st.Assert(t, err, nil)
+
+	c, err := NewConn(nc)
 	st.Assert(t, err, nil)
 	err = c.Hello()
 	st.Expect(t, err, nil)
-	st.Expect(t, c.Greeting.ServerName, "ISPAPI EPP Server") // FIXME: brittle external dependency
+	st.Expect(t, c.Greeting.ServerName, "Example EPP server epp.example.com")
 }
 
 func TestGreetingSupportsObject(t *testing.T) {
@@ -36,7 +54,7 @@ func TestGreetingSupportsExtension(t *testing.T) {
 
 func TestScanGreeting(t *testing.T) {
 	d := decoder(testXMLGreeting)
-	var res response_
+	var res Response
 	err := IgnoreEOF(scanResponse.Scan(d, &res))
 	st.Expect(t, err, nil)
 	st.Expect(t, res.Greeting.ServerName, "Example EPP server epp.example.com")
@@ -59,7 +77,7 @@ func BenchmarkScanGreeting(b *testing.B) {
 		deleteBufferRange(&buf, []byte(`<dcp>`), []byte(`</dcp>`))
 		*d = saved
 		b.StartTimer()
-		var res response_
+		var res Response
 		scanResponse.Scan(d, &res)
 	}
 }
