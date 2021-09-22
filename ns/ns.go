@@ -1,4 +1,4 @@
-package epp
+package ns
 
 const (
 	// EPP defines the IETF URN for the EPP namespace.
