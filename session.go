@@ -12,7 +12,7 @@ func (c *Conn) Login(user, password, newPassword string) error {
 	if err != nil {
 		return err
 	}
-	var res response_
+	var res Response
 	err = c.readResponse(&res)
 	// We always have a .Result in our non-pointer, but it might be meaningless.
 	// We might not have read anything.  We think that the worst case is we
@@ -80,7 +80,7 @@ func (c *Conn) Logout() error {
 	if err != nil {
 		return err
 	}
-	var res response_
+	var res Response
 	return c.readResponse(&res)
 }
 

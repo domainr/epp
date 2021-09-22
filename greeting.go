@@ -68,6 +68,7 @@ const (
 	ExtFee09      = "urn:ietf:params:xml:ns:fee-0.9"
 	ExtFee11      = "urn:ietf:params:xml:ns:fee-0.11"
 	ExtFee21      = "urn:ietf:params:xml:ns:fee-0.21"
+	ExtFee10      = "urn:ietf:params:xml:ns:epp:fee-1.0"
 	ExtPrice      = "urn:ar:params:xml:ns:price-1.1"
 	ExtNamestore  = "http://www.verisign-grs.com/epp/namestoreExt-1.1"
 	ExtNeulevel   = "urn:ietf:params:xml:ns:neulevel"
@@ -88,6 +89,7 @@ var ExtURNNames = map[string]string{
 	"fee-0.9":          ExtFee09,
 	"fee-0.11":         ExtFee11,
 	"fee-0.21":         ExtFee21,
+	"fee-1.0":          ExtFee10,
 	"price-1.1":        ExtPrice,
 	"namestoreExt-1.1": ExtNamestore,
 	"neulevel":         ExtNeulevel,
@@ -100,7 +102,7 @@ func (c *Conn) readGreeting() (Greeting, error) {
 		return Greeting{}, err
 	}
 	deleteBufferRange(&c.buf, []byte(`<dcp>`), []byte(`</dcp>`))
-	var res response_
+	var res Response
 	err = IgnoreEOF(scanResponse.Scan(c.decoder, &res))
 	if err != nil {
 		return Greeting{}, err
@@ -111,27 +113,27 @@ func (c *Conn) readGreeting() (Greeting, error) {
 func init() {
 	path := "epp>greeting"
 	scanResponse.MustHandleCharData(path+">svID", func(c *xx.Context) error {
-		res := c.Value.(*response_)
+		res := c.Value.(*Response)
 		res.Greeting.ServerName = string(c.CharData)
 		return nil
 	})
 	scanResponse.MustHandleCharData(path+">svcMenu>version", func(c *xx.Context) error {
-		res := c.Value.(*response_)
+		res := c.Value.(*Response)
 		res.Greeting.Versions = append(res.Greeting.Versions, string(c.CharData))
 		return nil
 	})
 	scanResponse.MustHandleCharData(path+">svcMenu>lang", func(c *xx.Context) error {
-		res := c.Value.(*response_)
+		res := c.Value.(*Response)
 		res.Greeting.Languages = append(res.Greeting.Languages, string(c.CharData))
 		return nil
 	})
 	scanResponse.MustHandleCharData(path+">svcMenu>objURI", func(c *xx.Context) error {
-		res := c.Value.(*response_)
+		res := c.Value.(*Response)
 		res.Greeting.Objects = append(res.Greeting.Objects, string(c.CharData))
 		return nil
 	})
 	scanResponse.MustHandleCharData(path+">svcMenu>svcExtension>extURI", func(c *xx.Context) error {
-		res := c.Value.(*response_)
+		res := c.Value.(*Response)
 		res.Greeting.Extensions = append(res.Greeting.Extensions, string(c.CharData))
 		return nil
 	})

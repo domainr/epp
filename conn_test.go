@@ -1,49 +1,70 @@
 package epp
 
 import (
-	"bytes"
-	"crypto/tls"
 	"encoding/xml"
 	"net"
+	"sync"
 	"testing"
 
 	"github.com/nbio/st"
 )
 
-const (
-	// https://wiki.hexonet.net/wiki/Domain_API
-	addr     = "api.1api.net:1700"
-	user     = "test.user"
-	password = "test.passw0rd"
-)
-
-func testDial(t *testing.T) net.Conn {
-	if testing.Short() {
-		t.Skip("network-dependent")
-	}
-	conn, err := tls.Dial("tcp", addr, nil)
-	st.Assert(t, err, nil)
-	return conn
+type localServer struct {
+	lnmu sync.RWMutex
+	net.Listener
+	done chan bool // signal that indicates server stopped
 }
 
-func testLogin(t *testing.T) *Conn {
-	c, err := NewConn(testDial(t))
-	st.Assert(t, err, nil)
-	err = c.Login(user, password, "")
-	st.Assert(t, err, nil)
-	return c
+func (ls *localServer) buildup(handler func(*localServer, net.Listener)) error {
+	go func() {
+		handler(ls, ls.Listener)
+		close(ls.done)
+	}()
+	return nil
+}
+
+func (ls *localServer) teardown() {
+	ls.lnmu.Lock()
+	defer ls.lnmu.Unlock()
+	if ls.Listener != nil {
+		ls.Listener.Close()
+		<-ls.done
+		ls.Listener = nil
+	}
+}
+
+func newLocalServer() (*localServer, error) {
+	ln, err := net.Listen("tcp", ":0")
+	if err != nil {
+		return nil, err
+	}
+	return &localServer{Listener: ln, done: make(chan bool)}, nil
 }
 
 func TestNewConn(t *testing.T) {
-	c, err := NewConn(testDial(t))
-	st.Expect(t, err, nil)
-	st.Reject(t, c, nil)
-	st.Reject(t, c.Greeting.ServerName, "")
-}
+	ls, err := newLocalServer()
+	st.Assert(t, err, nil)
+	defer ls.teardown()
+	ls.buildup(func(ls *localServer, ln net.Listener) {
+		conn, err := ls.Accept()
+		st.Assert(t, err, nil)
+		sc := newConn(conn)
+		// Respond with greeting
+		err = sc.writeDataUnit([]byte(testXMLGreeting))
+		st.Assert(t, err, nil)
+		var res Response
+		// Read logout message
+		err = sc.readResponse(&res)
+		st.Assert(t, err, nil)
+		// Close connection
+		err = conn.Close()
+		st.Assert(t, err, nil)
+	})
+	nc, err := net.Dial(ls.Listener.Addr().Network(), ls.Listener.Addr().String())
+	st.Assert(t, err, nil)
 
-func TestConnClose(t *testing.T) {
-	c, err := NewConn(testDial(t))
-	st.Expect(t, err, nil)
+	c, err := NewConn(nc)
+	st.Assert(t, err, nil)
 	st.Reject(t, c, nil)
 	st.Reject(t, c.Greeting.ServerName, "")
 	err = c.Close()
@@ -83,26 +104,10 @@ func TestConnDecoderReuse(t *testing.T) {
 	st.Expect(t, c.decoder.InputOffset(), int64(34))
 }
 
-func logMarshal(t *testing.T, v interface{}) {
-	x, err := xml.Marshal(v)
-	st.Expect(t, err, nil)
-	t.Logf("<!-- MARSHALED -->\n%s\n", string(x))
-}
-
 func TestDeleteRange(t *testing.T) {
 	v := deleteRange([]byte(`<foo><bar><baz></baz></bar></foo>`), []byte(`<baz`), []byte(`</baz>`))
 	st.Expect(t, string(v), `<foo><bar></bar></foo>`)
 
 	v = deleteRange([]byte(`<foo><bar><baz></baz></bar></foo>`), []byte(`</bar>`), []byte(`o>`))
 	st.Expect(t, string(v), `<foo><bar><baz></baz>`)
-}
-
-func TestDeleteBufferRange(t *testing.T) {
-	buf := bytes.NewBufferString(`<foo><bar><baz></baz></bar></foo>`)
-	deleteBufferRange(buf, []byte(`<baz`), []byte(`</baz>`))
-	st.Expect(t, buf.String(), `<foo><bar></bar></foo>`)
-
-	buf = bytes.NewBufferString(`<foo><bar><baz></baz></bar></foo>`)
-	deleteBufferRange(buf, []byte(`</bar>`), []byte(`o>`))
-	st.Expect(t, buf.String(), `<foo><bar><baz></baz>`)
 }

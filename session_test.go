@@ -8,13 +8,6 @@ import (
 	"github.com/nbio/st"
 )
 
-func TestConnLogin(t *testing.T) {
-	c, err := NewConn(testDial(t))
-	st.Assert(t, err, nil)
-	err = c.Login(user, password, "")
-	st.Assert(t, err, nil)
-}
-
 func TestEncodeLogin(t *testing.T) {
 	var buf bytes.Buffer
 	err := encodeLogin(&buf, "jane", "battery", "", "1.0", "en", nil, nil)
@@ -54,15 +47,6 @@ var (
 		ExtSecDNS,
 	}
 )
-
-func TestConnLogout(t *testing.T) {
-	c, err := NewConn(testDial(t))
-	st.Assert(t, err, nil)
-	err = c.Login(user, password, "")
-	st.Assert(t, err, nil)
-	err = c.Logout()
-	st.Assert(t, err, nil)
-}
 
 func BenchmarkEncodeLogin(b *testing.B) {
 	var buf bytes.Buffer

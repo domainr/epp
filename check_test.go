@@ -13,8 +13,10 @@ func decoder(s string) *xml.Decoder {
 }
 
 func TestConnCheck(t *testing.T) {
-	c := testLogin(t)
-
+	t.Skip("no live EPP tests in the test suite")
+	c, err := NewConn(nil)
+	st.Expect(t, err, nil)
+	st.Reject(t, c, nil)
 	dcr, err := c.CheckDomain("google.com")
 	st.Expect(t, err, nil)
 	st.Reject(t, dcr, nil)
@@ -106,7 +108,7 @@ func TestScanCheckDomainResponseWithCharge(t *testing.T) {
 	</response>
 </epp>`
 
-	var res response_
+	var res Response
 	dcr := &res.DomainCheckResponse
 
 	d := decoder(x)
@@ -163,7 +165,7 @@ func TestScanCheckDomainResponseWithMultipleChargeSets(t *testing.T) {
 	</response>
 </epp>`
 
-	var res response_
+	var res Response
 	dcr := &res.DomainCheckResponse
 
 	d := decoder(x)
@@ -215,7 +217,7 @@ func TestScanCheckDomainResponseWithFee05(t *testing.T) {
 	</response>
 </epp>`
 
-	var res response_
+	var res Response
 	dcr := &res.DomainCheckResponse
 
 	d := decoder(x)
@@ -264,7 +266,7 @@ func TestScanCheckDomainResponseWithFee06(t *testing.T) {
 	</response>
 </epp>`
 
-	var res response_
+	var res Response
 	dcr := &res.DomainCheckResponse
 
 	d := decoder(x)
@@ -313,7 +315,7 @@ func TestScanCheckDomainResponseWithFee07(t *testing.T) {
 	</response>
 </epp>`
 
-	var res response_
+	var res Response
 	dcr := &res.DomainCheckResponse
 
 	d := decoder(x)
@@ -362,7 +364,7 @@ func TestScanCheckDomainResponseWithFee08(t *testing.T) {
 	</response>
 </epp>`
 
-	var res response_
+	var res Response
 	dcr := &res.DomainCheckResponse
 
 	d := decoder(x)
@@ -412,7 +414,7 @@ func TestScanCheckDomainResponseWithFee09(t *testing.T) {
 	</response>
 </epp>`
 
-	var res response_
+	var res Response
 	dcr := &res.DomainCheckResponse
 
 	d := decoder(x)
@@ -461,7 +463,7 @@ func TestScanCheckDomainResponseWithFee11(t *testing.T) {
 	</response>
 </epp>`
 
-	var res response_
+	var res Response
 	dcr := &res.DomainCheckResponse
 
 	d := decoder(x)
@@ -512,7 +514,7 @@ func TestScanCheckDomainResponseWithFee21(t *testing.T) {
 	</response>
 </epp>`
 
-	var res response_
+	var res Response
 	dcr := &res.DomainCheckResponse
 
 	d := decoder(x)
@@ -564,7 +566,7 @@ func TestScanCheckDomainResponseWithFee21Premium(t *testing.T) {
 	</response>
 </epp>`
 
-	var res response_
+	var res Response
 	dcr := &res.DomainCheckResponse
 
 	d := decoder(x)
@@ -578,6 +580,51 @@ func TestScanCheckDomainResponseWithFee21Premium(t *testing.T) {
 	st.Expect(t, dcr.Charges[0].Domain, "example.com")
 	st.Expect(t, dcr.Charges[0].Category, "custom")
 	st.Expect(t, dcr.Charges[0].CategoryName, "open-1000")
+}
+
+func TestScanCheckDomainResponseWithFee10(t *testing.T) {
+	x := `<?xml version="1.0" encoding="UTF-8"?>
+	<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+	    <response>
+		<result code="1000">
+		    <msg>Command completed successfully</msg>
+		</result>
+		<resData>
+		    <chkData xmlns="urn:ietf:params:xml:ns:domain-1.0">
+			<cd>
+			    <name avail="true">example.sport</name>
+			</cd>
+		    </chkData>
+		</resData>
+		<extension>
+		    <chkData xmlns="urn:ietf:params:xml:ns:epp:fee-1.0">
+			<currency>USD</currency>
+			<cd>
+			    <objID>example.sport</objID>
+			    <class>standard</class>
+			    <command name="create" phase="open" standard="true">
+				<period unit="y">1</period>
+				<fee applied="immediate" description="domain creation in phase 'open'" grace-period="P5D" refundable="true">300.00</fee>
+			    </command>
+			</cd>
+		    </chkData>
+		</extension>
+		<trID>
+		    <svTRID>1612577898803-269276</svTRID>
+		</trID>
+	    </response>
+	</epp>`
+
+	var res Response
+	dcr := &res.DomainCheckResponse
+
+	d := decoder(x)
+	err := IgnoreEOF(scanResponse.Scan(d, &res))
+	st.Expect(t, err, nil)
+	st.Expect(t, len(dcr.Checks), 1)
+	st.Expect(t, dcr.Checks[0].Domain, "example.sport")
+	st.Expect(t, dcr.Checks[0].Available, true)
+	st.Expect(t, dcr.Checks[0].Reason, "")
 }
 
 func TestScanCheckDomainResponseWithPremiumAttribute(t *testing.T) {
@@ -611,7 +658,7 @@ func TestScanCheckDomainResponseWithPremiumAttribute(t *testing.T) {
 	</response>
 </epp>`
 
-	var res response_
+	var res Response
 	dcr := &res.DomainCheckResponse
 
 	d := decoder(x)
@@ -653,7 +700,7 @@ func TestScanCheckDomainResponseNeulevelExtension(t *testing.T) {
 	</response>
 </epp>`
 
-	var res response_
+	var res Response
 	dcr := &res.DomainCheckResponse
 
 	d := decoder(x)
@@ -694,7 +741,7 @@ func TestScanCheckDomainResponsePriceExtension(t *testing.T) {
 	</response>
 </epp>`
 
-	var res response_
+	var res Response
 	dcr := &res.DomainCheckResponse
 
 	d := decoder(x)
@@ -756,7 +803,7 @@ func BenchmarkScanDomainCheckResponse(b *testing.B) {
 		b.StopTimer()
 		d := decoder(x)
 		b.StartTimer()
-		var res response_
+		var res Response
 		scanResponse.Scan(d, &res)
 	}
 }
