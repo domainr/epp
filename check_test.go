@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"testing"
 
+	"github.com/domainr/epp/ns"
 	"github.com/nbio/st"
 )
 
@@ -48,7 +49,7 @@ func TestEncodeDomainCheck(t *testing.T) {
 
 func TestEncodeDomainCheckLaunchPhase(t *testing.T) {
 	var greeting Greeting
-	greeting.Extensions = []string{ExtLaunch}
+	greeting.Extensions = []string{ns.Launch}
 	x, err := encodeDomainCheck(&greeting, []string{"hello.com", "foo.domains", "xn--ninja.net"}, map[string]string{"launch:phase": "claims"})
 	st.Expect(t, err, nil)
 	st.Expect(t, string(x), `<?xml version="1.0" encoding="UTF-8"?>
@@ -60,7 +61,7 @@ func TestEncodeDomainCheckLaunchPhase(t *testing.T) {
 
 func TestEncodeDomainCheckNeulevelUnspec(t *testing.T) {
 	var greeting Greeting
-	greeting.Extensions = []string{ExtNeulevel}
+	greeting.Extensions = []string{ns.Neulevel}
 	x, err := encodeDomainCheck(&greeting, []string{"hello.com", "foo.domains", "xn--ninja.net"}, map[string]string{"neulevel:unspec": "FeeCheck=Y"})
 	st.Expect(t, err, nil)
 	st.Expect(t, string(x), `<?xml version="1.0" encoding="UTF-8"?>

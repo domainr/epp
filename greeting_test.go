@@ -6,6 +6,7 @@ import (
 	"net"
 	"testing"
 
+	"github.com/domainr/epp/ns"
 	"github.com/nbio/st"
 )
 
@@ -35,20 +36,20 @@ func TestHello(t *testing.T) {
 
 func TestGreetingSupportsObject(t *testing.T) {
 	g := Greeting{}
-	st.Expect(t, g.SupportsObject(ObjDomain), false)
-	st.Expect(t, g.SupportsObject(ObjHost), false)
+	st.Expect(t, g.SupportsObject(ns.Domain), false)
+	st.Expect(t, g.SupportsObject(ns.Host), false)
 	g.Objects = testObjects
-	st.Expect(t, g.SupportsObject(ObjDomain), true)
-	st.Expect(t, g.SupportsObject(ObjHost), true)
+	st.Expect(t, g.SupportsObject(ns.Domain), true)
+	st.Expect(t, g.SupportsObject(ns.Host), true)
 }
 
 func TestGreetingSupportsExtension(t *testing.T) {
 	g := Greeting{}
-	st.Expect(t, g.SupportsExtension(ExtCharge), false)
-	st.Expect(t, g.SupportsExtension(ExtIDN), false)
+	st.Expect(t, g.SupportsExtension(ns.Charge), false)
+	st.Expect(t, g.SupportsExtension(ns.IDN), false)
 	g.Extensions = testExtensions
-	st.Expect(t, g.SupportsExtension(ExtCharge), true)
-	st.Expect(t, g.SupportsExtension(ExtIDN), true)
+	st.Expect(t, g.SupportsExtension(ns.Charge), true)
+	st.Expect(t, g.SupportsExtension(ns.IDN), true)
 }
 
 func TestScanGreeting(t *testing.T) {

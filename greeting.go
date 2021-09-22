@@ -56,53 +56,6 @@ func (g *Greeting) SupportsExtension(uri string) bool {
 	return false
 }
 
-// EPP extension URNs
-const (
-	ObjDomain     = "urn:ietf:params:xml:ns:domain-1.0"
-	ObjHost       = "urn:ietf:params:xml:ns:host-1.0"
-	ObjContact    = "urn:ietf:params:xml:ns:contact-1.0"
-	ObjFinance    = "http://www.unitedtld.com/epp/finance-1.0"
-	ExtSecDNS     = "urn:ietf:params:xml:ns:secDNS-1.1"
-	ExtRGP        = "urn:ietf:params:xml:ns:rgp-1.0"
-	ExtLaunch     = "urn:ietf:params:xml:ns:launch-1.0"
-	ExtIDN        = "urn:ietf:params:xml:ns:idn-1.0"
-	ExtCharge     = "http://www.unitedtld.com/epp/charge-1.0"
-	ExtFee05      = "urn:ietf:params:xml:ns:fee-0.5"
-	ExtFee06      = "urn:ietf:params:xml:ns:fee-0.6"
-	ExtFee07      = "urn:ietf:params:xml:ns:fee-0.7"
-	ExtFee08      = "urn:ietf:params:xml:ns:fee-0.8"
-	ExtFee09      = "urn:ietf:params:xml:ns:fee-0.9"
-	ExtFee11      = "urn:ietf:params:xml:ns:fee-0.11"
-	ExtFee21      = "urn:ietf:params:xml:ns:fee-0.21"
-	ExtFee10      = "urn:ietf:params:xml:ns:epp:fee-1.0"
-	ExtPrice      = "urn:ar:params:xml:ns:price-1.1"
-	ExtNamestore  = "http://www.verisign-grs.com/epp/namestoreExt-1.1"
-	ExtNeulevel   = "urn:ietf:params:xml:ns:neulevel"
-	ExtNeulevel10 = "urn:ietf:params:xml:ns:neulevel-1.0"
-)
-
-// ExtURNNames maps short extension names to their full URN.
-var ExtURNNames = map[string]string{
-	"secDNS-1.1":       ExtSecDNS,
-	"rgp-1.0":          ExtRGP,
-	"launch-1.0":       ExtLaunch,
-	"idn-1.0":          ExtIDN,
-	"charge-1.0":       ExtCharge,
-	"fee-0.5":          ExtFee05,
-	"fee-0.6":          ExtFee06,
-	"fee-0.7":          ExtFee07,
-	"fee-0.8":          ExtFee08,
-	"fee-0.9":          ExtFee09,
-	"fee-0.11":         ExtFee11,
-	"fee-0.21":         ExtFee21,
-	"fee-1.0":          ExtFee10,
-	"price-1.1":        ExtPrice,
-	"namestoreExt-1.1": ExtNamestore,
-	"neulevel":         ExtNeulevel,
-	"neulevel-1.0":     ExtNeulevel10,
-}
-
-// TODO: check if res.Greeting is not empty.
 func (c *Conn) readGreeting() (Greeting, error) {
 	res, err := c.readResponse()
 	if err != nil {

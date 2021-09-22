@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"testing"
 
+	"github.com/domainr/epp/ns"
 	"github.com/nbio/st"
 )
 
@@ -29,19 +30,19 @@ func TestEncodeLoginChangePassword(t *testing.T) {
 
 var (
 	testObjects = []string{
-		ObjContact,
-		ObjDomain,
-		ObjFinance,
-		ObjHost,
+		ns.Contact,
+		ns.Domain,
+		ns.Finance,
+		ns.Host,
 	}
 	testExtensions = []string{
-		ExtCharge,
-		ExtFee05,
-		ExtFee06,
-		ExtIDN,
-		ExtLaunch,
-		ExtRGP,
-		ExtSecDNS,
+		ns.Charge,
+		ns.Fee05,
+		ns.Fee06,
+		ns.IDN,
+		ns.Launch,
+		ns.RGP,
+		ns.SecDNS,
 	}
 )
 

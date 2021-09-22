@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"time"
 
+	"github.com/domainr/epp/ns"
 	"github.com/nbio/xx"
 )
 
@@ -32,7 +33,7 @@ func encodeDomainInfo(greeting *Greeting, domain string, extData map[string]stri
 	xml.EscapeText(buf, []byte(domain))
 	buf.WriteString(`</domain:name></domain:info></info>`)
 
-	supportsNamestore := extData["namestoreExt:subProduct"] != "" && greeting.SupportsExtension(ExtNamestore)
+	supportsNamestore := extData["namestoreExt:subProduct"] != "" && greeting.SupportsExtension(ns.Namestore)
 	hasExtension := supportsNamestore
 
 	if hasExtension {
@@ -40,7 +41,7 @@ func encodeDomainInfo(greeting *Greeting, domain string, extData map[string]stri
 		// https://www.verisign.com/assets/epp-sdk/verisign_epp-extension_namestoreext_v01.html
 		if supportsNamestore {
 			buf.WriteString(`<namestoreExt:namestoreExt xmlns:namestoreExt="`)
-			buf.WriteString(ExtNamestore)
+			buf.WriteString(ns.Namestore)
 			buf.WriteString(`">`)
 			buf.WriteString(`<namestoreExt:subProduct>`)
 			buf.WriteString(extData["namestoreExt:subProduct"])
@@ -71,7 +72,7 @@ type DomainInfoResponse struct {
 
 func init() {
 	// Default EPP check data
-	path := "epp > response > resData > " + ObjDomain + " infData"
+	path := "epp > response > resData > " + ns.Domain + " infData"
 	scanResponse.MustHandleCharData(path+">name", func(c *xx.Context) error {
 		dir := &c.Value.(*Response).DomainInfoResponse
 		dir.Domain = string(c.CharData)

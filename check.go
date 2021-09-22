@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/domainr/epp/ns"
 	"github.com/nbio/xx"
 )
 
@@ -35,7 +36,7 @@ func (c *Conn) CheckDomainExtensions(domains []string, extData map[string]string
 
 	// The ARI price extension won't return both availability and price data
 	// in the same response, so we have to make a separate request for price
-	if c.Greeting.SupportsExtension(ExtPrice) {
+	if c.Greeting.SupportsExtension(ns.Price) {
 		x, err = encodePriceCheck(domains)
 		if err != nil {
 			return nil, err
@@ -69,33 +70,33 @@ func encodeDomainCheck(greeting *Greeting, domains []string, extData map[string]
 
 	var feeURN string
 	switch {
-	case greeting.SupportsExtension(ExtFee10):
-		feeURN = ExtFee10
-	case greeting.SupportsExtension(ExtFee21):
-		feeURN = ExtFee21
-	case greeting.SupportsExtension(ExtFee11):
-		feeURN = ExtFee11
+	case greeting.SupportsExtension(ns.Fee10):
+		feeURN = ns.Fee10
+	case greeting.SupportsExtension(ns.Fee21):
+		feeURN = ns.Fee21
+	case greeting.SupportsExtension(ns.Fee11):
+		feeURN = ns.Fee11
 	// Versions 0.8-0.9 require the returned class to be "standard" for
 	// non-premium domains
-	case greeting.SupportsExtension(ExtFee08):
-		feeURN = ExtFee08
-	case greeting.SupportsExtension(ExtFee09):
-		feeURN = ExtFee09
+	case greeting.SupportsExtension(ns.Fee08):
+		feeURN = ns.Fee08
+	case greeting.SupportsExtension(ns.Fee09):
+		feeURN = ns.Fee09
 	// Version 0.5 has an attribute premium="1" for premium domains
-	case greeting.SupportsExtension(ExtFee05):
-		feeURN = ExtFee05
+	case greeting.SupportsExtension(ns.Fee05):
+		feeURN = ns.Fee05
 	// Version 0.6 and 0.7 don't have a standard way of detecting premiums,
 	// so instead there must be matching done on class names
-	case greeting.SupportsExtension(ExtFee06):
-		feeURN = ExtFee06
-	case greeting.SupportsExtension(ExtFee07):
-		feeURN = ExtFee07
+	case greeting.SupportsExtension(ns.Fee06):
+		feeURN = ns.Fee06
+	case greeting.SupportsExtension(ns.Fee07):
+		feeURN = ns.Fee07
 	}
 
-	supportsLaunch := extData["launch:phase"] != "" && greeting.SupportsExtension(ExtLaunch)
+	supportsLaunch := extData["launch:phase"] != "" && greeting.SupportsExtension(ns.Launch)
 	supportsFeePhase := extData["fee:phase"] != ""
-	supportsNeulevel := extData["neulevel:unspec"] != "" && (greeting.SupportsExtension(ExtNeulevel) || greeting.SupportsExtension(ExtNeulevel10))
-	supportsNamestore := extData["namestoreExt:subProduct"] != "" && greeting.SupportsExtension(ExtNamestore)
+	supportsNeulevel := extData["neulevel:unspec"] != "" && (greeting.SupportsExtension(ns.Neulevel) || greeting.SupportsExtension(ns.Neulevel10))
+	supportsNamestore := extData["namestoreExt:subProduct"] != "" && greeting.SupportsExtension(ns.Namestore)
 
 	hasExtension := feeURN != "" || supportsLaunch || supportsNeulevel || supportsNamestore
 
@@ -106,7 +107,7 @@ func encodeDomainCheck(greeting *Greeting, domains []string, extData map[string]
 	// https://www.verisign.com/assets/epp-sdk/verisign_epp-extension_namestoreext_v01.html
 	if supportsNamestore {
 		buf.WriteString(`<namestoreExt:namestoreExt xmlns:namestoreExt="`)
-		buf.WriteString(ExtNamestore)
+		buf.WriteString(ns.Namestore)
 		buf.WriteString(`">`)
 		buf.WriteString(`<namestoreExt:subProduct>`)
 		buf.WriteString(extData["namestoreExt:subProduct"])
@@ -116,7 +117,7 @@ func encodeDomainCheck(greeting *Greeting, domains []string, extData map[string]
 
 	if supportsLaunch {
 		buf.WriteString(`<launch:check xmlns:launch="`)
-		buf.WriteString(ExtLaunch)
+		buf.WriteString(ns.Launch)
 		buf.WriteString(`" type="avail">`)
 		buf.WriteString(`<launch:phase>`)
 		buf.WriteString(extData["launch:phase"])
@@ -126,7 +127,7 @@ func encodeDomainCheck(greeting *Greeting, domains []string, extData map[string]
 
 	if supportsNeulevel {
 		buf.WriteString(`<neulevel:extension xmlns:neulevel="`)
-		buf.WriteString(ExtNeulevel10)
+		buf.WriteString(ns.Neulevel10)
 		buf.WriteString(`">`)
 		buf.WriteString(`<neulevel:unspec>`)
 		buf.WriteString(extData["neulevel:unspec"])
@@ -144,18 +145,18 @@ func encodeDomainCheck(greeting *Greeting, domains []string, extData map[string]
 		}
 		for _, domain := range domains {
 			switch feeURN {
-			case ExtFee09: // Version 0.9 changes the XML structure
+			case ns.Fee09: // Version 0.9 changes the XML structure
 				buf.WriteString(`<fee:object objURI="urn:ietf:params:xml:ns:domain-1.0">`)
 				buf.WriteString(`<fee:objID element="name">`)
 				xml.EscapeText(buf, []byte(domain))
 				buf.WriteString(`</fee:objID>`)
 				buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
 				buf.WriteString(`</fee:object>`)
-			case ExtFee11: // https://tools.ietf.org/html/draft-brown-epp-fees-07#section-5.1.1
+			case ns.Fee11: // https://tools.ietf.org/html/draft-brown-epp-fees-07#section-5.1.1
 				buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
-			case ExtFee21: // Version 0.21 changes the XML structure
+			case ns.Fee21: // Version 0.21 changes the XML structure
 				buf.WriteString(`<fee:command name="create"/>`)
-			case ExtFee10:
+			case ns.Fee10:
 				buf.WriteString(`<fee:command name="create"/>`)
 			default:
 				buf.WriteString(`<fee:domain>`)
@@ -222,7 +223,7 @@ type DomainCharge struct {
 
 func init() {
 	// Default EPP check data
-	path := "epp > response > resData > " + ObjDomain + " chkData"
+	path := "epp > response > resData > " + ns.Domain + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
 		dcr := &c.Value.(*Response).DomainCheckResponse
 		dcr.Checks = append(dcr.Checks, DomainCheck{})
@@ -243,7 +244,7 @@ func init() {
 	})
 
 	// Scan charge-1.0 extension into Charges
-	path = "epp > response > extension > " + ExtCharge + " chkData"
+	path = "epp > response > extension > " + ns.Charge + " chkData"
 	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
 		c.Value.(*Response).DomainCheckResponse.Domain = string(c.CharData)
 		return nil
@@ -262,7 +263,7 @@ func init() {
 		return nil
 	})
 
-	path = "epp > response > extension > " + ExtFee05 + " chkData"
+	path = "epp > response > extension > " + ns.Fee05 + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
 		dcr := &c.Value.(*Response).DomainCheckResponse
 		dcr.Charges = append(dcr.Charges, DomainCharge{})
@@ -290,7 +291,7 @@ func init() {
 		return nil
 	})
 
-	path = "epp > response > extension > " + ExtFee06 + " chkData"
+	path = "epp > response > extension > " + ns.Fee06 + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
 		dcr := &c.Value.(*Response).DomainCheckResponse
 		dcr.Charges = append(dcr.Charges, DomainCharge{})
@@ -316,7 +317,7 @@ func init() {
 		return nil
 	})
 
-	path = "epp > response > extension > " + ExtFee07 + " chkData"
+	path = "epp > response > extension > " + ns.Fee07 + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
 		dcr := &c.Value.(*Response).DomainCheckResponse
 		dcr.Charges = append(dcr.Charges, DomainCharge{})
@@ -335,7 +336,7 @@ func init() {
 		return nil
 	})
 
-	path = "epp > response > extension > " + ExtFee08 + " chkData"
+	path = "epp > response > extension > " + ns.Fee08 + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
 		dcr := &c.Value.(*Response).DomainCheckResponse
 		dcr.Charges = append(dcr.Charges, DomainCharge{})
@@ -356,7 +357,7 @@ func init() {
 		return nil
 	})
 
-	path = "epp > response > extension > " + ExtFee09 + " chkData"
+	path = "epp > response > extension > " + ns.Fee09 + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
 		dcr := &c.Value.(*Response).DomainCheckResponse
 		dcr.Charges = append(dcr.Charges, DomainCharge{})
@@ -377,7 +378,7 @@ func init() {
 		return nil
 	})
 
-	path = "epp > response > extension > " + ExtFee11 + " chkData"
+	path = "epp > response > extension > " + ns.Fee11 + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
 		dcr := &c.Value.(*Response).DomainCheckResponse
 		dcr.Charges = append(dcr.Charges, DomainCharge{})
@@ -398,7 +399,7 @@ func init() {
 
 	// Scan fee-0.21 phase and subphase into Charges Category and CategoryName, respectively
 	// FIXME: stop mangling fee extensions into charges
-	path = "epp > response > extension > " + ExtFee21 + " chkData > cd > command > fee"
+	path = "epp > response > extension > " + ns.Fee21 + " chkData > cd > command > fee"
 	scanResponse.MustHandleCharData(path, func(c *xx.Context) error {
 		if c.Parent.Attr("", "name") != "create" {
 			return nil
@@ -415,7 +416,7 @@ func init() {
 	})
 
 	// Scan price-1.1 extension into Charges
-	path = "epp > response > extension > " + ExtPrice + " chkData"
+	path = "epp > response > extension > " + ns.Price + " chkData"
 	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
 		dcr := &c.Value.(*Response).DomainCheckResponse
 		dcr.Charges = append(dcr.Charges, DomainCharge{})
@@ -432,7 +433,7 @@ func init() {
 	})
 
 	// Scan neulevel-1.0 extension
-	path = "epp > response > extension > " + ExtNeulevel10 + " extension > unspec"
+	path = "epp > response > extension > " + ns.Neulevel10 + " extension > unspec"
 	scanResponse.MustHandleCharData(path, func(c *xx.Context) error {
 		dcr := &c.Value.(*Response).DomainCheckResponse
 		if len(dcr.Checks) == 0 {
