@@ -1,22 +1,56 @@
 package protocol
 
+import (
+	"encoding/xml"
+
+	"github.com/domainr/epp/ns"
+)
+
 type EPP struct {
-	XMLName      struct{}     `xml:"epp"`
-	XMLNamespace eppNamespace `xml:"xmlns,attr"`
-	Command      *Command     `xml:",omitempty"`
+	Command *Command `xml:"command,omitempty"`
+}
+
+func (epp *EPP) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	// start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "xmlns"}, Value: ns.EPP})
+	start.Name.Space = ns.EPP
+	start.Name.Local = "epp"
+	type proxy EPP
+	return e.EncodeElement((*proxy)(epp), start)
 }
 
 type Command struct {
-	XMLName struct{} `xml:"command"`
-	Check   *Check   `xml:",omitempty"`
+	Check *Check `xml:"check,omitempty"`
 }
 
 type Check struct {
-	XMLName     struct{}     `xml:"check"`
-	DomainCheck *DomainCheck `xml:",omitempty"`
+	DomainCheck *DomainCheck `xml:"urn:ietf:params:xml:ns:domain-1.0 check,omitempty"`
 }
 
 type DomainCheck struct {
-	XMLName      struct{}        `xml:"domain:check"`
-	XMLNamespace domainNamespace `xml:"xmlns:domain,attr"`
+	DomainNames DomainNames `xml:"urn:ietf:params:xml:ns:domain-1.0 name,omitempty"`
+}
+
+func (dc *DomainCheck) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	// start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "xmlns:domain"}, Value: start.Name.Space})
+	// start.Name.Local = "domain:" + start.Name.Local
+	// start.Name.Space = ""
+	type proxy DomainCheck
+	return encodePrefixed(e, (*proxy)(dc), start, "domain")
+	// return e.EncodeElement((*proxy)(dc), start)
+}
+
+type DomainNames []string
+
+func (dn DomainNames) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	start.Name.Local = "domain:" + start.Name.Local
+	start.Name.Space = ""
+	type proxy DomainNames
+	return e.EncodeElement((proxy)(dn), start)
+}
+
+func encodePrefixed(e *xml.Encoder, v interface{}, start xml.StartElement, prefix string) error {
+	start.Attr = append(start.Attr, xml.Attr{Name: xml.Name{Local: "xmlns:" + prefix}, Value: start.Name.Space})
+	start.Name.Local = prefix + ":" + start.Name.Local
+	start.Name.Space = ""
+	return e.EncodeElement(v, start)
 }
