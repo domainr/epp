@@ -1,8 +1,9 @@
 package epp
 
 import (
-	"encoding/xml"
 	"testing"
+
+	"github.com/nbio/xml"
 
 	"github.com/domainr/epp/ns"
 	"github.com/nbio/st"

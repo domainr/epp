@@ -1,8 +1,9 @@
 package epp
 
 import (
-	"encoding/xml"
 	"time"
+
+	"github.com/nbio/xml"
 )
 
 // Time represents EPP date-time values, serialized to XML in RFC-3339 format.

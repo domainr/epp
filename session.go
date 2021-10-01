@@ -2,7 +2,8 @@ package epp
 
 import (
 	"bytes"
-	"encoding/xml"
+
+	"github.com/nbio/xml"
 )
 
 // Login initializes an authenticated EPP session.

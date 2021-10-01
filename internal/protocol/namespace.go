@@ -2,7 +2,8 @@ package protocol
 
 import (
 	"encoding"
-	"encoding/xml"
+
+	"github.com/nbio/xml"
 
 	"github.com/domainr/epp/ns"
 )

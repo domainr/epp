@@ -1,9 +1,10 @@
 package epp
 
 import (
-	"encoding/xml"
 	"testing"
 	"time"
+
+	"github.com/nbio/xml"
 
 	"github.com/nbio/st"
 )

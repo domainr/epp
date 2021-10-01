@@ -2,9 +2,10 @@ package epp
 
 import (
 	"bytes"
-	"encoding/xml"
 	"fmt"
 	"io"
+
+	"github.com/nbio/xml"
 )
 
 // DebugLogger is an io.Writer. Set to enable logging of EPP message XML.

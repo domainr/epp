@@ -2,9 +2,10 @@ package epp
 
 import (
 	"bytes"
-	"encoding/xml"
 	"fmt"
 	"strings"
+
+	"github.com/nbio/xml"
 
 	"github.com/domainr/epp/ns"
 	"github.com/nbio/xx"

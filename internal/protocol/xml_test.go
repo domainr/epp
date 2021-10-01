@@ -2,9 +2,10 @@ package protocol
 
 import (
 	"encoding/json"
-	"encoding/xml"
 	"reflect"
 	"testing"
+
+	"github.com/nbio/xml"
 )
 
 func TestMarshalXML(t *testing.T) {

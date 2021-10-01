@@ -2,11 +2,12 @@ package epp
 
 import (
 	"encoding/binary"
-	"encoding/xml"
 	"io"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/nbio/xml"
 )
 
 // IgnoreEOF returns err unless err == io.EOF,

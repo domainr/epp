@@ -1,6 +1,6 @@
 package epp
 
-import "encoding/xml"
+import "github.com/nbio/xml"
 
 // Bool represents a bool that can be serialized to XML.
 // True: <tag>

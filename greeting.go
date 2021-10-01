@@ -1,7 +1,7 @@
 package epp
 
 import (
-	"encoding/xml"
+	"github.com/nbio/xml"
 
 	"github.com/nbio/xx"
 )

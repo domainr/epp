@@ -2,9 +2,10 @@ package epp
 
 import (
 	"bytes"
-	"encoding/xml"
 	"net"
 	"testing"
+
+	"github.com/nbio/xml"
 
 	"github.com/domainr/epp/ns"
 	"github.com/nbio/st"
