@@ -36,7 +36,7 @@ func TestMarshalXML(t *testing.T) {
 		{
 			`empty domain:check command`,
 			&EPP{Command: &Command{Check: &Check{DomainCheck: &DomainCheck{}}}},
-			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check><domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"></domain:check></check></command></epp>`,
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:check></domain:check></check></command></epp>`,
 			false,
 		},
 		{
@@ -44,7 +44,7 @@ func TestMarshalXML(t *testing.T) {
 			&EPP{Command: &Command{Check: &Check{DomainCheck: &DomainCheck{
 				DomainNames: []string{"example.com"},
 			}}}},
-			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check><domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:name>example.com</domain:name></domain:check></check></command></epp>`,
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:check><domain:name>example.com</domain:name></domain:check></check></command></epp>`,
 			false,
 		},
 	}
