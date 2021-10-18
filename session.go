@@ -29,16 +29,15 @@ func (c *Conn) writeLogin(user, password, newPassword string) error {
 	if len(c.Greeting.Languages) > 0 {
 		lang = c.Greeting.Languages[0]
 	}
-	err := encodeLogin(&c.buf, user, password, newPassword, ver, lang, c.Greeting.Objects, c.Greeting.Extensions)
+	x, err := encodeLogin(user, password, newPassword, ver, lang, c.Greeting.Objects, c.Greeting.Extensions)
 	if err != nil {
 		return err
 	}
-	return c.flushDataUnit()
+	return c.writeDataUnit(x)
 }
 
-func encodeLogin(buf *bytes.Buffer, user, password, newPassword, version, language string, objects, extensions []string) error {
-	buf.Reset()
-	buf.WriteString(xmlCommandPrefix)
+func encodeLogin(user, password, newPassword, version, language string, objects, extensions []string) ([]byte, error) {
+	buf := bytes.NewBufferString(xmlCommandPrefix)
 	buf.WriteString(`<login><clID>`)
 	xml.EscapeText(buf, []byte(user))
 	buf.WriteString(`</clID><pw>`)
@@ -70,7 +69,7 @@ func encodeLogin(buf *bytes.Buffer, user, password, newPassword, version, langua
 	}
 	buf.WriteString(`</svcs></login>`)
 	buf.WriteString(xmlCommandSuffix)
-	return nil
+	return buf.Bytes(), nil
 }
 
 // Logout sends a <logout> command to terminate an EPP session.

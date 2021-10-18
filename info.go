@@ -11,44 +11,11 @@ import (
 // DomainInfo retrieves info for a domain.
 // https://tools.ietf.org/html/rfc5731#section-3.1.2
 func (c *Conn) DomainInfo(domain string, extData map[string]string) (*DomainInfoResponse, error) {
-	err := c.encodeDomainInfo(domain, extData)
+	x, err := encodeDomainInfo(&c.Greeting, domain, extData)
 	if err != nil {
 		return nil, err
 	}
-	return c.processDomainInfo(domain)
-}
-
-func (c *Conn) encodeDomainInfo(domain string, extData map[string]string) error {
-	c.buf.Reset()
-	c.buf.WriteString(xmlCommandPrefix)
-	c.buf.WriteString(`<info><domain:info xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:name hosts="none">`)
-	xml.EscapeText(&c.buf, []byte(domain))
-	c.buf.WriteString(`</domain:name></domain:info></info>`)
-
-	supportsNamestore := extData["namestoreExt:subProduct"] != "" && c.Greeting.SupportsExtension(ExtNamestore)
-	hasExtension := supportsNamestore
-
-	if hasExtension {
-		c.buf.WriteString(`<extension>`)
-		// https://www.verisign.com/assets/epp-sdk/verisign_epp-extension_namestoreext_v01.html
-		if supportsNamestore {
-			c.buf.WriteString(`<namestoreExt:namestoreExt xmlns:namestoreExt="`)
-			c.buf.WriteString(ExtNamestore)
-			c.buf.WriteString(`">`)
-			c.buf.WriteString(`<namestoreExt:subProduct>`)
-			c.buf.WriteString(extData["namestoreExt:subProduct"])
-			c.buf.WriteString(`</namestoreExt:subProduct>`)
-			c.buf.WriteString(`</namestoreExt:namestoreExt>`)
-		}
-		c.buf.WriteString(`</extension>`)
-	}
-
-	c.buf.WriteString(xmlCommandSuffix)
-	return nil
-}
-
-func (c *Conn) processDomainInfo(domain string) (*DomainInfoResponse, error) {
-	err := c.flushDataUnit()
+	err = c.writeDataUnit(x)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +25,35 @@ func (c *Conn) processDomainInfo(domain string) (*DomainInfoResponse, error) {
 		return nil, err
 	}
 	return &res.DomainInfoResponse, nil
+}
+
+func encodeDomainInfo(greeting *Greeting, domain string, extData map[string]string) ([]byte, error) {
+	buf := bytes.NewBufferString(xmlCommandPrefix)
+	buf.WriteString(`<info><domain:info xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:name hosts="none">`)
+	xml.EscapeText(buf, []byte(domain))
+	buf.WriteString(`</domain:name></domain:info></info>`)
+
+	supportsNamestore := extData["namestoreExt:subProduct"] != "" && greeting.SupportsExtension(ExtNamestore)
+	hasExtension := supportsNamestore
+
+	if hasExtension {
+		buf.WriteString(`<extension>`)
+		// https://www.verisign.com/assets/epp-sdk/verisign_epp-extension_namestoreext_v01.html
+		if supportsNamestore {
+			buf.WriteString(`<namestoreExt:namestoreExt xmlns:namestoreExt="`)
+			buf.WriteString(ExtNamestore)
+			buf.WriteString(`">`)
+			buf.WriteString(`<namestoreExt:subProduct>`)
+			buf.WriteString(extData["namestoreExt:subProduct"])
+			buf.WriteString(`</namestoreExt:subProduct>`)
+			buf.WriteString(`</namestoreExt:namestoreExt>`)
+		}
+		buf.WriteString(`</extension>`)
+	}
+
+	buf.WriteString(xmlCommandSuffix)
+
+	return buf.Bytes(), nil
 }
 
 // DomainInfoResponse represents an EPP response for a domain info request.

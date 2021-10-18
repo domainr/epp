@@ -31,6 +31,9 @@ type Greeting struct {
 // SupportsObject returns true if the EPP server supports
 // the object specified by uri.
 func (g *Greeting) SupportsObject(uri string) bool {
+	if g == nil {
+		return false
+	}
 	for _, v := range g.Objects {
 		if v == uri {
 			return true
@@ -42,6 +45,9 @@ func (g *Greeting) SupportsObject(uri string) bool {
 // SupportsExtension returns true if the EPP server supports
 // the extension specified by uri.
 func (g *Greeting) SupportsExtension(uri string) bool {
+	if g == nil {
+		return false
+	}
 	for _, v := range g.Extensions {
 		if v == uri {
 			return true
