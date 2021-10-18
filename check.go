@@ -11,11 +11,7 @@ import (
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
 func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
-	err := c.encodeDomainCheck(domains, nil)
-	if err != nil {
-		return nil, err
-	}
-	return c.processDomainCheck(domains)
+	return c.CheckDomainExtensions(domains, nil)
 }
 
 // CheckDomainExtensions allows specifying extension data for the following:
