@@ -1,7 +1,7 @@
 package epp
 
 import (
-	"encoding/xml"
+	"bytes"
 	"net"
 	"sync"
 	"testing"
@@ -34,7 +34,7 @@ func (ls *localServer) teardown() {
 }
 
 func newLocalServer() (*localServer, error) {
-	ln, err := net.Listen("tcp", ":0")
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return nil, err
 	}
@@ -48,13 +48,12 @@ func TestNewConn(t *testing.T) {
 	ls.buildup(func(ls *localServer, ln net.Listener) {
 		conn, err := ls.Accept()
 		st.Assert(t, err, nil)
-		sc := newConn(conn)
 		// Respond with greeting
-		err = sc.writeDataUnit([]byte(testXMLGreeting))
+		err = writeDataUnit(conn, []byte(testXMLGreeting))
 		st.Assert(t, err, nil)
-		var res Response
 		// Read logout message
-		err = sc.readResponse(&res)
+		buf := &bytes.Buffer{}
+		err = readDataUnit(buf, conn)
 		st.Assert(t, err, nil)
 		// Close connection
 		err = conn.Close()
@@ -62,46 +61,12 @@ func TestNewConn(t *testing.T) {
 	})
 	nc, err := net.Dial(ls.Listener.Addr().Network(), ls.Listener.Addr().String())
 	st.Assert(t, err, nil)
-
 	c, err := NewConn(nc)
 	st.Assert(t, err, nil)
 	st.Reject(t, c, nil)
 	st.Reject(t, c.Greeting.ServerName, "")
 	err = c.Close()
 	st.Expect(t, err, nil)
-}
-
-func TestConnDecoderReuse(t *testing.T) {
-	c := newConn(nil)
-	v := struct {
-		XMLName struct{} `xml:"hello"`
-		Foo     string   `xml:"foo"`
-	}{}
-
-	c.reset()
-	c.buf.WriteString(`<hello><foo>foo</foo></hello>`)
-	st.Expect(t, c.decoder.InputOffset(), int64(0))
-	c.decoder.Decode(&v)
-	st.Expect(t, v.Foo, "foo")
-	st.Expect(t, c.decoder.InputOffset(), int64(29))
-
-	c.reset()
-	c.buf.WriteString(`<hello><foo>bar</foo></hello>`)
-	st.Expect(t, c.decoder.InputOffset(), int64(0))
-	tok, _ := c.decoder.Token()
-	se := tok.(xml.StartElement)
-	st.Expect(t, se.Name.Local, "hello")
-	tok, _ = c.decoder.Token()
-	se = tok.(xml.StartElement)
-	st.Expect(t, se.Name.Local, "foo")
-	st.Expect(t, c.decoder.InputOffset(), int64(12))
-
-	c.reset()
-	c.buf.WriteString(`<hello><foo>blam&lt;</foo></hello>`)
-	st.Expect(t, c.decoder.InputOffset(), int64(0))
-	c.decoder.Decode(&v)
-	st.Expect(t, v.Foo, "blam<")
-	st.Expect(t, c.decoder.InputOffset(), int64(34))
 }
 
 func TestDeleteRange(t *testing.T) {

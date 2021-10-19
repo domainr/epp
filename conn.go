@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"io"
 	"net"
+	"sync"
 	"time"
 )
 
@@ -19,24 +20,38 @@ func IgnoreEOF(err error) error {
 }
 
 // Conn represents a single connection to an EPP server.
-// This implementation is not safe for concurrent use.
+// Reads and writes are serialized, so it is safe for concurrent use.
 type Conn struct {
+	// Conn is the underlying net.Conn (usually a TLS connection).
 	net.Conn
-	buf     bytes.Buffer
-	decoder *xml.Decoder
-	saved   xml.Decoder
+
+	// Timeout defines the timeout for network operations.
+	// It must be set at initialization. Changing it after
+	// a connection is already opened will have no effect.
+	Timeout time.Duration
+
+	// m protects Greeting and LoginResult.
+	m sync.Mutex
 
 	// Greeting holds the last received greeting message from the server,
 	// indicating server name, status, data policy and capabilities.
+	//
+	// Deprecated: This field is written to upon opening a new EPP connection and should not be modified.
 	Greeting
 
 	// LoginResult holds the last received login response message's Result
 	// from the server, in which some servers might include diagnostics such
 	// as connection count limits.
+	//
+	// Deprecated: this field is written to by the Login method but otherwise is not used by this package.
 	LoginResult Result
 
-	// Timeout defines the timeout for network operations.
-	Timeout time.Duration
+	requests  chan []byte
+	responses chan *Response
+
+	done     chan struct{}
+	readErr  error
+	writeErr error
 }
 
 // NewConn initializes an epp.Conn from a net.Conn and performs the EPP
@@ -60,72 +75,125 @@ func NewTimeoutConn(conn net.Conn, timeout time.Duration) (*Conn, error) {
 
 // Close sends an EPP <logout> command and closes the connection c.
 func (c *Conn) Close() error {
+	select {
+	case <-c.done:
+		return net.ErrClosed
+	default:
+	}
 	c.Logout()
+	close(c.done)
 	return c.Conn.Close()
 }
 
 // newConn initializes an epp.Conn from a net.Conn.
 // Used internally for testing.
 func newConn(conn net.Conn) *Conn {
-	c := Conn{Conn: conn}
-	c.decoder = xml.NewDecoder(&c.buf)
-	c.saved = *c.decoder
+	c := Conn{
+		Conn:      conn,
+		requests:  make(chan []byte),
+		responses: make(chan *Response),
+		done:      make(chan struct{}),
+	}
+	go c.writeLoop()
+	go c.readLoop()
 	return &c
 }
 
-// reset resets the underlying xml.Decoder and bytes.Buffer,
-// restoring the original state of the underlying
-// xml.Decoder (pos 1, line 1, stack, etc.) using a hack.
-func (c *Conn) reset() {
-	c.buf.Reset()
-	*c.decoder = c.saved // Heh.
+// writeRequest queues a single EPP request (x) for writing on c.
+// It returns net.ErrClosed if the underlying connection is closed.
+// writeRequest can be called from multiple goroutines.
+func (c *Conn) writeRequest(x []byte) error {
+	select {
+	case c.requests <- x:
+		return nil
+	case <-c.done:
+		return net.ErrClosed
+	}
 }
 
-// writeDataUnit writes a slice of bytes to c.
+// readResponse dequeues and returns a EPP response from c.
+// It returns an error if the EPP response contains an error Result.
+// readResponse can be called from multiple goroutines.
+func (c *Conn) readResponse() (*Response, error) {
+	select {
+	case res := <-c.responses:
+		if res == nil {
+			return res, c.readErr
+		}
+		if res.Result.IsError() {
+			return nil, &res.Result
+		}
+		return res, nil
+	case <-c.done:
+		return nil, net.ErrClosed
+	}
+}
+
+func (c *Conn) writeLoop() {
+	defer c.Close()
+	for {
+		// TODO(ydnar): figure out how to handle timeouts for continous write loop.
+		select {
+		case x := <-c.requests:
+			err := writeDataUnit(c.Conn, x)
+			if err != nil {
+				c.writeErr = err
+				return
+			}
+		case <-c.done:
+			return
+		}
+	}
+}
+
+func (c *Conn) readLoop() {
+	defer close(c.responses)
+	buf := &bytes.Buffer{}
+	decoder := xml.NewDecoder(buf)
+	saved := *decoder
+	for {
+		// TODO(ydnar): figure out how to handle timeouts for continous read loop.
+		// if c.Timeout > 0 {
+		// 	c.Conn.SetReadDeadline(time.Now().Add(c.Timeout))
+		// }
+		err := readDataUnit(buf, c.Conn)
+		if err != nil {
+			c.readErr = err
+			return
+		}
+		res := &Response{}
+		*decoder = saved
+		err = IgnoreEOF(scanResponse.Scan(decoder, res))
+		if err != nil {
+			c.readErr = err
+			return
+		}
+		c.responses <- res
+	}
+}
+
+// writeDataUnit writes x to w.
 // Bytes written are prefixed with 32-bit header specifying the total size
 // of the data unit (message + 4 byte header), in network (big-endian) order.
 // http://www.ietf.org/rfc/rfc4934.txt
-func (c *Conn) writeDataUnit(x []byte) error {
+func writeDataUnit(w io.Writer, x []byte) error {
 	logXML("<-- WRITE DATA UNIT -->", x)
 	s := uint32(4 + len(x))
-	if c.Timeout > 0 {
-		c.Conn.SetWriteDeadline(time.Now().Add(c.Timeout))
-	}
-	err := binary.Write(c.Conn, binary.BigEndian, s)
+	err := binary.Write(w, binary.BigEndian, s)
 	if err != nil {
 		return err
 	}
-	_, err = c.Conn.Write(x)
+	_, err = w.Write(x)
 	return err
 }
 
-// readResponse reads a single EPP response from c and parses the XML into req.
-// It returns an error if the EPP response contains an error Result.
-func (c *Conn) readResponse(res *Response) error {
-	err := c.readDataUnit()
-	if err != nil {
-		return err
-	}
-	err = IgnoreEOF(scanResponse.Scan(c.decoder, res))
-	if err != nil {
-		return err
-	}
-	if res.Result.IsError() {
-		return &res.Result
-	}
-	return nil
-}
-
-// readDataUnit reads a single EPP message from c into
-// c.buf. The bytes in c.buf are valid until the next
-// call to readDataUnit.
-func (c *Conn) readDataUnit() error {
-	c.reset()
+// readDataUnit reads a single EPP data unit from r, returning the payload bytes or an error.
+// An EPP data units is prefixed with 32-bit header specifying the total size
+// of the data unit (message + 4 byte header), in network (big-endian) order.
+// http://www.ietf.org/rfc/rfc4934.txt
+func readDataUnit(buf *bytes.Buffer, r io.Reader) error {
 	var s int32
-	if c.Timeout > 0 {
-		c.Conn.SetReadDeadline(time.Now().Add(c.Timeout))
-	}
-	err := binary.Read(c.Conn, binary.BigEndian, &s)
+	err := binary.Read(r, binary.BigEndian, &s)
 	if err != nil {
 		return err
 	}
@@ -133,16 +201,11 @@ func (c *Conn) readDataUnit() error {
 	if s < 0 {
 		return io.ErrUnexpectedEOF
 	}
-	lr := io.LimitedReader{R: c.Conn, N: int64(s)}
-	n, err := c.buf.ReadFrom(&lr)
-	if err != nil {
-		return err
-	}
-	if n != int64(s) || lr.N != 0 {
-		return io.ErrUnexpectedEOF
-	}
-	logXML("<-- READ DATA UNIT -->", c.buf.Bytes())
-	return nil
+	buf.Reset()
+	buf.Grow(int(s))
+	_, err = io.CopyN(buf, r, int64(s))
+	logXML("<-- READ DATA UNIT -->", buf.Bytes())
+	return err
 }
 
 func deleteRange(s, pfx, sfx []byte) []byte {

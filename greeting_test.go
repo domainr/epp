@@ -16,12 +16,11 @@ func TestHello(t *testing.T) {
 	ls.buildup(func(ls *localServer, ln net.Listener) {
 		conn, err := ls.Accept()
 		st.Assert(t, err, nil)
-		sc := newConn(conn)
 		// Respond with greeting
-		err = sc.writeDataUnit([]byte(testXMLGreeting))
+		err = writeDataUnit(conn, []byte(testXMLGreeting))
 		st.Assert(t, err, nil)
 		// Respond with greeting for <hello>
-		err = sc.writeDataUnit([]byte(testXMLGreeting))
+		err = writeDataUnit(conn, []byte(testXMLGreeting))
 		st.Assert(t, err, nil)
 	})
 	nc, err := net.Dial(ls.Listener.Addr().Network(), ls.Listener.Addr().String())
