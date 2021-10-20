@@ -19,7 +19,9 @@ func (c *Conn) Login(user, password, newPassword string) error {
 	// We always have a .Result in our non-pointer, but it might be meaningless.
 	// We might not have read anything.  We think that the worst case is we
 	// have the same zero values we'd get without the assignment-even-in-error-case.
+	c.m.Lock()
 	c.LoginResult = res.Result
+	c.m.Unlock()
 	return err
 }
 

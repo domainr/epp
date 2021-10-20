@@ -68,7 +68,9 @@ func NewTimeoutConn(conn net.Conn, timeout time.Duration) (*Conn, error) {
 	c.Timeout = timeout
 	g, err := c.readGreeting()
 	if err == nil {
+		c.m.Lock()
 		c.Greeting = g
+		c.m.Unlock()
 	}
 	return c, err
 }
