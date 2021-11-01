@@ -11,38 +11,63 @@ import (
 
 // CheckDomain queries the EPP server for the availability status of one or more domains.
 func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
-	err := c.encodeDomainCheck(domains, nil)
-	if err != nil {
-		return nil, err
-	}
-	return c.processDomainCheck(domains)
+	return c.CheckDomainExtensions(domains, nil)
 }
 
 // CheckDomainExtensions allows specifying extension data for the following:
 //  - "neulevel:unspec": a string of the Key=Value data for the unspec tag
 //  - "launch:phase": a string of the launch phase
 func (c *Conn) CheckDomainExtensions(domains []string, extData map[string]string) (*DomainCheckResponse, error) {
-	err := c.encodeDomainCheck(domains, extData)
+	x, err := encodeDomainCheck(&c.Greeting, domains, extData)
 	if err != nil {
 		return nil, err
 	}
-	return c.processDomainCheck(domains)
+
+	err = c.writeDataUnit(x)
+	if err != nil {
+		return nil, err
+	}
+
+	var res Response
+	err = c.readResponse(&res)
+	if err != nil {
+		return nil, err
+	}
+
+	// The ARI price extension won't return both availability and price data
+	// in the same response, so we have to make a separate request for price
+	if c.Greeting.SupportsExtension(ExtPrice) {
+		x, err = encodePriceCheck(domains)
+		if err != nil {
+			return nil, err
+		}
+		err = c.writeDataUnit(x)
+		if err != nil {
+			return nil, err
+		}
+		var res2 Response
+		err = c.readResponse(&res2)
+		if err != nil {
+			return nil, err
+		}
+		res.DomainCheckResponse.Charges = res2.DomainCheckResponse.Charges
+	}
+
+	return &res.DomainCheckResponse, nil
+
 }
 
-func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) error {
-	c.buf.Reset()
-	c.buf.WriteString(xmlCommandPrefix)
-	c.buf.WriteString(`<check>`)
-	c.buf.WriteString(`<domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">`)
+func encodeDomainCheck(greeting *Greeting, domains []string, extData map[string]string) ([]byte, error) {
+	buf := bytes.NewBufferString(xmlCommandPrefix)
+	buf.WriteString(`<check>`)
+	buf.WriteString(`<domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">`)
 	for _, domain := range domains {
-		c.buf.WriteString(`<domain:name>`)
-		xml.EscapeText(&c.buf, []byte(domain))
-		c.buf.WriteString(`</domain:name>`)
+		buf.WriteString(`<domain:name>`)
+		xml.EscapeText(buf, []byte(domain))
+		buf.WriteString(`</domain:name>`)
 	}
-	c.buf.WriteString(`</domain:check>`)
-	c.buf.WriteString(`</check>`)
-
-	greeting := c.Greeting
+	buf.WriteString(`</domain:check>`)
+	buf.WriteString(`</check>`)
 
 	var feeURN string
 	switch {
@@ -77,44 +102,44 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 	hasExtension := feeURN != "" || supportsLaunch || supportsNeulevel || supportsNamestore
 
 	if hasExtension {
-		c.buf.WriteString(`<extension>`)
+		buf.WriteString(`<extension>`)
 	}
 
 	// https://www.verisign.com/assets/epp-sdk/verisign_epp-extension_namestoreext_v01.html
 	if supportsNamestore {
-		c.buf.WriteString(`<namestoreExt:namestoreExt xmlns:namestoreExt="`)
-		c.buf.WriteString(ExtNamestore)
-		c.buf.WriteString(`">`)
-		c.buf.WriteString(`<namestoreExt:subProduct>`)
-		c.buf.WriteString(extData["namestoreExt:subProduct"])
-		c.buf.WriteString(`</namestoreExt:subProduct>`)
-		c.buf.WriteString(`</namestoreExt:namestoreExt>`)
+		buf.WriteString(`<namestoreExt:namestoreExt xmlns:namestoreExt="`)
+		buf.WriteString(ExtNamestore)
+		buf.WriteString(`">`)
+		buf.WriteString(`<namestoreExt:subProduct>`)
+		buf.WriteString(extData["namestoreExt:subProduct"])
+		buf.WriteString(`</namestoreExt:subProduct>`)
+		buf.WriteString(`</namestoreExt:namestoreExt>`)
 	}
 
 	if supportsLaunch {
-		c.buf.WriteString(`<launch:check xmlns:launch="`)
-		c.buf.WriteString(ExtLaunch)
-		c.buf.WriteString(`" type="avail">`)
-		c.buf.WriteString(`<launch:phase>`)
-		c.buf.WriteString(extData["launch:phase"])
-		c.buf.WriteString(`</launch:phase>`)
-		c.buf.WriteString(`</launch:check>`)
+		buf.WriteString(`<launch:check xmlns:launch="`)
+		buf.WriteString(ExtLaunch)
+		buf.WriteString(`" type="avail">`)
+		buf.WriteString(`<launch:phase>`)
+		buf.WriteString(extData["launch:phase"])
+		buf.WriteString(`</launch:phase>`)
+		buf.WriteString(`</launch:check>`)
 	}
 
 	if supportsNeulevel {
-		c.buf.WriteString(`<neulevel:extension xmlns:neulevel="`)
-		c.buf.WriteString(ExtNeulevel10)
-		c.buf.WriteString(`">`)
-		c.buf.WriteString(`<neulevel:unspec>`)
-		c.buf.WriteString(extData["neulevel:unspec"])
-		c.buf.WriteString(`</neulevel:unspec>`)
-		c.buf.WriteString(`</neulevel:extension>`)
+		buf.WriteString(`<neulevel:extension xmlns:neulevel="`)
+		buf.WriteString(ExtNeulevel10)
+		buf.WriteString(`">`)
+		buf.WriteString(`<neulevel:unspec>`)
+		buf.WriteString(extData["neulevel:unspec"])
+		buf.WriteString(`</neulevel:unspec>`)
+		buf.WriteString(`</neulevel:extension>`)
 	}
 
 	if len(feeURN) > 0 {
-		c.buf.WriteString(`<fee:check xmlns:fee="`)
-		c.buf.WriteString(feeURN)
-		c.buf.WriteString(`">`)
+		buf.WriteString(`<fee:check xmlns:fee="`)
+		buf.WriteString(feeURN)
+		buf.WriteString(`">`)
 		feePhase := ""
 		if supportsFeePhase {
 			feePhase = fmt.Sprintf(" phase=%q", extData["fee:phase"])
@@ -122,74 +147,41 @@ func (c *Conn) encodeDomainCheck(domains []string, extData map[string]string) er
 		for _, domain := range domains {
 			switch feeURN {
 			case ExtFee09: // Version 0.9 changes the XML structure
-				c.buf.WriteString(`<fee:object objURI="urn:ietf:params:xml:ns:domain-1.0">`)
-				c.buf.WriteString(`<fee:objID element="name">`)
-				xml.EscapeText(&c.buf, []byte(domain))
-				c.buf.WriteString(`</fee:objID>`)
-				c.buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
-				c.buf.WriteString(`</fee:object>`)
+				buf.WriteString(`<fee:object objURI="urn:ietf:params:xml:ns:domain-1.0">`)
+				buf.WriteString(`<fee:objID element="name">`)
+				xml.EscapeText(buf, []byte(domain))
+				buf.WriteString(`</fee:objID>`)
+				buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
+				buf.WriteString(`</fee:object>`)
 			case ExtFee11: // https://tools.ietf.org/html/draft-brown-epp-fees-07#section-5.1.1
-				c.buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
+				buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
 			case ExtFee21: // Version 0.21 changes the XML structure
-				c.buf.WriteString(`<fee:command name="create"/>`)
+				buf.WriteString(`<fee:command name="create"/>`)
 			case ExtFee10:
-				c.buf.WriteString(`<fee:command name="create"/>`)
+				buf.WriteString(`<fee:command name="create"/>`)
 			default:
-				c.buf.WriteString(`<fee:domain>`)
-				c.buf.WriteString(`<fee:name>`)
-				xml.EscapeText(&c.buf, []byte(domain))
-				c.buf.WriteString(`</fee:name>`)
-				c.buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
-				c.buf.WriteString(`</fee:domain>`)
+				buf.WriteString(`<fee:domain>`)
+				buf.WriteString(`<fee:name>`)
+				xml.EscapeText(buf, []byte(domain))
+				buf.WriteString(`</fee:name>`)
+				buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
+				buf.WriteString(`</fee:domain>`)
 			}
 		}
-		c.buf.WriteString(`</fee:check>`)
+		buf.WriteString(`</fee:check>`)
 	}
 
 	if hasExtension {
-		c.buf.WriteString(`</extension>`)
+		buf.WriteString(`</extension>`)
 	}
 
-	c.buf.WriteString(xmlCommandSuffix)
-	return nil
+	buf.WriteString(xmlCommandSuffix)
+
+	return buf.Bytes(), nil
 }
 
-func (c *Conn) processDomainCheck(domains []string) (*DomainCheckResponse, error) {
-	err := c.flushDataUnit()
-	if err != nil {
-		return nil, err
-	}
-	var res Response
-	err = c.readResponse(&res)
-	if err != nil {
-		return nil, err
-	}
-
-	// The ARI price extension won't return both availability and price data
-	// in the same response, so we have to make a separate request for price
-	if c.Greeting.SupportsExtension(ExtPrice) {
-		err := encodePriceCheck(&c.buf, domains)
-		if err != nil {
-			return nil, err
-		}
-		err = c.flushDataUnit()
-		if err != nil {
-			return nil, err
-		}
-		var res2 Response
-		err = c.readResponse(&res2)
-		if err != nil {
-			return nil, err
-		}
-		res.DomainCheckResponse.Charges = res2.DomainCheckResponse.Charges
-	}
-
-	return &res.DomainCheckResponse, nil
-}
-
-func encodePriceCheck(buf *bytes.Buffer, domains []string) error {
-	buf.Reset()
-	buf.WriteString(xmlCommandPrefix)
+func encodePriceCheck(domains []string) ([]byte, error) {
+	buf := bytes.NewBufferString(xmlCommandPrefix)
 	buf.WriteString(`<check>`)
 	buf.WriteString(`<domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">`)
 	for _, domain := range domains {
@@ -199,15 +191,13 @@ func encodePriceCheck(buf *bytes.Buffer, domains []string) error {
 	}
 	buf.WriteString(`</domain:check>`)
 	buf.WriteString(`</check>`)
-
 	// Extensions
 	buf.WriteString(`<extension>`)
 	// ARI price extension
 	buf.WriteString(`<price:check xmlns:price="urn:ar:params:xml:ns:price-1.1"></price:check>`)
 	buf.WriteString(`</extension>`)
-
 	buf.WriteString(xmlCommandSuffix)
-	return nil
+	return buf.Bytes(), nil
 }
 
 // DomainCheckResponse represents an EPP <response> for a domain check.
