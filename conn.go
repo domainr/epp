@@ -46,12 +46,13 @@ type Conn struct {
 	// Deprecated: this field is written to by the Login method but otherwise is not used by this package.
 	LoginResult Result
 
-	requests  chan []byte
-	responses chan *Response
+	// mWrite synchronizes connection writes.
+	mWrite sync.Mutex
 
-	done     chan struct{}
-	readErr  error
-	writeErr error
+	responses chan *Response
+	readErr   error
+
+	done chan struct{}
 }
 
 // NewConn initializes an epp.Conn from a net.Conn and performs the EPP
@@ -92,25 +93,19 @@ func (c *Conn) Close() error {
 func newConn(conn net.Conn) *Conn {
 	c := Conn{
 		Conn:      conn,
-		requests:  make(chan []byte),
 		responses: make(chan *Response),
 		done:      make(chan struct{}),
 	}
-	go c.writeLoop()
 	go c.readLoop()
 	return &c
 }
 
-// writeRequest queues a single EPP request (x) for writing on c.
-// It returns net.ErrClosed if the underlying connection is closed.
+// writeRequest writes a single EPP request (x) for writing on c.
 // writeRequest can be called from multiple goroutines.
 func (c *Conn) writeRequest(x []byte) error {
-	select {
-	case c.requests <- x:
-		return nil
-	case <-c.done:
-		return net.ErrClosed
-	}
+	c.mWrite.Lock()
+	defer c.mWrite.Unlock()
+	return writeDataUnit(c.Conn, x)
 }
 
 // readResponse dequeues and returns a EPP response from c.
@@ -128,23 +123,6 @@ func (c *Conn) readResponse() (*Response, error) {
 		return res, nil
 	case <-c.done:
 		return nil, net.ErrClosed
-	}
-}
-
-func (c *Conn) writeLoop() {
-	defer c.Close()
-	for {
-		// TODO(ydnar): figure out how to handle timeouts for continous write loop.
-		select {
-		case x := <-c.requests:
-			err := writeDataUnit(c.Conn, x)
-			if err != nil {
-				c.writeErr = err
-				return
-			}
-		case <-c.done:
-			return
-		}
 	}
 }
 
