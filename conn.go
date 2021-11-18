@@ -178,9 +178,9 @@ func parseDataUnit(r io.Reader) (uint32, error) {
 	if err != nil {
 		return 0, err
 	}
-	n -= 4 // https://tools.ietf.org/html/rfc5734#section-4
-	if n < 0 {
+	if n < 4 {
 		return 0, io.ErrUnexpectedEOF
 	}
-	return n, err
+	// https://tools.ietf.org/html/rfc5734#section-4
+	return n - 4, err
 }
