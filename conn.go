@@ -104,6 +104,9 @@ func newConn(conn net.Conn) *Conn {
 func (c *Conn) writeRequest(x []byte) error {
 	c.mWrite.Lock()
 	defer c.mWrite.Unlock()
+	if c.Timeout > 0 {
+		c.Conn.SetWriteDeadline(time.Now().Add(c.Timeout))
+	}
 	return writeDataUnit(c.Conn, x)
 }
 
@@ -127,13 +130,13 @@ func (c *Conn) readResponse() (*Response, error) {
 
 func (c *Conn) readLoop() {
 	defer close(c.responses)
+	timeout := c.Timeout
 	r := &io.LimitedReader{R: c.Conn}
 	decoder := xml.NewDecoder(r)
 	for {
-		// TODO(ydnar): figure out how to handle timeouts for continous read loop.
-		// if c.Timeout > 0 {
-		// 	c.Conn.SetReadDeadline(time.Now().Add(c.Timeout))
-		// }
+		if timeout > 0 {
+			c.Conn.SetReadDeadline(time.Now().Add(timeout))
+		}
 		n, err := parseDataUnit(c.Conn)
 		if err != nil {
 			c.readErr = err
