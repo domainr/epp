@@ -64,8 +64,13 @@ func NewConn(conn net.Conn) (*Conn, error) {
 // NewTimeoutConn initializes an epp.Conn like NewConn, limiting the duration of network
 // operations on conn using Set(Read|Write)Deadline.
 func NewTimeoutConn(conn net.Conn, timeout time.Duration) (*Conn, error) {
-	c := newConn(conn)
-	c.Timeout = timeout
+	c := &Conn{
+		Conn:      conn,
+		Timeout:   timeout,
+		responses: make(chan *Response),
+		done:      make(chan struct{}),
+	}
+	go c.readLoop()
 	g, err := c.readGreeting()
 	if err == nil {
 		c.m.Lock()
@@ -85,18 +90,6 @@ func (c *Conn) Close() error {
 	c.Logout()
 	close(c.done)
 	return c.Conn.Close()
-}
-
-// newConn initializes an epp.Conn from a net.Conn.
-// Used internally for testing.
-func newConn(conn net.Conn) *Conn {
-	c := Conn{
-		Conn:      conn,
-		responses: make(chan *Response),
-		done:      make(chan struct{}),
-	}
-	go c.readLoop()
-	return &c
 }
 
 // writeRequest writes a single EPP request (x) for writing on c.
