@@ -137,7 +137,7 @@ func (c *Conn) readLoop() {
 		if timeout > 0 {
 			c.Conn.SetReadDeadline(time.Now().Add(timeout))
 		}
-		n, err := parseDataUnit(c.Conn)
+		n, err := readDataUnitHeader(c.Conn)
 		if err != nil {
 			c.readErr = err
 			return
@@ -168,11 +168,11 @@ func writeDataUnit(w io.Writer, x []byte) error {
 	return err
 }
 
-// parseDataUnit reads a single EPP data unit header from r, returning the payload size or an error.
+// readDataUnitHeader reads a single EPP data unit header from r, returning the payload size or an error.
 // An EPP data unit is prefixed with 32-bit header specifying the total size
 // of the data unit (message + 4 byte header), in network (big-endian) order.
 // http://www.ietf.org/rfc/rfc4934.txt
-func parseDataUnit(r io.Reader) (uint32, error) {
+func readDataUnitHeader(r io.Reader) (uint32, error) {
 	var n uint32
 	err := binary.Read(r, binary.BigEndian, &n)
 	if err != nil {

@@ -52,7 +52,7 @@ func TestNewConn(t *testing.T) {
 		err = writeDataUnit(conn, []byte(testXMLGreeting))
 		st.Assert(t, err, nil)
 		// Read logout message
-		_, err = parseDataUnit(conn)
+		_, err = readDataUnitHeader(conn)
 		st.Assert(t, err, nil)
 		// Close connection
 		err = conn.Close()
