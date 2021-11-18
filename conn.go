@@ -172,8 +172,8 @@ func writeDataUnit(w io.Writer, x []byte) error {
 // An EPP data unit is prefixed with 32-bit header specifying the total size
 // of the data unit (message + 4 byte header), in network (big-endian) order.
 // http://www.ietf.org/rfc/rfc4934.txt
-func parseDataUnit(r io.Reader) (int32, error) {
-	var n int32
+func parseDataUnit(r io.Reader) (uint32, error) {
+	var n uint32
 	err := binary.Read(r, binary.BigEndian, &n)
 	if err != nil {
 		return 0, err
