@@ -1,6 +1,7 @@
 package epp
 
 import (
+	"bytes"
 	"net"
 	"sync"
 	"testing"
@@ -73,4 +74,24 @@ func TestDeleteRange(t *testing.T) {
 
 	v = deleteRange([]byte(`<foo><bar><baz></baz></bar></foo>`), []byte(`</bar>`), []byte(`o>`))
 	st.Expect(t, string(v), `<foo><bar><baz></baz>`)
+}
+
+func deleteBufferRange(buf *bytes.Buffer, pfx, sfx []byte) {
+	v := deleteRange(buf.Bytes(), pfx, sfx)
+	buf.Truncate(len(v))
+}
+
+func deleteRange(s, pfx, sfx []byte) []byte {
+	start := bytes.Index(s, pfx)
+	if start < 0 {
+		return s
+	}
+	end := bytes.Index(s[start+len(pfx):], sfx)
+	if end < 0 {
+		return s
+	}
+	end += start + len(pfx) + len(sfx)
+	size := len(s) - (end - start)
+	copy(s[start:size], s[end:])
+	return s[:size]
 }

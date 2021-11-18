@@ -1,7 +1,6 @@
 package epp
 
 import (
-	"bytes"
 	"encoding/binary"
 	"encoding/xml"
 	"io"
@@ -181,24 +180,4 @@ func parseDataUnit(r io.Reader) (int32, error) {
 		return 0, io.ErrUnexpectedEOF
 	}
 	return n, err
-}
-
-func deleteRange(s, pfx, sfx []byte) []byte {
-	start := bytes.Index(s, pfx)
-	if start < 0 {
-		return s
-	}
-	end := bytes.Index(s[start+len(pfx):], sfx)
-	if end < 0 {
-		return s
-	}
-	end += start + len(pfx) + len(sfx)
-	size := len(s) - (end - start)
-	copy(s[start:size], s[end:])
-	return s[:size]
-}
-
-func deleteBufferRange(buf *bytes.Buffer, pfx, sfx []byte) {
-	v := deleteRange(buf.Bytes(), pfx, sfx)
-	buf.Truncate(len(v))
 }
