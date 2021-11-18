@@ -1,7 +1,6 @@
 package epp
 
 import (
-	"bytes"
 	"net"
 	"sync"
 	"testing"
@@ -52,8 +51,7 @@ func TestNewConn(t *testing.T) {
 		err = writeDataUnit(conn, []byte(testXMLGreeting))
 		st.Assert(t, err, nil)
 		// Read logout message
-		buf := &bytes.Buffer{}
-		err = readDataUnit(buf, conn)
+		_, err = parseDataUnit(conn)
 		st.Assert(t, err, nil)
 		// Close connection
 		err = conn.Close()

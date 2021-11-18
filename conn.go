@@ -128,21 +128,20 @@ func (c *Conn) readResponse() (*Response, error) {
 
 func (c *Conn) readLoop() {
 	defer close(c.responses)
-	buf := &bytes.Buffer{}
-	decoder := xml.NewDecoder(buf)
-	saved := *decoder
+	r := &io.LimitedReader{R: c.Conn}
+	decoder := xml.NewDecoder(r)
 	for {
 		// TODO(ydnar): figure out how to handle timeouts for continous read loop.
 		// if c.Timeout > 0 {
 		// 	c.Conn.SetReadDeadline(time.Now().Add(c.Timeout))
 		// }
-		err := readDataUnit(buf, c.Conn)
+		n, err := parseDataUnit(c.Conn)
 		if err != nil {
 			c.readErr = err
 			return
 		}
+		r.N = int64(n)
 		res := &Response{}
-		*decoder = saved
 		err = IgnoreEOF(scanResponse.Scan(decoder, res))
 		if err != nil {
 			c.readErr = err
@@ -167,25 +166,21 @@ func writeDataUnit(w io.Writer, x []byte) error {
 	return err
 }
 
-// readDataUnit reads a single EPP data unit from r, returning the payload bytes or an error.
+// parseDataUnit reads a single EPP data unit header from r, returning the payload size or an error.
 // An EPP data units is prefixed with 32-bit header specifying the total size
 // of the data unit (message + 4 byte header), in network (big-endian) order.
 // http://www.ietf.org/rfc/rfc4934.txt
-func readDataUnit(buf *bytes.Buffer, r io.Reader) error {
-	var s int32
-	err := binary.Read(r, binary.BigEndian, &s)
+func parseDataUnit(r io.Reader) (int32, error) {
+	var n int32
+	err := binary.Read(r, binary.BigEndian, &n)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	s -= 4 // https://tools.ietf.org/html/rfc5734#section-4
-	if s < 0 {
-		return io.ErrUnexpectedEOF
+	n -= 4 // https://tools.ietf.org/html/rfc5734#section-4
+	if n < 0 {
+		return 0, io.ErrUnexpectedEOF
 	}
-	buf.Reset()
-	buf.Grow(int(s))
-	_, err = io.CopyN(buf, r, int64(s))
-	logXML("<-- READ DATA UNIT -->", buf.Bytes())
-	return err
+	return n, err
 }
 
 func deleteRange(s, pfx, sfx []byte) []byte {
