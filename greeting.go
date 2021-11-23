@@ -8,7 +8,7 @@ import (
 
 // Hello sends a <hello> command to request a <greeting> from the EPP server.
 func (c *Conn) Hello() error {
-	err := c.writeDataUnit(xmlHello)
+	err := c.writeRequest(xmlHello)
 	if err != nil {
 		return err
 	}
@@ -102,14 +102,9 @@ var ExtURNNames = map[string]string{
 	"neulevel-1.0":     ExtNeulevel10,
 }
 
+// TODO: check if res.Greeting is not empty.
 func (c *Conn) readGreeting() (Greeting, error) {
-	err := c.readDataUnit()
-	if err != nil {
-		return Greeting{}, err
-	}
-	deleteBufferRange(&c.buf, []byte(`<dcp>`), []byte(`</dcp>`))
-	var res Response
-	err = IgnoreEOF(scanResponse.Scan(c.decoder, &res))
+	res, err := c.readResponse()
 	if err != nil {
 		return Greeting{}, err
 	}

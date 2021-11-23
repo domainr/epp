@@ -12,12 +12,16 @@ func (c *Conn) Login(user, password, newPassword string) error {
 	if err != nil {
 		return err
 	}
-	var res Response
-	err = c.readResponse(&res)
+	res, err := c.readResponse()
+	if err != nil {
+		return nil
+	}
 	// We always have a .Result in our non-pointer, but it might be meaningless.
 	// We might not have read anything.  We think that the worst case is we
 	// have the same zero values we'd get without the assignment-even-in-error-case.
+	c.m.Lock()
 	c.LoginResult = res.Result
+	c.m.Unlock()
 	return err
 }
 
@@ -33,7 +37,7 @@ func (c *Conn) writeLogin(user, password, newPassword string) error {
 	if err != nil {
 		return err
 	}
-	return c.writeDataUnit(x)
+	return c.writeRequest(x)
 }
 
 func encodeLogin(user, password, newPassword, version, language string, objects, extensions []string) ([]byte, error) {
@@ -75,12 +79,12 @@ func encodeLogin(user, password, newPassword, version, language string, objects,
 // Logout sends a <logout> command to terminate an EPP session.
 // https://tools.ietf.org/html/rfc5730#section-2.9.1.2
 func (c *Conn) Logout() error {
-	err := c.writeDataUnit(xmlLogout)
+	err := c.writeRequest(xmlLogout)
 	if err != nil {
 		return err
 	}
-	var res Response
-	return c.readResponse(&res)
+	_, err = c.readResponse()
+	return err
 }
 
 var xmlLogout = []byte(xmlCommandPrefix + `<logout/>` + xmlCommandSuffix)

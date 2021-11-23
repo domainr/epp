@@ -23,13 +23,12 @@ func (c *Conn) CheckDomainExtensions(domains []string, extData map[string]string
 		return nil, err
 	}
 
-	err = c.writeDataUnit(x)
+	err = c.writeRequest(x)
 	if err != nil {
 		return nil, err
 	}
 
-	var res Response
-	err = c.readResponse(&res)
+	res, err := c.readResponse()
 	if err != nil {
 		return nil, err
 	}
@@ -41,12 +40,11 @@ func (c *Conn) CheckDomainExtensions(domains []string, extData map[string]string
 		if err != nil {
 			return nil, err
 		}
-		err = c.writeDataUnit(x)
+		err = c.writeRequest(x)
 		if err != nil {
 			return nil, err
 		}
-		var res2 Response
-		err = c.readResponse(&res2)
+		res2, err := c.readResponse()
 		if err != nil {
 			return nil, err
 		}

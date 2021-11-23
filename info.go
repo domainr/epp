@@ -15,12 +15,11 @@ func (c *Conn) DomainInfo(domain string, extData map[string]string) (*DomainInfo
 	if err != nil {
 		return nil, err
 	}
-	err = c.writeDataUnit(x)
+	err = c.writeRequest(x)
 	if err != nil {
 		return nil, err
 	}
-	var res Response
-	err = c.readResponse(&res)
+	res, err := c.readResponse()
 	if err != nil {
 		return nil, err
 	}
