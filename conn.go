@@ -125,7 +125,6 @@ func (c *Conn) readLoop() {
 	defer close(c.responses)
 	timeout := c.Timeout
 	r := &io.LimitedReader{R: c.Conn}
-	decoder := xml.NewDecoder(r)
 	for {
 		if timeout > 0 {
 			c.Conn.SetReadDeadline(time.Now().Add(timeout))
@@ -137,7 +136,7 @@ func (c *Conn) readLoop() {
 		}
 		r.N = int64(n)
 		res := &Response{}
-		err = IgnoreEOF(scanResponse.Scan(decoder, res))
+		err = IgnoreEOF(scanResponse.Scan(xml.NewDecoder(r), res))
 		if err != nil {
 			c.readErr = err
 			return
