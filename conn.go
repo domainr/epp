@@ -127,21 +127,6 @@ func (c *Conn) readResponse() (*Response, error) {
 	return res, err
 }
 
-// writeDataUnit writes x to w.
-// Bytes written are prefixed with 32-bit header specifying the total size
-// of the data unit (message + 4 byte header), in network (big-endian) order.
-// http://www.ietf.org/rfc/rfc4934.txt
-func writeDataUnit(w io.Writer, x []byte) error {
-	logXML("<-- WRITE DATA UNIT -->", x)
-	s := uint32(4 + len(x))
-	err := binary.Write(w, binary.BigEndian, s)
-	if err != nil {
-		return err
-	}
-	_, err = w.Write(x)
-	return err
-}
-
 // readDataUnitHeader reads a single EPP data unit header from r, returning the payload size or an error.
 // An EPP data unit is prefixed with 32-bit header specifying the total size
 // of the data unit (message + 4 byte header), in network (big-endian) order.
