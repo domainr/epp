@@ -67,7 +67,7 @@ func readDataUnit(r io.Reader) ([]byte, error) {
 	return b, err
 }
 
-// writeDataUnit writes b to w.
+// writeDataUnit writes a single EPP data unit to w.
 // Bytes written are prefixed with 32-bit header specifying the total size
 // of the data unit (message + 4 byte header), in network (big-endian) order.
 // See http://www.ietf.org/rfc/rfc4934.txt for more information.
