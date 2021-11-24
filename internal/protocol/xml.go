@@ -2,17 +2,20 @@ package protocol
 
 type EPP struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
-	Command *Command `xml:"command,omitempty"`
+	Command *Command
 }
 
 type Command struct {
-	Check *Check `xml:"urn:ietf:params:xml:ns:epp-1.0 check,omitempty"`
+	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 command"`
+	Check   *Check
 }
 
 type Check struct {
-	DomainCheck *DomainCheck `xml:"urn:ietf:params:xml:ns:domain-1.0 domain:check,omitempty"`
+	XMLName     struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 check"`
+	DomainCheck *DomainCheck
 }
 
 type DomainCheck struct {
+	XMLName     struct{} `xml:"urn:ietf:params:xml:ns:domain-1.0 domain:check"`
 	DomainNames []string `xml:"urn:ietf:params:xml:ns:domain-1.0 domain:name,omitempty"`
 }
