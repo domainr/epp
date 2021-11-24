@@ -45,11 +45,11 @@ type Conn struct {
 	// Deprecated: this field is written to by the Login method but otherwise is not used by this package.
 	LoginResult Result
 
+	// mRead synchronizes connection reads.
+	mRead sync.Mutex
+
 	// mWrite synchronizes connection writes.
 	mWrite sync.Mutex
-
-	responses chan *Response
-	readErr   error
 
 	done chan struct{}
 }
@@ -65,12 +65,10 @@ func NewConn(conn net.Conn) (*Conn, error) {
 // operations on conn using Set(Read|Write)Deadline.
 func NewTimeoutConn(conn net.Conn, timeout time.Duration) (*Conn, error) {
 	c := &Conn{
-		Conn:      conn,
-		Timeout:   timeout,
-		responses: make(chan *Response),
-		done:      make(chan struct{}),
+		Conn:    conn,
+		Timeout: timeout,
+		done:    make(chan struct{}),
 	}
-	go c.readLoop()
 	g, err := c.readGreeting()
 	if err == nil {
 		c.m.Lock()
@@ -107,42 +105,19 @@ func (c *Conn) writeRequest(x []byte) error {
 // It returns an error if the EPP response contains an error Result.
 // readResponse can be called from multiple goroutines.
 func (c *Conn) readResponse() (*Response, error) {
-	select {
-	case res := <-c.responses:
-		if res == nil {
-			return res, c.readErr
-		}
-		if res.Result.IsError() {
-			return nil, &res.Result
-		}
-		return res, nil
-	case <-c.done:
-		return nil, net.ErrClosed
+	c.mRead.Lock()
+	defer c.mRead.Unlock()
+	if c.Timeout > 0 {
+		c.Conn.SetReadDeadline(time.Now().Add(c.Timeout))
 	}
-}
-
-func (c *Conn) readLoop() {
-	defer close(c.responses)
-	timeout := c.Timeout
-	r := &io.LimitedReader{R: c.Conn}
-	for {
-		if timeout > 0 {
-			c.Conn.SetReadDeadline(time.Now().Add(timeout))
-		}
-		n, err := readDataUnitHeader(c.Conn)
-		if err != nil {
-			c.readErr = err
-			return
-		}
-		r.N = int64(n)
-		res := &Response{}
-		err = IgnoreEOF(scanResponse.Scan(xml.NewDecoder(r), res))
-		if err != nil {
-			c.readErr = err
-			return
-		}
-		c.responses <- res
+	n, err := readDataUnitHeader(c.Conn)
+	if err != nil {
+		return nil, err
 	}
+	r := io.LimitedReader{R: c.Conn, N: int64(n)}
+	res := &Response{}
+	err = IgnoreEOF(scanResponse.Scan(xml.NewDecoder(&r), res))
+	return res, err
 }
 
 // writeDataUnit writes x to w.
