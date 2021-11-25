@@ -57,12 +57,13 @@ func readDataUnit(r io.Reader) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	// An EPP data unit size includes the 4 byte header.
+	// See https://tools.ietf.org/html/rfc5734#section-4.
 	if n < 4 {
 		return nil, io.ErrUnexpectedEOF
 	}
-	// An EPP data unit size includes the 4 byte header.
-	// See https://tools.ietf.org/html/rfc5734#section-4.
-	b := make([]byte, n-4)
+	n -= 4
+	b := make([]byte, n)
 	_, err = io.ReadAtLeast(r, b, int(n))
 	return b, err
 }
