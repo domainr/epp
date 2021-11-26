@@ -117,6 +117,12 @@ func (c *Conn) readResponse() (*Response, error) {
 	r := io.LimitedReader{R: c.Conn, N: int64(n)}
 	res := &Response{}
 	err = IgnoreEOF(scanResponse.Scan(xml.NewDecoder(&r), res))
+	if err != nil {
+		return res, err
+	}
+	if res.Result.IsError() {
+		return res, &res.Result
+	}
 	return res, err
 }
 
