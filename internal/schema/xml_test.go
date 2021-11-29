@@ -4,13 +4,20 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
+	"time"
 
+	"github.com/domainr/epp/internal/schema/date"
 	"github.com/domainr/epp/internal/schema/domain"
 	"github.com/domainr/epp/internal/schema/epp"
 	"github.com/nbio/xml"
 )
 
 func TestMarshalXML(t *testing.T) {
+	jan1, err := time.Parse(time.RFC3339, "2000-01-01T00:00:00Z")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	tests := []struct {
 		name    string
 		v       interface{}
@@ -24,7 +31,7 @@ func TestMarshalXML(t *testing.T) {
 			false,
 		},
 		{
-			`empty <epp> message`,
+			`empty <epp> element`,
 			&epp.EPP{},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"></epp>`,
 			false,
@@ -33,6 +40,21 @@ func TestMarshalXML(t *testing.T) {
 			`empty <hello> message`,
 			&epp.EPP{Hello: &epp.Hello{}},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><hello></hello></epp>`,
+			false,
+		},
+		{
+			`empty <greeting>`,
+			&epp.EPP{Greeting: &epp.Greeting{}},
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting></greeting></epp>`,
+			false,
+		},
+		{
+			`simple <greeting>`,
+			&epp.EPP{Greeting: &epp.Greeting{
+				ServerName: "Test EPP Server",
+				ServerDate: date.Pointer(jan1),
+			}},
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate></greeting></epp>`,
 			false,
 		},
 		{
