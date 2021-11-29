@@ -1,10 +1,12 @@
-package protocol
+package epp
 
 import (
 	"encoding/json"
 	"reflect"
 	"testing"
 
+	"github.com/domainr/epp/internal/schema/domain"
+	"github.com/domainr/epp/internal/schema/epp"
 	"github.com/nbio/xml"
 )
 
@@ -22,27 +24,33 @@ func TestMarshalXML(t *testing.T) {
 			false,
 		},
 		{
-			`empty epp tag`,
-			&EPP{},
+			`empty <epp> message`,
+			&epp.EPP{},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"></epp>`,
 			false,
 		},
 		{
-			`empty epp command tag`,
-			&EPP{Command: &Command{}},
+			`empty <hello> message`,
+			&epp.EPP{Hello: &epp.Hello{}},
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><hello></hello></epp>`,
+			false,
+		},
+		{
+			`empty <command> message`,
+			&epp.EPP{Command: &epp.Command{}},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command></command></epp>`,
 			false,
 		},
 		{
-			`empty domain:check command`,
-			&EPP{Command: &Command{Check: &Check{DomainCheck: &DomainCheck{}}}},
+			`empty <domain:check> command`,
+			&epp.EPP{Command: &epp.Command{Check: &epp.Check{DomainCheck: &domain.Check{}}}},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check><domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"></domain:check></check></command></epp>`,
 			false,
 		},
 		{
-			`single domain:check command`,
-			&EPP{Command: &Command{Check: &Check{DomainCheck: &DomainCheck{
-				DomainNames: []string{"example.com"},
+			`single <domain:check> command`,
+			&epp.EPP{Command: &epp.Command{Check: &epp.Check{DomainCheck: &domain.Check{
+				Names: []string{"example.com"},
 			}}}},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check><domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:name>example.com</domain:name></domain:check></check></command></epp>`,
 			false,
@@ -63,7 +71,7 @@ func TestMarshalXML(t *testing.T) {
 				return
 			}
 
-			v := &EPP{}
+			v := &epp.EPP{}
 			err = xml.Unmarshal(x, v)
 			if err != nil {
 				t.Errorf("xml.Unmarshal() error = %v", err)
