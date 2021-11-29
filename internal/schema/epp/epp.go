@@ -35,17 +35,17 @@ type Greeting struct {
 
 // ServiceMenu represents an EPP <svcMenu> element as defined in RFC 5730.
 type ServiceMenu struct {
-	XMLName   struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 svcMenu"`
-	Versions  []string `xml:"version,omitempty"`
-	Languages []string `xml:"lang,omitempty"`
-	Objects   []string `xml:"objURI,omitempty"`
-	*ServiceExtension
+	XMLName          struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 svcMenu"`
+	Versions         []string `xml:"version,omitempty"`
+	Languages        []string `xml:"lang,omitempty"`
+	Objects          []string `xml:"objURI,omitempty"`
+	ServiceExtension *ServiceExtension
 }
 
 // ServiceExtension represents an EPP <svcExtension> element as defined in RFC 5730.
 type ServiceExtension struct {
 	XMLName    struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 svcExtension"`
-	Extensions []string `xml:"svcExtension>extURI,omitempty"`
+	Extensions []string `xml:"extURI,omitempty"`
 }
 
 // Command represents an EPP client <command> message as defined in RFC 5730.
