@@ -9,6 +9,7 @@ import (
 	"github.com/domainr/epp/internal/schema/date"
 	"github.com/domainr/epp/internal/schema/domain"
 	"github.com/domainr/epp/internal/schema/epp"
+	"github.com/domainr/epp/ns"
 	"github.com/nbio/xml"
 )
 
@@ -55,6 +56,37 @@ func TestMarshalXML(t *testing.T) {
 				ServerDate: date.Pointer(jan1),
 			}},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate></greeting></epp>`,
+			false,
+		},
+		{
+			`complex <greeting>`,
+			&epp.EPP{Greeting: &epp.Greeting{
+				ServerName: "Test EPP Server",
+				ServerDate: date.Pointer(jan1),
+				ServiceMenu: &epp.ServiceMenu{
+					Versions:  []string{"1.0"},
+					Languages: []string{"en", "fr"},
+					Objects:   []string{ns.Contact, ns.Domain, ns.Host},
+				},
+			}},
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>fr</lang><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI></svcMenu></greeting></epp>`,
+			false,
+		},
+		{
+			`complex <greeting> with extensions`,
+			&epp.EPP{Greeting: &epp.Greeting{
+				ServerName: "Test EPP Server",
+				ServerDate: date.Pointer(jan1),
+				ServiceMenu: &epp.ServiceMenu{
+					Versions:  []string{"1.0"},
+					Languages: []string{"en", "fr"},
+					Objects:   []string{ns.Contact, ns.Domain, ns.Host},
+					ServiceExtension: &epp.ServiceExtension{
+						Extensions: []string{ns.Fee08, ns.Fee10},
+					},
+				},
+			}},
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>fr</lang><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI><svcExtension><extURI>urn:ietf:params:xml:ns:fee-0.8</extURI><extURI>urn:ietf:params:xml:ns:epp:fee-1.0</extURI></svcExtension></svcMenu></greeting></epp>`,
 			false,
 		},
 		{
