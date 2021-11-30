@@ -29,7 +29,8 @@ type ServiceExtension struct {
 
 // DCP represents a server data collection policy as defined in RFC 5730.
 type DCP struct {
-	Access Access `xml:"access"`
+	Access     Access      `xml:"access"`
+	Statements []Statement `xml:"statement"`
 }
 
 // Access represents an EPP server’s scope of data access as defined in RFC 5730.
@@ -52,7 +53,7 @@ func (a Access) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(&raw.XML{Value: "<" + string(a) + "/>"}, start)
 }
 
-// MarshalXML implements xml.Unmarshaler.
+// UnmarshalXML implements xml.Unmarshaler.
 func (a *Access) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var v struct {
 		Null             *struct{} `xml:"null"`
@@ -79,6 +80,89 @@ func (a *Access) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		*a = "personalAndOther"
 	case v.All != nil:
 		*a = "all"
+	}
+	return nil
+}
+
+/*
+<dcp>
+	<access>
+		<all/>
+	</access>
+	<statement>
+		<purpose>
+			<admin/>
+			<other/>
+			<prov/>
+		</purpose>
+		<recipient>
+			<ours/>
+			<public/>
+			<unrelated/>
+		</recipient>
+		<retention>
+			<indefinite/>
+		</retention>
+	</statement>
+</dcp>
+*/
+
+// Statement describes an EPP server’s data collection purpose, receipient(s), and retention policy.
+type Statement struct {
+	Purpose Purpose `xml:"purpose"`
+}
+
+type Purpose int
+
+const (
+	PurposeAdmin = 1 << iota
+	PurposeContact
+	PurposeProvisioning
+	PurposeOther
+)
+
+// MarshalXML implements xml.Marshaler.
+func (p Purpose) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	var s string
+	if p&PurposeAdmin != 0 {
+		s = "<admin/>"
+	}
+	if p&PurposeContact != 0 {
+		s += "<contact/>"
+	}
+	if p&PurposeProvisioning != 0 {
+		s += "<prov/>"
+	}
+	if p&PurposeOther != 0 {
+		s += "<other/>"
+	}
+	return e.EncodeElement(&raw.XML{Value: s}, start)
+}
+
+// UnmarshalXML implements xml.Unmarshaler.
+func (p *Purpose) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var v struct {
+		Admin        *struct{} `xml:"admin"`
+		Contact      *struct{} `xml:"contact"`
+		Provisioning *struct{} `xml:"prov"`
+		Other        *struct{} `xml:"other"`
+	}
+	err := d.DecodeElement(&v, &start)
+	if err != nil {
+		return err
+	}
+	*p = 0
+	if v.Admin != nil {
+		*p |= PurposeAdmin
+	}
+	if v.Contact != nil {
+		*p |= PurposeContact
+	}
+	if v.Provisioning != nil {
+		*p |= PurposeProvisioning
+	}
+	if v.Other != nil {
+		*p |= PurposeOther
 	}
 	return nil
 }
