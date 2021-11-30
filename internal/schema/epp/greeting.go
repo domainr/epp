@@ -27,11 +27,12 @@ type ServiceExtension struct {
 	Extensions []string `xml:"extURI"`
 }
 
+// DCP represents a server data collection policy as defined in RFC 5730.
 type DCP struct {
 	Access Access `xml:"access"`
 }
 
-// Access represents an EPP server’s scope of data access.
+// Access represents an EPP server’s scope of data access as defined in RFC 5730.
 type Access string
 
 const (
@@ -80,5 +81,4 @@ func (a *Access) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		*a = "all"
 	}
 	return nil
-
 }
