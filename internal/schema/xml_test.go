@@ -51,65 +51,73 @@ func TestMarshalXML(t *testing.T) {
 		},
 		{
 			`simple <greeting>`,
-			&epp.EPP{Greeting: &epp.Greeting{
-				ServerName: "Test EPP Server",
-				ServerDate: date.Pointer(jan1),
-			}},
+			&epp.EPP{
+				Greeting: &epp.Greeting{
+					ServerName: "Test EPP Server",
+					ServerDate: date.Pointer(jan1),
+				},
+			},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate></greeting></epp>`,
 			false,
 		},
 		{
 			`complex <greeting>`,
-			&epp.EPP{Greeting: &epp.Greeting{
-				ServerName: "Test EPP Server",
-				ServerDate: date.Pointer(jan1),
-				ServiceMenu: &epp.ServiceMenu{
-					Versions:  []string{"1.0"},
-					Languages: []string{"en", "fr"},
-					Objects:   []string{ns.Contact, ns.Domain, ns.Host},
+			&epp.EPP{
+				Greeting: &epp.Greeting{
+					ServerName: "Test EPP Server",
+					ServerDate: date.Pointer(jan1),
+					ServiceMenu: &epp.ServiceMenu{
+						Versions:  []string{"1.0"},
+						Languages: []string{"en", "fr"},
+						Objects:   []string{ns.Contact, ns.Domain, ns.Host},
+					},
+					DCP: &epp.DCP{},
 				},
-				DCP: &epp.DCP{},
-			}},
+			},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>fr</lang><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI></svcMenu><dcp></dcp></greeting></epp>`,
 			false,
 		},
 		{
 			`complex <greeting> with complex <dcp>`,
-			&epp.EPP{Greeting: &epp.Greeting{
-				ServerName: "Test EPP Server",
-				ServerDate: date.Pointer(jan1),
-				ServiceMenu: &epp.ServiceMenu{
-					Versions:  []string{"1.0"},
-					Languages: []string{"en", "fr"},
-					Objects:   []string{ns.Contact, ns.Domain, ns.Host},
-				},
-				DCP: &epp.DCP{
-					Access: epp.AccessPersonalAndOther,
-					Statements: []epp.Statement{
-						{Purpose: epp.PurposeAdmin | epp.PurposeContact | epp.PurposeOther},
+			&epp.EPP{
+				Greeting: &epp.Greeting{
+					ServerName: "Test EPP Server",
+					ServerDate: date.Pointer(jan1),
+					ServiceMenu: &epp.ServiceMenu{
+						Versions:  []string{"1.0"},
+						Languages: []string{"en", "fr"},
+						Objects:   []string{ns.Contact, ns.Domain, ns.Host},
+					},
+					DCP: &epp.DCP{
+						Access: epp.AccessPersonalAndOther,
+						Statements: []epp.Statement{
+							{Purpose: epp.PurposeAdmin | epp.PurposeContact | epp.PurposeOther},
+						},
 					},
 				},
-			}},
+			},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>fr</lang><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI></svcMenu><dcp><access><personalAndOther/></access><statement><purpose><admin/><contact/><other/></purpose></statement></dcp></greeting></epp>`,
 			false,
 		},
 		{
 			`complex <greeting> with extensions`,
-			&epp.EPP{Greeting: &epp.Greeting{
-				ServerName: "Test EPP Server",
-				ServerDate: date.Pointer(jan1),
-				ServiceMenu: &epp.ServiceMenu{
-					Versions:  []string{"1.0"},
-					Languages: []string{"en", "fr"},
-					Objects:   []string{ns.Contact, ns.Domain, ns.Host},
-					ServiceExtension: &epp.ServiceExtension{
-						Extensions: []string{ns.Fee08, ns.Fee10},
+			&epp.EPP{
+				Greeting: &epp.Greeting{
+					ServerName: "Test EPP Server",
+					ServerDate: date.Pointer(jan1),
+					ServiceMenu: &epp.ServiceMenu{
+						Versions:  []string{"1.0"},
+						Languages: []string{"en", "fr"},
+						Objects:   []string{ns.Contact, ns.Domain, ns.Host},
+						ServiceExtension: &epp.ServiceExtension{
+							Extensions: []string{ns.Fee08, ns.Fee10},
+						},
+					},
+					DCP: &epp.DCP{
+						Access: epp.AccessNull,
 					},
 				},
-				DCP: &epp.DCP{
-					Access: epp.AccessNull,
-				},
-			}},
+			},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>fr</lang><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI><svcExtension><extURI>urn:ietf:params:xml:ns:fee-0.8</extURI><extURI>urn:ietf:params:xml:ns:epp:fee-1.0</extURI></svcExtension></svcMenu><dcp><access><null/></access></dcp></greeting></epp>`,
 			false,
 		},
@@ -121,15 +129,27 @@ func TestMarshalXML(t *testing.T) {
 		},
 		{
 			`empty <domain:check> command`,
-			&epp.EPP{Command: &epp.Command{Check: &epp.Check{DomainCheck: &domain.Check{}}}},
+			&epp.EPP{
+				Command: &epp.Command{
+					Check: &epp.Check{
+						DomainCheck: &domain.Check{},
+					},
+				},
+			},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check><domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"></domain:check></check></command></epp>`,
 			false,
 		},
 		{
 			`single <domain:check> command`,
-			&epp.EPP{Command: &epp.Command{Check: &epp.Check{DomainCheck: &domain.Check{
-				Names: []string{"example.com"},
-			}}}},
+			&epp.EPP{
+				Command: &epp.Command{
+					Check: &epp.Check{
+						DomainCheck: &domain.Check{
+							Names: []string{"example.com"},
+						},
+					},
+				},
+			},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check><domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:name>example.com</domain:name></domain:check></check></command></epp>`,
 			false,
 		},
@@ -156,7 +176,6 @@ func TestMarshalXML(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(v, tt.v) {
-				// y, _ := xml.Marshal(v)
 				t.Errorf("xml.Unmarshal()\nGot:  %v\nWant: %v", asJSON(v), asJSON(tt.v))
 			}
 		})
