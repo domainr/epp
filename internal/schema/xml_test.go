@@ -68,8 +68,26 @@ func TestMarshalXML(t *testing.T) {
 					Languages: []string{"en", "fr"},
 					Objects:   []string{ns.Contact, ns.Domain, ns.Host},
 				},
+				DCP: &epp.DCP{},
 			}},
-			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>fr</lang><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI></svcMenu></greeting></epp>`,
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>fr</lang><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI></svcMenu><dcp></dcp></greeting></epp>`,
+			false,
+		},
+		{
+			`complex <greeting> with complex <dcp>`,
+			&epp.EPP{Greeting: &epp.Greeting{
+				ServerName: "Test EPP Server",
+				ServerDate: date.Pointer(jan1),
+				ServiceMenu: &epp.ServiceMenu{
+					Versions:  []string{"1.0"},
+					Languages: []string{"en", "fr"},
+					Objects:   []string{ns.Contact, ns.Domain, ns.Host},
+				},
+				DCP: &epp.DCP{
+					Access: epp.AccessPersonalAndOther,
+				},
+			}},
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>fr</lang><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI></svcMenu><dcp><access><personalAndOther/></access></dcp></greeting></epp>`,
 			false,
 		},
 		{
@@ -85,8 +103,11 @@ func TestMarshalXML(t *testing.T) {
 						Extensions: []string{ns.Fee08, ns.Fee10},
 					},
 				},
+				DCP: &epp.DCP{
+					Access: epp.AccessNull,
+				},
 			}},
-			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>fr</lang><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI><svcExtension><extURI>urn:ietf:params:xml:ns:fee-0.8</extURI><extURI>urn:ietf:params:xml:ns:epp:fee-1.0</extURI></svcExtension></svcMenu></greeting></epp>`,
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>fr</lang><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI><svcExtension><extURI>urn:ietf:params:xml:ns:fee-0.8</extURI><extURI>urn:ietf:params:xml:ns:epp:fee-1.0</extURI></svcExtension></svcMenu><dcp><access><null/></access></dcp></greeting></epp>`,
 			false,
 		},
 		{
