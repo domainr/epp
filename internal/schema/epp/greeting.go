@@ -109,9 +109,11 @@ func (a *Access) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 
 // Statement describes an EPP server’s data collection purpose, receipient(s), and retention policy.
 type Statement struct {
-	Purpose Purpose `xml:"purpose"`
+	Purpose   Purpose   `xml:"purpose"`
+	Recipient Recipient `xml:"recipient"`
 }
 
+// Purpose represents an EPP server’s purpose for data collection.
 type Purpose int
 
 const (
@@ -125,7 +127,7 @@ const (
 func (p Purpose) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	var s string
 	if p&PurposeAdmin != 0 {
-		s = "<admin/>"
+		s += "<admin/>"
 	}
 	if p&PurposeContact != 0 {
 		s += "<contact/>"
@@ -163,6 +165,70 @@ func (p *Purpose) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	}
 	if v.Other != nil {
 		*p |= PurposeOther
+	}
+	return nil
+}
+
+// Recipient represents an EPP server’s purpose for data collection.
+type Recipient int
+
+const (
+	RecipientOther = 1 << iota
+	RecipientOurs
+	RecipientPublic
+	RecipientSame
+	RecipientUnrelated
+)
+
+// MarshalXML implements xml.Marshaler.
+func (r Recipient) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	var s string
+	if r&RecipientOther != 0 {
+		s += "<other/>"
+	}
+	if r&RecipientOurs != 0 {
+		s += "<ours/>"
+	}
+	if r&RecipientPublic != 0 {
+		s += "<public/>"
+	}
+	if r&RecipientSame != 0 {
+		s += "<same/>"
+	}
+	if r&RecipientUnrelated != 0 {
+		s += "<unrelated/>"
+	}
+	return e.EncodeElement(&raw.XML{Value: s}, start)
+}
+
+// UnmarshalXML implements xml.Unmarshaler.
+func (r *Recipient) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var v struct {
+		Other     *struct{} `xml:"other"`
+		Ours      *struct{} `xml:"ours"`
+		Public    *struct{} `xml:"public"`
+		Same      *struct{} `xml:"same"`
+		Unrelated *struct{} `xml:"unrelated"`
+	}
+	err := d.DecodeElement(&v, &start)
+	if err != nil {
+		return err
+	}
+	*r = 0
+	if v.Other != nil {
+		*r |= RecipientOther
+	}
+	if v.Ours != nil {
+		*r |= RecipientOurs
+	}
+	if v.Public != nil {
+		*r |= RecipientPublic
+	}
+	if v.Same != nil {
+		*r |= RecipientSame
+	}
+	if v.Unrelated != nil {
+		*r |= RecipientUnrelated
 	}
 	return nil
 }
