@@ -40,7 +40,7 @@ func TestMarshalXML(t *testing.T) {
 		{
 			`empty <hello> message`,
 			&epp.EPP{Hello: &epp.Hello{}},
-			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><hello></hello></epp>`,
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><hello/></epp>`,
 			false,
 		},
 		{

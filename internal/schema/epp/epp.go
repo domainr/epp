@@ -22,6 +22,17 @@ type EPP struct {
 	Command *Command `xml:"command"`
 }
 
+// MarshalXML implements xml.Marshaler, so a <hello/> message will be generated with a self-closing tag.
+func (epp *EPP) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	start.Name.Space = "urn:ietf:params:xml:ns:epp-1.0"
+	start.Name.Local = "epp"
+	if epp.Hello != nil {
+		return e.EncodeElement(&raw.XML{Value: "<hello/>"}, start)
+	}
+	type T EPP
+	return e.EncodeElement((*T)(epp), start)
+}
+
 // Hello represents an EPP client <hello> message as defined in RFC 5730.
 type Hello struct{}
 
