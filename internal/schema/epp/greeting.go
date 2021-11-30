@@ -1,6 +1,9 @@
 package epp
 
 import (
+	"reflect"
+	"strings"
+
 	"github.com/domainr/epp/internal/schema/date"
 	"github.com/domainr/epp/internal/schema/raw"
 	"github.com/nbio/xml"
@@ -123,49 +126,79 @@ const (
 	PurposeOther
 )
 
+type purposeTemplate struct {
+	Admin        *struct{} `xml:"admin"`
+	Contact      *struct{} `xml:"contact"`
+	Provisioning *struct{} `xml:"prov"`
+	Other        *struct{} `xml:"other"`
+}
+
 // MarshalXML implements xml.Marshaler.
 func (p Purpose) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	var s string
-	if p&PurposeAdmin != 0 {
-		s += "<admin/>"
+	var b strings.Builder
+	typ := reflect.TypeOf(purposeTemplate{})
+	for i := 0; i < typ.NumField(); i++ {
+		if p&(1<<i) == 0 {
+			continue
+		}
+		f := typ.Field(i)
+		if !f.IsExported() {
+			continue
+		}
+		tag := f.Tag.Get("xml")
+		if tag == "" || tag == "-" {
+			continue
+		}
+		tokens := strings.Split(tag, ",")
+		if tokens[0] == "" {
+			continue
+		}
+		b.WriteByte('<')
+		b.WriteString(tokens[0])
+		b.WriteString("/>")
 	}
-	if p&PurposeContact != 0 {
-		s += "<contact/>"
-	}
-	if p&PurposeProvisioning != 0 {
-		s += "<prov/>"
-	}
-	if p&PurposeOther != 0 {
-		s += "<other/>"
-	}
-	return e.EncodeElement(&raw.XML{Value: s}, start)
+	// var s string
+	// if p&PurposeAdmin != 0 {
+	// 	s += "<admin/>"
+	// }
+	// if p&PurposeContact != 0 {
+	// 	s += "<contact/>"
+	// }
+	// if p&PurposeProvisioning != 0 {
+	// 	s += "<prov/>"
+	// }
+	// if p&PurposeOther != 0 {
+	// 	s += "<other/>"
+	// }
+	return e.EncodeElement(&raw.XML{Value: b.String()}, start)
 }
 
 // UnmarshalXML implements xml.Unmarshaler.
 func (p *Purpose) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	var v struct {
-		Admin        *struct{} `xml:"admin"`
-		Contact      *struct{} `xml:"contact"`
-		Provisioning *struct{} `xml:"prov"`
-		Other        *struct{} `xml:"other"`
-	}
+	var v purposeTemplate
 	err := d.DecodeElement(&v, &start)
 	if err != nil {
 		return err
 	}
 	*p = 0
-	if v.Admin != nil {
-		*p |= PurposeAdmin
+	val := reflect.ValueOf(v)
+	for i := 0; i < val.NumField(); i++ {
+		if !val.Field(i).IsNil() {
+			*p |= 1 << i
+		}
 	}
-	if v.Contact != nil {
-		*p |= PurposeContact
-	}
-	if v.Provisioning != nil {
-		*p |= PurposeProvisioning
-	}
-	if v.Other != nil {
-		*p |= PurposeOther
-	}
+	// if v.Admin != nil {
+	// 	*p |= PurposeAdmin
+	// }
+	// if v.Contact != nil {
+	// 	*p |= PurposeContact
+	// }
+	// if v.Provisioning != nil {
+	// 	*p |= PurposeProvisioning
+	// }
+	// if v.Other != nil {
+	// 	*p |= PurposeOther
+	// }
 	return nil
 }
 
