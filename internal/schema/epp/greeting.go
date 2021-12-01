@@ -2,7 +2,6 @@ package epp
 
 import (
 	"github.com/domainr/epp/internal/schema/date"
-	"github.com/domainr/epp/internal/schema/option"
 	"github.com/nbio/xml"
 )
 
@@ -34,37 +33,23 @@ type DCP struct {
 }
 
 // Access represents an EPP server’s scope of data access as defined in RFC 5730.
-type Access uint64
+type Access struct {
+	Null             *struct{} `xml:"null,selfclosing"`
+	All              *struct{} `xml:"all,selfclosing"`
+	None             *struct{} `xml:"none,selfclosing"`
+	Other            *struct{} `xml:"other,selfclosing"`
+	Personal         *struct{} `xml:"personal,selfclosing"`
+	PersonalAndOther *struct{} `xml:"personalAndOther,selfclosing"`
+}
 
-const (
-	AccessNull = iota
-	AccessNone
-	AccessPersonal
-	AccessOther
-	AccessPersonalAndOther
-	AccessAll
+var (
+	AccessNull             = Access{Null: &struct{}{}}
+	AccessAll              = Access{All: &struct{}{}}
+	AccessNone             = Access{None: &struct{}{}}
+	AccessOther            = Access{Other: &struct{}{}}
+	AccessPersonal         = Access{Personal: &struct{}{}}
+	AccessPersonalAndOther = Access{PersonalAndOther: &struct{}{}}
 )
-
-var accessNames = map[uint64]string{
-	AccessNull:             "null",
-	AccessNone:             "none",
-	AccessPersonal:         "personal",
-	AccessOther:            "other",
-	AccessPersonalAndOther: "personalAndOther",
-	AccessAll:              "all",
-}
-
-var accessValues = option.Values(accessNames)
-
-// MarshalXML implements xml.Marshaler.
-func (v Access) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	return option.EncodeOne(e, start, uint64(v), accessNames)
-}
-
-// UnmarshalXML implements xml.Unmarshaler.
-func (v *Access) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	return option.DecodeOne((*uint64)(v), d, accessValues)
-}
 
 // Statement describes an EPP server’s data collection purpose, receipient(s), and retention policy.
 type Statement struct {
@@ -73,33 +58,19 @@ type Statement struct {
 }
 
 // Purpose represents an EPP server’s purpose for data collection.
-type Purpose uint64
+type Purpose struct {
+	Admin        *struct{} `xml:"admin,selfclosing"`
+	Contact      *struct{} `xml:"contact,selfclosing"`
+	Provisioning *struct{} `xml:"provisioning,selfclosing"`
+	Other        *struct{} `xml:"other,selfclosing"`
+}
 
-const (
-	PurposeAdmin = 1 << iota
-	PurposeContact
-	PurposeProvisioning
-	PurposeOther
+var (
+	PurposeAdmin        = Purpose{Admin: &struct{}{}}
+	PurposeContact      = Purpose{Contact: &struct{}{}}
+	PurposeProvisioning = Purpose{Provisioning: &struct{}{}}
+	PurposeOther        = Purpose{Other: &struct{}{}}
 )
-
-var purposeNames = map[uint64]string{
-	PurposeAdmin:        "admin",
-	PurposeContact:      "contact",
-	PurposeProvisioning: "provisioning",
-	PurposeOther:        "other",
-}
-
-var purposeValues = option.Values(purposeNames)
-
-// MarshalXML implements xml.Marshaler.
-func (v Purpose) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	return option.Encode(e, start, uint64(v), purposeNames)
-}
-
-// UnmarshalXML implements xml.Unmarshaler.
-func (v *Purpose) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	return option.Decode((*uint64)(v), d, purposeValues)
-}
 
 // Recipient represents an EPP server’s purpose for data collection.
 type Recipient struct {
