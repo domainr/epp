@@ -112,10 +112,16 @@ type Recipient struct {
 
 // MarshalXML implements xml.Marshaler.
 func (v *Recipient) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	// If v.Ours.Recipient contains a value, emit a non-self-closing <ours> tag.
 	if v.Ours != nil && v.Ours.Recipient != "" {
 		type T Recipient
 		return e.EncodeElement((*T)(v), start)
 	}
+
+	// Otherwise, emit a self-closing <ours/> tag.
+	// This hack takes advantage of the fact that Go will let you typecast
+	// between two structs that differ only by struct tags.
+	// See https://go-review.googlesource.com/c/go/+/24190/.
 	type T struct {
 		Other     *struct{} `xml:"other,selfclosing"`
 		Ours      *Ours     `xml:"ours,selfclosing"`
