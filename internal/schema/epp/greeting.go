@@ -3,7 +3,6 @@ package epp
 import (
 	"github.com/domainr/epp/internal/schema/date"
 	"github.com/domainr/epp/internal/schema/option"
-	"github.com/domainr/epp/internal/schema/raw"
 	"github.com/nbio/xml"
 )
 
@@ -35,54 +34,36 @@ type DCP struct {
 }
 
 // Access represents an EPP server’s scope of data access as defined in RFC 5730.
-type Access string
+type Access uint64
 
 const (
-	AccessNull             Access = "null"
-	AccessNone             Access = "none"
-	AccessPersonal         Access = "personal"
-	AccessOther            Access = "other"
-	AccessPersonalAndOther Access = "personalAndOther"
-	AccessAll              Access = "all"
+	AccessNull = iota
+	AccessNone
+	AccessPersonal
+	AccessOther
+	AccessPersonalAndOther
+	AccessAll
 )
 
+var accessNames = map[uint64]string{
+	AccessNull:             "null",
+	AccessNone:             "none",
+	AccessPersonal:         "personal",
+	AccessOther:            "other",
+	AccessPersonalAndOther: "personalAndOther",
+	AccessAll:              "all",
+}
+
+var accessValues = option.Values(accessNames)
+
 // MarshalXML implements xml.Marshaler.
-func (a Access) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	if a == "" {
-		return nil
-	}
-	return e.EncodeElement(&raw.XML{Value: "<" + string(a) + "/>"}, start)
+func (v Access) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return option.EncodeOne(e, start, uint64(v), accessNames)
 }
 
 // UnmarshalXML implements xml.Unmarshaler.
-func (a *Access) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	var v struct {
-		Null             *struct{} `xml:"null"`
-		None             *struct{} `xml:"none"`
-		Personal         *struct{} `xml:"personal"`
-		Other            *struct{} `xml:"other"`
-		PersonalAndOther *struct{} `xml:"personalAndOther"`
-		All              *struct{} `xml:"all"`
-	}
-	err := d.DecodeElement(&v, &start)
-	if err != nil {
-		return err
-	}
-	switch {
-	case v.Null != nil:
-		*a = "null"
-	case v.None != nil:
-		*a = "none"
-	case v.Personal != nil:
-		*a = "personal"
-	case v.Other != nil:
-		*a = "other"
-	case v.PersonalAndOther != nil:
-		*a = "personalAndOther"
-	case v.All != nil:
-		*a = "all"
-	}
-	return nil
+func (v *Access) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return option.DecodeOne((*uint64)(v), d, accessValues)
 }
 
 // Statement describes an EPP server’s data collection purpose, receipient(s), and retention policy.

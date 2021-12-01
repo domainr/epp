@@ -44,3 +44,27 @@ func Decode(v *uint64, d *xml.Decoder, values map[string]uint64) error {
 	}
 	return nil
 }
+
+func EncodeOne(e *xml.Encoder, start xml.StartElement, v uint64, names map[uint64]string) error {
+	s := names[v]
+	if s != "" {
+		s = "<" + s + "/>"
+	}
+	return e.EncodeElement(&raw.XML{Value: s}, start)
+}
+
+func DecodeOne(v *uint64, d *xml.Decoder, values map[string]uint64) error {
+	for {
+		var e struct {
+			XMLName xml.Name
+		}
+		err := d.Decode(&e)
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		*v |= values[e.XMLName.Local]
+	}
+	return nil
+}
