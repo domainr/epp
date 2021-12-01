@@ -30,6 +30,7 @@ type ServiceExtension struct {
 type DCP struct {
 	Access     Access      `xml:"access"`
 	Statements []Statement `xml:"statement"`
+	Expiry     *Expiry     `xml:"expiry"`
 }
 
 // Access represents an EPP server’s scope of data access as defined in RFC 5730.
@@ -106,4 +107,10 @@ func (v *Recipient) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 // Ours represents an EPP server’s description of an <ours> recipient.
 type Ours struct {
 	Recipient string `xml:"recDesc"`
+}
+
+// Expiry defines an EPP server’s data retention duration.
+type Expiry struct {
+	Absolute *date.Time    `xml:"absolute"`
+	Relative date.Duration `xml:"relative"`
 }

@@ -100,10 +100,13 @@ func TestMarshalXML(t *testing.T) {
 								Recipient: epp.Recipient{Other: &struct{}{}, Ours: &epp.Ours{}, Public: &struct{}{}},
 							},
 						},
+						Expiry: &epp.Expiry{
+							Relative: date.ParseDuration("P1Y"),
+						},
 					},
 				},
 			},
-			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>fr</lang><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI></svcMenu><dcp><access><personalAndOther/></access><statement><purpose><admin/></purpose><recipient><ours><recDesc>Domainr</recDesc></ours><public/></recipient></statement><statement><purpose><contact/><other/></purpose><recipient><other/><ours/><public/></recipient></statement></dcp></greeting></epp>`,
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>fr</lang><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI></svcMenu><dcp><access><personalAndOther/></access><statement><purpose><admin/></purpose><recipient><ours><recDesc>Domainr</recDesc></ours><public/></recipient></statement><statement><purpose><contact/><other/></purpose><recipient><other/><ours/><public/></recipient></statement><expiry><relative>P365DT5H49M12S</relative></expiry></dcp></greeting></epp>`,
 			false,
 		},
 		{
