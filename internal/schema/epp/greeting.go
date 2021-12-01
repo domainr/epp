@@ -1,14 +1,14 @@
 package epp
 
 import (
-	"github.com/domainr/epp/internal/schema/date"
+	"github.com/domainr/epp/internal/schema/w3"
 	"github.com/nbio/xml"
 )
 
 // Greeting represents an EPP server <greeting> message as defined in RFC 5730.
 type Greeting struct {
 	ServerName  string       `xml:"svID,omitempty"`
-	ServerDate  *date.Time   `xml:"svDate"`
+	ServerDate  *w3.DateTime `xml:"svDate"`
 	ServiceMenu *ServiceMenu `xml:"svcMenu"`
 	DCP         *DCP         `xml:"dcp"`
 }
@@ -111,6 +111,6 @@ type Ours struct {
 
 // Expiry defines an EPP server’s data retention duration.
 type Expiry struct {
-	Absolute *date.Time    `xml:"absolute"`
-	Relative date.Duration `xml:"relative"`
+	Absolute *w3.DateTime `xml:"absolute"`
+	Relative w3.Duration  `xml:"relative"`
 }

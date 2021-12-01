@@ -1,4 +1,4 @@
-package date
+package w3
 
 import (
 	"time"
