@@ -1,11 +1,8 @@
 package epp
 
 import (
-	"strings"
-
 	"github.com/domainr/epp/internal/schema/date"
 	"github.com/domainr/epp/internal/schema/option"
-	"github.com/domainr/epp/internal/schema/raw"
 	"github.com/nbio/xml"
 )
 
@@ -106,45 +103,30 @@ func (v *Purpose) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 
 // Recipient represents an EPP server’s purpose for data collection.
 type Recipient struct {
-	Other     *struct{} `xml:"other"`
+	Other     *struct{} `xml:"other,selfclosing"`
 	Ours      *Ours     `xml:"ours"`
-	Public    *struct{} `xml:"public"`
-	Same      *struct{} `xml:"same"`
-	Unrelated *struct{} `xml:"unrelated"`
+	Public    *struct{} `xml:"public,selfclosing"`
+	Same      *struct{} `xml:"same,selfclosing"`
+	Unrelated *struct{} `xml:"unrelated,selfclosing"`
 }
 
 // MarshalXML implements xml.Marshaler.
-func (v Recipient) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	var b strings.Builder
-	if v.Other != nil {
-		b.WriteString("<other/>")
+func (v *Recipient) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	if v.Ours != nil && v.Ours.Recipient != "" {
+		type T Recipient
+		return e.EncodeElement((*T)(v), start)
 	}
-	if v.Ours != nil {
-		if v.Ours.Recipient == "" {
-			b.WriteString("<ours/>")
-		} else {
-			b.WriteString("<ours><recDesc>")
-			err := xml.EscapeText(&b, []byte(v.Ours.Recipient))
-			if err != nil {
-				return err
-			}
-			b.WriteString("</recDesc></ours>")
-		}
+	type T struct {
+		Other     *struct{} `xml:"other,selfclosing"`
+		Ours      *Ours     `xml:"ours,selfclosing"`
+		Public    *struct{} `xml:"public,selfclosing"`
+		Same      *struct{} `xml:"same,selfclosing"`
+		Unrelated *struct{} `xml:"unrelated,selfclosing"`
 	}
-	if v.Public != nil {
-		b.WriteString("<public/>")
-	}
-	if v.Same != nil {
-		b.WriteString("<same/>")
-	}
-	return e.EncodeElement(raw.XML{Value: b.String()}, start)
+	return e.EncodeElement((*T)(v), start)
 }
 
-// UnmarshalXML implements xml.Unmarshaler.
-// func (v *Recipient) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-// 	return option.Decode((*uint64)(v), d, recipientValues)
-// }
-
+// Ours represents an EPP server’s description of an <ours> recipient.
 type Ours struct {
 	Recipient string `xml:"recDesc"`
 }

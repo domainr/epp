@@ -92,14 +92,18 @@ func TestMarshalXML(t *testing.T) {
 						Access: epp.AccessPersonalAndOther,
 						Statements: []epp.Statement{
 							{
-								Purpose:   epp.PurposeAdmin | epp.PurposeContact | epp.PurposeOther,
-								Recipient: epp.Recipient{Other: &struct{}{}, Ours: &epp.Ours{Recipient: "Domainr"}, Public: &struct{}{}},
+								Purpose:   epp.PurposeAdmin,
+								Recipient: epp.Recipient{Ours: &epp.Ours{Recipient: "Domainr"}, Public: &struct{}{}},
+							},
+							{
+								Purpose:   epp.PurposeContact | epp.PurposeOther,
+								Recipient: epp.Recipient{Other: &struct{}{}, Ours: &epp.Ours{}, Public: &struct{}{}},
 							},
 						},
 					},
 				},
 			},
-			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>fr</lang><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI></svcMenu><dcp><access><personalAndOther/></access><statement><purpose><admin/><contact/><other/></purpose><recipient><other/><ours><recDesc>Domainr</recDesc></ours><public/></recipient></statement></dcp></greeting></epp>`,
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>fr</lang><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI></svcMenu><dcp><access><personalAndOther/></access><statement><purpose><admin/></purpose><recipient><ours><recDesc>Domainr</recDesc></ours><public/></recipient></statement><statement><purpose><contact/><other/></purpose><recipient><other/><ours/><public/></recipient></statement></dcp></greeting></epp>`,
 			false,
 		},
 		{
