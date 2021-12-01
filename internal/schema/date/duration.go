@@ -6,29 +6,30 @@ import (
 	"github.com/rickb777/date/period"
 )
 
-// Duration represents RFC 3339 duration values.
-// See https://www.rfc-editor.org/rfc/rfc3339.html.
-type Duration time.Duration
+// Duration represents W3C XML duration values.
+// See https://www.w3.org/TR/xmlschema-2/#duration and https://www.rfc-editor.org/rfc/rfc3339.html.
+type Duration struct {
+	time.Duration
+}
 
 // ParseDuration parses an RFC 3339 duration string.
 // It fails silently if an error occurs.
 func ParseDuration(s string) Duration {
-	var d Duration
 	if p, err := period.Parse(s, false); err == nil {
 		td, _ := p.Duration()
-		d = Duration(td)
+		return Duration{td}
 	}
-	return d
+	return Duration{}
 }
 
 // MarshalText implements encoding.TextMarshaler.
-func (v Duration) MarshalText() ([]byte, error) {
-	p, _ := period.NewOf(time.Duration(v))
+func (d Duration) MarshalText() ([]byte, error) {
+	p, _ := period.NewOf(d.Duration)
 	return p.MarshalText()
 }
 
-// UnmarshalText implements a custom TextUnmarshaler that ignores parsing errors.
-func (v *Duration) UnmarshalText(text []byte) error {
-	*v = ParseDuration(string(text))
+// UnmarshalText implements an encoding.TextUnmarshaler that ignores parsing errors.
+func (d *Duration) UnmarshalText(text []byte) error {
+	*d = ParseDuration(string(text))
 	return nil
 }

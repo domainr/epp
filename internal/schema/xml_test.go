@@ -54,7 +54,7 @@ func TestMarshalXML(t *testing.T) {
 			&epp.EPP{
 				Greeting: &epp.Greeting{
 					ServerName: "Test EPP Server",
-					ServerDate: date.Pointer(jan1),
+					ServerDate: date.NewTime(jan1),
 				},
 			},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate></greeting></epp>`,
@@ -65,7 +65,7 @@ func TestMarshalXML(t *testing.T) {
 			&epp.EPP{
 				Greeting: &epp.Greeting{
 					ServerName: "Test EPP Server",
-					ServerDate: date.Pointer(jan1),
+					ServerDate: date.NewTime(jan1),
 					ServiceMenu: &epp.ServiceMenu{
 						Versions:  []string{"1.0"},
 						Languages: []string{"en", "fr"},
@@ -82,7 +82,7 @@ func TestMarshalXML(t *testing.T) {
 			&epp.EPP{
 				Greeting: &epp.Greeting{
 					ServerName: "Test EPP Server",
-					ServerDate: date.Pointer(jan1),
+					ServerDate: date.NewTime(jan1),
 					ServiceMenu: &epp.ServiceMenu{
 						Versions:  []string{"1.0"},
 						Languages: []string{"en", "fr"},
@@ -114,7 +114,7 @@ func TestMarshalXML(t *testing.T) {
 			&epp.EPP{
 				Greeting: &epp.Greeting{
 					ServerName: "Test EPP Server",
-					ServerDate: date.Pointer(jan1),
+					ServerDate: date.NewTime(jan1),
 					ServiceMenu: &epp.ServiceMenu{
 						Versions:  []string{"1.0"},
 						Languages: []string{"en", "fr"},
