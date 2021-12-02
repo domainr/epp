@@ -7,8 +7,8 @@ import (
 	"github.com/nbio/xml"
 )
 
-// Marshal validates if xml.Marshal(v) produces want or wantErr (if set).
-func Marshal(t *testing.T, v interface{}, want string, wantErr bool) {
+// RoundTrip validates if xml.RoundTrip(v) produces want or wantErr (if set).
+func RoundTrip(t *testing.T, v interface{}, want string, wantErr bool) {
 	x, err := xml.Marshal(v)
 	if (err != nil) != wantErr {
 		t.Errorf("xml.Marshal() error = %v, wantErr %v", err, wantErr)
