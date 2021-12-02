@@ -15,6 +15,14 @@ func NewTime(t time.Time) *Time {
 	return &Time{t}
 }
 
+// MarshalText implements encoding.TextMarshaler.
+func (t *Time) MarshalText() ([]byte, error) {
+	if t == nil {
+		return nil, nil
+	}
+	return t.Time.MarshalText()
+}
+
 // UnmarshalText implements an encoding.TextUnmarshaler that ignores parsing errors.
 func (t *Time) UnmarshalText(text []byte) error {
 	_ = t.Time.UnmarshalText(text)

@@ -1,16 +1,14 @@
 package epp
 
 import (
-	"encoding/json"
-	"reflect"
 	"testing"
 	"time"
 
 	"github.com/domainr/epp/internal/schema/domain"
 	"github.com/domainr/epp/internal/schema/epp"
 	"github.com/domainr/epp/internal/schema/std"
+	"github.com/domainr/epp/internal/schema/test"
 	"github.com/domainr/epp/ns"
-	"github.com/nbio/xml"
 )
 
 func TestMarshalXML(t *testing.T) {
@@ -166,36 +164,7 @@ func TestMarshalXML(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			x, err := xml.Marshal(tt.v)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("xml.Marshal() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if string(x) != tt.want {
-				t.Errorf("xml.Marshal()\nGot:  %v\nWant: %v", string(x), tt.want)
-			}
-
-			if tt.v == nil {
-				return
-			}
-
-			v := reflect.New(reflect.TypeOf(tt.v).Elem()).Interface()
-			err = xml.Unmarshal(x, v)
-			if err != nil {
-				t.Errorf("xml.Unmarshal() error = %v", err)
-				return
-			}
-			if !reflect.DeepEqual(v, tt.v) {
-				t.Errorf("xml.Unmarshal()\nGot:  %#v\nWant: %#v", v, v)
-			}
+			test.Marshal(t, tt.v, tt.want, tt.wantErr)
 		})
 	}
-}
-
-func asJSON(v interface{}) string {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err.Error()
-	}
-	return string(b)
 }
