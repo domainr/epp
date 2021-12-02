@@ -1,6 +1,12 @@
 package ns
 
-import "github.com/domainr/epp/internal/schema/epp"
+import (
+	"github.com/domainr/epp/internal/schema/common"
+	"github.com/domainr/epp/internal/schema/contact"
+	"github.com/domainr/epp/internal/schema/domain"
+	"github.com/domainr/epp/internal/schema/epp"
+	"github.com/domainr/epp/internal/schema/host"
+)
 
 const (
 	// EPP defines the IETF URN for the EPP namespace.
@@ -9,20 +15,20 @@ const (
 
 	// Common defines the IETF URN for the EPP common namespace.
 	// See https://www.iana.org/assignments/xml-registry/ns/eppcom-1.0.txt.
-	Common = "urn:ietf:params:xml:ns:eppcom-1.0"
+	Common = common.NS
 
 	// Host defines the IETF URN for the EPP contact namespace.
 	// See https://www.iana.org/assignments/xml-registry/ns/contact-1.0.txt.
-	Contact = "urn:ietf:params:xml:ns:contact-1.0"
+	Contact = contact.NS
 
 	// Domain defines the IETF URN for the EPP domain namespace.
 	// See https://www.iana.org/assignments/xml-registry/ns/domain-1.0.txt
 	// and https://datatracker.ietf.org/doc/html/rfc5731.
-	Domain = "urn:ietf:params:xml:ns:domain-1.0"
+	Domain = domain.NS
 
 	// Host defines the IETF URN for the EPP host namespace.
 	// See https://www.iana.org/assignments/xml-registry/ns/host-1.0.txt.
-	Host = "urn:ietf:params:xml:ns:host-1.0"
+	Host = host.NS
 
 	// SecDNS defines the IETF URN for the EPP DNSSEC namespace.
 	// See https://datatracker.ietf.org/doc/html/rfc5910.

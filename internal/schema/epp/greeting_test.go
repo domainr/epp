@@ -3,10 +3,12 @@ package epp_test
 import (
 	"testing"
 
+	"github.com/domainr/epp/internal/schema/contact"
+	"github.com/domainr/epp/internal/schema/domain"
 	"github.com/domainr/epp/internal/schema/epp"
+	"github.com/domainr/epp/internal/schema/host"
 	"github.com/domainr/epp/internal/schema/std"
 	"github.com/domainr/epp/internal/schema/test"
-	"github.com/domainr/epp/ns"
 )
 
 func TestGreetingRoundTrip(t *testing.T) {
@@ -42,7 +44,7 @@ func TestGreetingRoundTrip(t *testing.T) {
 					ServiceMenu: &epp.ServiceMenu{
 						Versions:  []string{"1.0"},
 						Languages: []string{"en", "fr"},
-						Objects:   []string{ns.Contact, ns.Domain, ns.Host},
+						Objects:   []string{contact.NS, domain.NS, host.NS},
 					},
 					DCP: &epp.DCP{},
 				},
@@ -59,7 +61,7 @@ func TestGreetingRoundTrip(t *testing.T) {
 					ServiceMenu: &epp.ServiceMenu{
 						Versions:  []string{"1.0"},
 						Languages: []string{"en", "fr"},
-						Objects:   []string{ns.Contact, ns.Domain, ns.Host},
+						Objects:   []string{contact.NS, domain.NS, host.NS},
 					},
 					DCP: &epp.DCP{
 						Access: epp.AccessPersonalAndOther,
@@ -105,9 +107,9 @@ func TestGreetingRoundTrip(t *testing.T) {
 					ServiceMenu: &epp.ServiceMenu{
 						Versions:  []string{"1.0"},
 						Languages: []string{"en", "fr"},
-						Objects:   []string{ns.Contact, ns.Domain, ns.Host},
+						Objects:   []string{contact.NS, domain.NS, host.NS},
 						ServiceExtension: &epp.ServiceExtension{
-							Extensions: []string{ns.Fee08, ns.Fee10},
+							Extensions: []string{"urn:ietf:params:xml:ns:fee-0.8", "urn:ietf:params:xml:ns:epp:fee-1.0"},
 						},
 					},
 					DCP: &epp.DCP{
