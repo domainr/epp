@@ -1,4 +1,4 @@
-package w3
+package std
 
 import (
 	"time"
