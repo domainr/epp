@@ -5,6 +5,7 @@ import (
 
 	"github.com/domainr/epp/internal/schema/epp"
 	"github.com/domainr/epp/internal/schema/test"
+	"github.com/domainr/epp/ns"
 )
 
 func TestLoginRoundTrip(t *testing.T) {
@@ -82,6 +83,33 @@ func TestLoginRoundTrip(t *testing.T) {
 				},
 			},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><login><clID>user</clID><pw>password</pw><newPW>newpassword</newPW><options><version>1.0</version><lang>en</lang></options><svcs></svcs></login></command></epp>`,
+			false,
+		},
+		{
+			`complex <login>`,
+			&epp.EPP{
+				Command: &epp.Command{
+					Login: &epp.Login{
+						ClientID:    "user",
+						NewPassword: "newpassword",
+						Options: epp.Options{
+							Version: epp.Version,
+							Lang:    "en",
+						},
+						Services: epp.Services{
+							Objects: []string{ns.Domain, ns.Contact, ns.Host},
+							ServiceExtension: &epp.ServiceExtension{
+								Extensions: []string{
+									"urn:ietf:params:xml:ns:epp:fee-0.8",
+									"urn:ietf:params:xml:ns:epp:fee-1.0",
+									"urn:ietf:params:xml:ns:idn-1.0",
+								},
+							},
+						},
+					},
+				},
+			},
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><login><clID>user</clID><pw></pw><newPW>newpassword</newPW><options><version>1.0</version><lang>en</lang></options><svcs><objURI>urn:ietf:params:xml:ns:domain-1.0</objURI><objURI>urn:ietf:params:xml:ns:contact-1.0</objURI><objURI>urn:ietf:params:xml:ns:host-1.0</objURI><svcExtension><extURI>urn:ietf:params:xml:ns:epp:fee-0.8</extURI><extURI>urn:ietf:params:xml:ns:epp:fee-1.0</extURI><extURI>urn:ietf:params:xml:ns:idn-1.0</extURI></svcExtension></svcs></login></command></epp>`,
 			false,
 		},
 	}

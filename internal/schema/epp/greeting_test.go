@@ -109,7 +109,10 @@ func TestGreetingRoundTrip(t *testing.T) {
 						Languages: []string{"en", "fr"},
 						Objects:   []string{contact.NS, domain.NS, host.NS},
 						ServiceExtension: &epp.ServiceExtension{
-							Extensions: []string{"urn:ietf:params:xml:ns:fee-0.8", "urn:ietf:params:xml:ns:epp:fee-1.0"},
+							Extensions: []string{
+								"urn:ietf:params:xml:ns:fee-0.8",
+								"urn:ietf:params:xml:ns:epp:fee-1.0",
+							},
 						},
 					},
 					DCP: &epp.DCP{
