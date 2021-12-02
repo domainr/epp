@@ -1,8 +1,8 @@
-package epp
+package std
 
 import "github.com/nbio/xml"
 
-// Bool represents a bool that can be serialized to XML.
+// Bool represents a boolean value that can be serialized to XML.
 // True: <tag>
 // False: (no tag)
 type Bool bool
@@ -17,6 +17,7 @@ var (
 
 // UnmarshalXML impements the xml.Unmarshaler interface.
 // Any tag present with this type = true.
+// TODO: support <tag>false</tag> representation.
 func (b *Bool) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var v struct{}
 	d.DecodeElement(&v, &start)
@@ -40,8 +41,7 @@ func (b *Bool) UnmarshalXMLAttr(attr *xml.Attr) error {
 // Any tag present with this type = true.
 func (b Bool) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	if b {
-		e.EncodeToken(start)
-		e.EncodeToken(xml.EndElement{Name: start.Name})
+		e.EncodeToken(xml.SelfClosingElement(start))
 	}
 	return nil
 }

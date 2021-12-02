@@ -179,14 +179,14 @@ func TestMarshalXML(t *testing.T) {
 				return
 			}
 
-			v := &epp.EPP{}
+			v := reflect.New(reflect.TypeOf(tt.v).Elem()).Interface()
 			err = xml.Unmarshal(x, v)
 			if err != nil {
 				t.Errorf("xml.Unmarshal() error = %v", err)
 				return
 			}
 			if !reflect.DeepEqual(v, tt.v) {
-				t.Errorf("xml.Unmarshal()\nGot:  %v\nWant: %v", asJSON(v), asJSON(tt.v))
+				t.Errorf("xml.Unmarshal()\nGot:  %#v\nWant: %#v", v, v)
 			}
 		})
 	}
