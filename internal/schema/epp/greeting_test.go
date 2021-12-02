@@ -2,7 +2,6 @@ package epp_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/domainr/epp/internal/schema/epp"
 	"github.com/domainr/epp/internal/schema/std"
@@ -11,11 +10,6 @@ import (
 )
 
 func TestGreetingRoundTrip(t *testing.T) {
-	jan1, err := time.Parse(time.RFC3339, "2000-01-01T00:00:00Z")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	tests := []struct {
 		name    string
 		v       interface{}
@@ -33,7 +27,7 @@ func TestGreetingRoundTrip(t *testing.T) {
 			&epp.EPP{
 				Greeting: &epp.Greeting{
 					ServerName: "Test EPP Server",
-					ServerDate: std.NewTime(jan1),
+					ServerDate: std.ParseTime("2000-01-01T00:00:00Z").Pointer(),
 				},
 			},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><svID>Test EPP Server</svID><svDate>2000-01-01T00:00:00Z</svDate></greeting></epp>`,
@@ -44,7 +38,7 @@ func TestGreetingRoundTrip(t *testing.T) {
 			&epp.EPP{
 				Greeting: &epp.Greeting{
 					ServerName: "Test EPP Server",
-					ServerDate: std.NewTime(jan1),
+					ServerDate: std.ParseTime("2000-01-01T00:00:00Z").Pointer(),
 					ServiceMenu: &epp.ServiceMenu{
 						Versions:  []string{"1.0"},
 						Languages: []string{"en", "fr"},
@@ -61,7 +55,7 @@ func TestGreetingRoundTrip(t *testing.T) {
 			&epp.EPP{
 				Greeting: &epp.Greeting{
 					ServerName: "Test EPP Server",
-					ServerDate: std.NewTime(jan1),
+					ServerDate: std.ParseTime("2000-01-01T00:00:00Z").Pointer(),
 					ServiceMenu: &epp.ServiceMenu{
 						Versions:  []string{"1.0"},
 						Languages: []string{"en", "fr"},
@@ -80,7 +74,7 @@ func TestGreetingRoundTrip(t *testing.T) {
 							},
 						},
 						Expiry: &epp.Expiry{
-							Relative: std.ParseDuration("P1Y"),
+							Relative: std.ParseDuration("P1Y").Pointer(),
 						},
 					},
 				},
@@ -89,11 +83,25 @@ func TestGreetingRoundTrip(t *testing.T) {
 			false,
 		},
 		{
+			`<greeting> with <dcp> with absolute expiry`,
+			&epp.EPP{
+				Greeting: &epp.Greeting{
+					DCP: &epp.DCP{
+						Expiry: &epp.Expiry{
+							Absolute: std.ParseTime("2000-01-01T00:00:00Z").Pointer(),
+						},
+					},
+				},
+			},
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting><dcp><access></access><expiry><absolute>2000-01-01T00:00:00Z</absolute></expiry></dcp></greeting></epp>`,
+			false,
+		},
+		{
 			`complex <greeting> with extensions`,
 			&epp.EPP{
 				Greeting: &epp.Greeting{
 					ServerName: "Test EPP Server",
-					ServerDate: std.NewTime(jan1),
+					ServerDate: std.ParseTime("2000-01-01T00:00:00Z").Pointer(),
 					ServiceMenu: &epp.ServiceMenu{
 						Versions:  []string{"1.0"},
 						Languages: []string{"en", "fr"},

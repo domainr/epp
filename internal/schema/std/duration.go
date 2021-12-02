@@ -13,17 +13,20 @@ type Duration struct {
 }
 
 // ParseDuration parses an RFC 3339 duration string.
-// It fails silently if an error occurs.
+// It returns an empty value if unable to parse s.
 func ParseDuration(s string) Duration {
-	if p, err := period.Parse(s, false); err == nil {
-		td, _ := p.Duration()
-		return Duration{td}
-	}
-	return Duration{}
+	p, _ := period.Parse(s)
+	d, _ := p.Duration()
+	return Duration{d}
+}
+
+// Pointer returns a pointer to d, useful for declaring composite literals.
+func (d Duration) Pointer() *Duration {
+	return &d
 }
 
 // MarshalText implements encoding.TextMarshaler.
-func (d Duration) MarshalText() ([]byte, error) {
+func (d *Duration) MarshalText() ([]byte, error) {
 	p, _ := period.NewOf(d.Duration)
 	return p.MarshalText()
 }

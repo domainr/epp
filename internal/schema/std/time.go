@@ -4,15 +4,22 @@ import (
 	"time"
 )
 
-// Time represents W3C XML dateTime values.
+// Time represents an W3C XML date-time value.
 // See https://www.w3.org/TR/xmlschema-2/#dateTime and https://www.rfc-editor.org/rfc/rfc3339.html.
 type Time struct {
 	time.Time
 }
 
-// NewTime returns a pointer to a DateTime struct.
-func NewTime(t time.Time) *Time {
-	return &Time{t}
+// ParseTime parses an RFC 3339 date-time string.
+// It returns an empty value if unable to parse s.
+func ParseTime(s string) Time {
+	tt, _ := time.Parse(time.RFC3339, s)
+	return Time{tt}
+}
+
+// Pointer returns a pointer to t, useful for declaring composite literals.
+func (t Time) Pointer() *Time {
+	return &t
 }
 
 // MarshalText implements encoding.TextMarshaler.

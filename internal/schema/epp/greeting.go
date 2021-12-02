@@ -99,6 +99,6 @@ func (v *Ours) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 
 // Expiry defines an EPP server’s data retention duration.
 type Expiry struct {
-	Absolute *std.Time    `xml:"absolute"`
-	Relative std.Duration `xml:"relative,omitempty"`
+	Absolute *std.Time     `xml:"absolute"`
+	Relative *std.Duration `xml:"relative"`
 }
