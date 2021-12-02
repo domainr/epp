@@ -1,9 +1,11 @@
 package ns
 
+import "github.com/domainr/epp/internal/schema/epp"
+
 const (
 	// EPP defines the IETF URN for the EPP namespace.
 	// See https://www.iana.org/assignments/xml-registry/ns/epp-1.0.txt.
-	EPP = "urn:ietf:params:xml:ns:epp-1.0"
+	EPP = epp.NS
 
 	// Common defines the IETF URN for the EPP common namespace.
 	// See https://www.iana.org/assignments/xml-registry/ns/eppcom-1.0.txt.
