@@ -1,4 +1,4 @@
-package epp
+package schema_test
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ import (
 	"github.com/domainr/epp/ns"
 )
 
-func TestMarshalXML(t *testing.T) {
+func TestEPPRoundTrip(t *testing.T) {
 	jan1, err := time.Parse(time.RFC3339, "2000-01-01T00:00:00Z")
 	if err != nil {
 		t.Fatal(err)
