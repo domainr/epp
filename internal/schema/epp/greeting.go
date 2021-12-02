@@ -21,11 +21,6 @@ type ServiceMenu struct {
 	ServiceExtension *ServiceExtension `xml:"svcExtension"`
 }
 
-// ServiceExtension represents an EPP <svcExtension> element as defined in RFC 5730.
-type ServiceExtension struct {
-	Extensions []string `xml:"extURI"`
-}
-
 // DCP represents a server data collection policy as defined in RFC 5730.
 type DCP struct {
 	Access     Access      `xml:"access"`
