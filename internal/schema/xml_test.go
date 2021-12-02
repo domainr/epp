@@ -93,11 +93,11 @@ func TestMarshalXML(t *testing.T) {
 						Statements: []epp.Statement{
 							{
 								Purpose:   epp.PurposeAdmin,
-								Recipient: epp.Recipient{Ours: &epp.Ours{Recipient: "Domainr"}, Public: &struct{}{}},
+								Recipient: epp.Recipient{Ours: &epp.Ours{Recipient: "Domainr"}, Public: std.True},
 							},
 							{
-								Purpose:   epp.Purpose{Contact: &struct{}{}, Other: &struct{}{}},
-								Recipient: epp.Recipient{Other: &struct{}{}, Ours: &epp.Ours{}, Public: &struct{}{}},
+								Purpose:   epp.Purpose{Contact: std.True, Other: std.True},
+								Recipient: epp.Recipient{Other: std.True, Ours: &epp.Ours{}, Public: std.True},
 							},
 						},
 						Expiry: &epp.Expiry{

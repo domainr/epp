@@ -35,21 +35,21 @@ type DCP struct {
 
 // Access represents an EPP server’s scope of data access as defined in RFC 5730.
 type Access struct {
-	Null             *struct{} `xml:"null,selfclosing"`
-	All              *struct{} `xml:"all,selfclosing"`
-	None             *struct{} `xml:"none,selfclosing"`
-	Other            *struct{} `xml:"other,selfclosing"`
-	Personal         *struct{} `xml:"personal,selfclosing"`
-	PersonalAndOther *struct{} `xml:"personalAndOther,selfclosing"`
+	Null             std.Bool `xml:"null"`
+	All              std.Bool `xml:"all"`
+	None             std.Bool `xml:"none"`
+	Other            std.Bool `xml:"other"`
+	Personal         std.Bool `xml:"personal"`
+	PersonalAndOther std.Bool `xml:"personalAndOther"`
 }
 
 var (
-	AccessNull             = Access{Null: &struct{}{}}
-	AccessAll              = Access{All: &struct{}{}}
-	AccessNone             = Access{None: &struct{}{}}
-	AccessOther            = Access{Other: &struct{}{}}
-	AccessPersonal         = Access{Personal: &struct{}{}}
-	AccessPersonalAndOther = Access{PersonalAndOther: &struct{}{}}
+	AccessNull             = Access{Null: std.True}
+	AccessAll              = Access{All: std.True}
+	AccessNone             = Access{None: std.True}
+	AccessOther            = Access{Other: std.True}
+	AccessPersonal         = Access{Personal: std.True}
+	AccessPersonalAndOther = Access{PersonalAndOther: std.True}
 )
 
 // Statement describes an EPP server’s data collection purpose, receipient(s), and retention policy.
@@ -60,53 +60,41 @@ type Statement struct {
 
 // Purpose represents an EPP server’s purpose for data collection.
 type Purpose struct {
-	Admin        *struct{} `xml:"admin,selfclosing"`
-	Contact      *struct{} `xml:"contact,selfclosing"`
-	Provisioning *struct{} `xml:"provisioning,selfclosing"`
-	Other        *struct{} `xml:"other,selfclosing"`
+	Admin        std.Bool `xml:"admin"`
+	Contact      std.Bool `xml:"contact"`
+	Provisioning std.Bool `xml:"provisioning"`
+	Other        std.Bool `xml:"other"`
 }
 
 var (
-	PurposeAdmin        = Purpose{Admin: &struct{}{}}
-	PurposeContact      = Purpose{Contact: &struct{}{}}
-	PurposeProvisioning = Purpose{Provisioning: &struct{}{}}
-	PurposeOther        = Purpose{Other: &struct{}{}}
+	PurposeAdmin        = Purpose{Admin: std.True}
+	PurposeContact      = Purpose{Contact: std.True}
+	PurposeProvisioning = Purpose{Provisioning: std.True}
+	PurposeOther        = Purpose{Other: std.True}
 )
 
 // Recipient represents an EPP server’s purpose for data collection.
 type Recipient struct {
-	Other     *struct{} `xml:"other,selfclosing"`
-	Ours      *Ours     `xml:"ours"`
-	Public    *struct{} `xml:"public,selfclosing"`
-	Same      *struct{} `xml:"same,selfclosing"`
-	Unrelated *struct{} `xml:"unrelated,selfclosing"`
-}
-
-// MarshalXML implements xml.Marshaler.
-func (v *Recipient) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	// If v.Ours.Recipient contains a value, emit a non-self-closing <ours> tag.
-	if v.Ours != nil && v.Ours.Recipient != "" {
-		type T Recipient
-		return e.EncodeElement((*T)(v), start)
-	}
-
-	// Otherwise, emit a self-closing <ours/> tag.
-	// This hack takes advantage of the fact that Go will let you typecast
-	// between two structs that differ only by struct tags.
-	// See https://go-review.googlesource.com/c/go/+/24190/.
-	type T struct {
-		Other     *struct{} `xml:"other,selfclosing"`
-		Ours      *Ours     `xml:"ours,selfclosing"`
-		Public    *struct{} `xml:"public,selfclosing"`
-		Same      *struct{} `xml:"same,selfclosing"`
-		Unrelated *struct{} `xml:"unrelated,selfclosing"`
-	}
-	return e.EncodeElement((*T)(v), start)
+	Other     std.Bool `xml:"other"`
+	Ours      *Ours    `xml:"ours"`
+	Public    std.Bool `xml:"public"`
+	Same      std.Bool `xml:"same"`
+	Unrelated std.Bool `xml:"unrelated"`
 }
 
 // Ours represents an EPP server’s description of an <ours> recipient.
 type Ours struct {
 	Recipient string `xml:"recDesc"`
+}
+
+// MarshalXML impements the xml.Marshaler interface.
+// Writes a single self-closing <ours/> if v.Recipient is not set.
+func (v *Ours) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	if v.Recipient == "" {
+		return e.EncodeToken(xml.SelfClosingElement(start))
+	}
+	type T Ours
+	return e.EncodeElement((*T)(v), start)
 }
 
 // Expiry defines an EPP server’s data retention duration.
