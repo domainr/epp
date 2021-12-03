@@ -1,8 +1,6 @@
 package epp
 
 import (
-	"strconv"
-
 	"github.com/domainr/epp/internal/schema/std"
 	"github.com/nbio/xml"
 )
@@ -36,13 +34,13 @@ type MessageQueue struct {
 // MarshalXML impements the xml.Marshaler interface.
 // Writes a single self-closing tag if q.Date and q.Message are not set.
 func (q *MessageQueue) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	if q.Date == nil && q.Message == nil {
-		start.Attr = []xml.Attr{
-			{Name: xml.Name{Local: "count"}, Value: strconv.FormatUint(uint64(q.Count), 10)},
-			{Name: xml.Name{Local: "id"}, Value: q.ID},
-		}
-		return e.EncodeToken(xml.SelfClosingElement(start))
-	}
 	type T MessageQueue
+	type W struct {
+		XMLName struct{} `xml:",selfclosing"`
+		*T
+	}
+	if q.Date == nil && q.Message == nil {
+		return e.EncodeElement(&W{T: (*T)(q)}, start)
+	}
 	return e.EncodeElement((*T)(q), start)
 }
