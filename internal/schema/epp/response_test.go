@@ -42,12 +42,12 @@ func TestResponseRoundTrip(t *testing.T) {
 				Response: &epp.Response{
 					Results: []epp.Result{
 						{
-							Code:    epp.ErrParameterValueRangeError,
-							Message: epp.ErrParameterValueRangeError.Message(),
+							Code:    epp.ErrParameterRange,
+							Message: epp.ErrParameterRange.Message(),
 						},
 						{
-							Code:    epp.ErrParameterValueSyntaxError,
-							Message: epp.ErrParameterValueSyntaxError.Message(),
+							Code:    epp.ErrParameterSyntax,
+							Message: epp.ErrParameterSyntax.Message(),
 						},
 					},
 				},

@@ -49,19 +49,19 @@ func (c ResultCode) String() string {
 		return "Command completed successfully; no messages"
 	case SuccessAck:
 		return "Command completed successfully; ack to dequeue"
-	case SuccessEndingSession:
+	case SuccessEnd:
 		return "Command completed successfully; ending session"
 	case ErrUnknownCommand:
 		return "Unknown command"
-	case ErrCommandSyntaxError:
+	case ErrCommandSyntax:
 		return "Command syntax error"
-	case ErrCommandUseError:
+	case ErrCommandUse:
 		return "Command use error"
-	case ErrRequiredParameterMissing:
+	case ErrRequiredParameter:
 		return "Required parameter missing"
-	case ErrParameterValueRangeError:
+	case ErrParameterRange:
 		return "Parameter value range error"
-	case ErrParameterValueSyntaxError:
+	case ErrParameterSyntax:
 		return "Parameter value syntax error"
 	case ErrUnimplementedVersion:
 		return "Unimplemented protocol version"
@@ -73,29 +73,29 @@ func (c ResultCode) String() string {
 		return "Unimplemented extension"
 	case ErrBillingFailure:
 		return "Billing failure"
-	case ErrObjectNotEligbleForRenewal:
+	case ErrNotEligbleForRenewal:
 		return "Object is not eligible for renewal"
-	case ErrObjectNotEligibleForTransfer:
+	case ErrNotEligibleForTransfer:
 		return "Object is not eligible for transfer"
-	case ErrAuthenticationError:
+	case ErrAuthentication:
 		return "Authentication error"
-	case ErrAuthorizationError:
+	case ErrAuthorization:
 		return "Authorization error"
 	case ErrInvalidAuthorization:
 		return "Invalid authorization information"
-	case ErrObjectPendingTransfer:
+	case ErrPendingTransfer:
 		return "Object pending transfer"
-	case ErrObjectNotPendingTransfer:
+	case ErrNotPendingTransfer:
 		return "Object not pending transfer"
-	case ErrObjectExists:
+	case ErrExists:
 		return "Object exists"
-	case ErrObjectDoesNotExist:
+	case ErrDoesNotExist:
 		return "Object does not exist"
-	case ErrObjectStatusProhibitsOperation:
+	case ErrStatus:
 		return "Object status prohibits operation"
-	case ErrObjectAssociationProhibitsOperation:
+	case ErrAssociation:
 		return "Object association prohibits operation"
-	case ErrParameterValuePolicyError:
+	case ErrParameterPolicy:
 		return "Parameter value policy error"
 	case ErrUnimplementedObject:
 		return "Unimplemented object service"
@@ -105,7 +105,7 @@ func (c ResultCode) String() string {
 		return "Command failed"
 	case ErrCommandFailedClosing:
 		return "Command failed; server closing connection"
-	case ErrAuthenticationErrorClosing:
+	case ErrAuthenticationClosing:
 		return "Authentication error; server closing connection"
 	case ErrSessionLimitExceeded:
 		return "Session limit exceeded; server closing connection"
@@ -122,40 +122,40 @@ const (
 	KnownResultCodes = 34
 
 	// Success result codes
-	Success              ResultCode = 1000
-	SuccessPending       ResultCode = 1001
-	SuccessNoMessages    ResultCode = 1300
-	SuccessAck           ResultCode = 1301
-	SuccessEndingSession ResultCode = 1500
+	Success           ResultCode = 1000
+	SuccessPending    ResultCode = 1001
+	SuccessNoMessages ResultCode = 1300
+	SuccessAck        ResultCode = 1301
+	SuccessEnd        ResultCode = 1500
 
 	// Error result codes
-	ErrUnknownCommand                      ResultCode = 2000
-	ErrCommandSyntaxError                  ResultCode = 2001
-	ErrCommandUseError                     ResultCode = 2002
-	ErrRequiredParameterMissing            ResultCode = 2003
-	ErrParameterValueRangeError            ResultCode = 2004
-	ErrParameterValueSyntaxError           ResultCode = 2005
-	ErrUnimplementedVersion                ResultCode = 2100
-	ErrUnimplementedCommand                ResultCode = 2101
-	ErrUnimplementedOption                 ResultCode = 2102
-	ErrUnimplementedExtension              ResultCode = 2103
-	ErrBillingFailure                      ResultCode = 2104
-	ErrObjectNotEligbleForRenewal          ResultCode = 2105
-	ErrObjectNotEligibleForTransfer        ResultCode = 2106
-	ErrAuthenticationError                 ResultCode = 2200
-	ErrAuthorizationError                  ResultCode = 2201
-	ErrInvalidAuthorization                ResultCode = 2202
-	ErrObjectPendingTransfer               ResultCode = 2300
-	ErrObjectNotPendingTransfer            ResultCode = 2301
-	ErrObjectExists                        ResultCode = 2302
-	ErrObjectDoesNotExist                  ResultCode = 2303
-	ErrObjectStatusProhibitsOperation      ResultCode = 2304
-	ErrObjectAssociationProhibitsOperation ResultCode = 2305
-	ErrParameterValuePolicyError           ResultCode = 2306
-	ErrUnimplementedObject                 ResultCode = 2307
-	ErrDataManagementViolation             ResultCode = 2308
-	ErrCommandFailed                       ResultCode = 2400
-	ErrCommandFailedClosing                ResultCode = 2500
-	ErrAuthenticationErrorClosing          ResultCode = 2501
-	ErrSessionLimitExceeded                ResultCode = 2502
+	ErrUnknownCommand          ResultCode = 2000
+	ErrCommandSyntax           ResultCode = 2001
+	ErrCommandUse              ResultCode = 2002
+	ErrRequiredParameter       ResultCode = 2003
+	ErrParameterRange          ResultCode = 2004
+	ErrParameterSyntax         ResultCode = 2005
+	ErrUnimplementedVersion    ResultCode = 2100
+	ErrUnimplementedCommand    ResultCode = 2101
+	ErrUnimplementedOption     ResultCode = 2102
+	ErrUnimplementedExtension  ResultCode = 2103
+	ErrBillingFailure          ResultCode = 2104
+	ErrNotEligbleForRenewal    ResultCode = 2105
+	ErrNotEligibleForTransfer  ResultCode = 2106
+	ErrAuthentication          ResultCode = 2200
+	ErrAuthorization           ResultCode = 2201
+	ErrInvalidAuthorization    ResultCode = 2202
+	ErrPendingTransfer         ResultCode = 2300
+	ErrNotPendingTransfer      ResultCode = 2301
+	ErrExists                  ResultCode = 2302
+	ErrDoesNotExist            ResultCode = 2303
+	ErrStatus                  ResultCode = 2304
+	ErrAssociation             ResultCode = 2305
+	ErrParameterPolicy         ResultCode = 2306
+	ErrUnimplementedObject     ResultCode = 2307
+	ErrDataManagementViolation ResultCode = 2308
+	ErrCommandFailed           ResultCode = 2400
+	ErrCommandFailedClosing    ResultCode = 2500
+	ErrAuthenticationClosing   ResultCode = 2501
+	ErrSessionLimitExceeded    ResultCode = 2502
 )
