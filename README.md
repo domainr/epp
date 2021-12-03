@@ -1,7 +1,7 @@
 # EPP for Go
 
-[![build status](https://img.shields.io/circleci/project/domainr/epp/master.svg)](https://circleci.com/gh/domainr/epp)
-[![godoc](http://img.shields.io/badge/docs-GoDoc-blue.svg)](https://godoc.org/github.com/domainr/epp)
+[![build status](https://img.shields.io/github/workflow/status/domainr/epp/Go.svg)](https://github.com/domainr/epp/actions)
+[![pkg.go.dev](https://img.shields.io/badge/docs-pkg.go.dev-blue.svg)](https://pkg.go.dev/github.com/domainr/epp)
 
 EPP ([Extensible Provisioning Protocol](https://tools.ietf.org/html/rfc5730)) client for
 [Go](https://golang.org/). Extracted from and in production use at [Domainr](https://domainr.com/).
@@ -46,4 +46,4 @@ for _, r := range dcr.Checks {
 
 ## Author
 
-© 2021 nb.io, LLC.
+© 2021 nb.io LLC
