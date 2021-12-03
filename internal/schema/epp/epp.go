@@ -8,7 +8,7 @@ type EPP struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
 
 	// Hello represents a client <hello> element.
-	Hello std.Bool `xml:"hello,selfclosing"`
+	Hello std.Bool `xml:"hello"`
 
 	// Greeting represents a server <greeting> element.
 	Greeting *Greeting `xml:"greeting"`
