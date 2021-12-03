@@ -15,34 +15,8 @@ EPP ([Extensible Provisioning Protocol](https://tools.ietf.org/html/rfc5730)) cl
 ## Usage
 
 ```go
-tconn, err := tls.Dial("tcp", "epp.example.com:700", nil)
-if err != nil {
-	return err
-}
-
-conn, err := epp.NewConn(tconn)
-if err != nil {
-	return err
-}
-
-err = conn.Login(user, password, "")
-if err != nil {
-	return err
-}
-
-dcr, err := conn.CheckDomain("google.com")
-if err != nil {
-	return err
-}
-for _, r := range dcr.Checks {
-	// ...
-}
+// TODO: document new API
 ```
-
-## Todo
-
-- [X] Tests
-- [ ] Commands other than `Check`
 
 ## Author
 
