@@ -118,6 +118,9 @@ func (c ResultCode) String() string {
 }
 
 const (
+	ResultCodeMin ResultCode = 1000
+	ResultCodeMax ResultCode = 2599
+
 	// Success result codes
 	Success              ResultCode = 1000
 	SuccessPending       ResultCode = 1001
