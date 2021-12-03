@@ -121,6 +121,9 @@ const (
 	ResultCodeMin ResultCode = 1000
 	ResultCodeMax ResultCode = 2599
 
+	// This should match the number of known result codes below
+	KnownResultCodes = 34
+
 	// Success result codes
 	Success              ResultCode = 1000
 	SuccessPending       ResultCode = 1001

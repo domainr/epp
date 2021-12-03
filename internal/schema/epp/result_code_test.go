@@ -1,6 +1,7 @@
 package epp_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/domainr/epp/internal/schema/epp"
@@ -23,5 +24,31 @@ func TestResultCodeIsFatal(t *testing.T) {
 		if got != want {
 			t.Errorf("epp.ResultCode(%04d).IsFatal() = %t, want %t", c, got, want)
 		}
+	}
+}
+
+func TestResultCodeError(t *testing.T) {
+	for c := epp.ResultCodeMin; c <= epp.ResultCodeMax; c++ {
+		gotErr := c.Error() != ""
+		wantErr := c.IsError()
+		if gotErr != wantErr {
+			var want string
+			if wantErr {
+				want = c.String()
+			}
+			t.Errorf("epp.ResultCode(%04d).Error() = %q, want %q", c, c.Error(), want)
+		}
+	}
+}
+
+func TestResultCodeString(t *testing.T) {
+	var known int
+	for c := epp.ResultCodeMin; c <= epp.ResultCodeMax; c++ {
+		if !strings.HasPrefix(c.String(), "Err code ") {
+			known++
+		}
+	}
+	if known != epp.KnownResultCodes {
+		t.Errorf("ResultCode values with known string values: %d, want %d", known, epp.KnownResultCodes)
 	}
 }
