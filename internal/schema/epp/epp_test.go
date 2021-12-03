@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/domainr/epp/internal/schema/epp"
+	"github.com/domainr/epp/internal/schema/std"
 	"github.com/domainr/epp/internal/schema/test"
 )
 
@@ -28,7 +29,7 @@ func TestEPPRoundTrip(t *testing.T) {
 		},
 		{
 			`empty <hello> message`,
-			&epp.EPP{Hello: &epp.Hello{}},
+			&epp.EPP{Hello: std.True},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><hello/></epp>`,
 			false,
 		},
