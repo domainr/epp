@@ -54,7 +54,7 @@ func TestResultCodeError(t *testing.T) {
 func TestResultCodeString(t *testing.T) {
 	var known int
 	for c := epp.ResultCodeMin; c <= epp.ResultCodeMax; c++ {
-		if !strings.HasPrefix(c.String(), "Err code ") {
+		if !strings.HasPrefix(c.String(), "Status code ") {
 			known++
 		}
 	}

@@ -110,7 +110,7 @@ func (c ResultCode) String() string {
 	case ErrSessionLimitExceeded:
 		return "Session limit exceeded; server closing connection"
 	default:
-		return fmt.Sprintf("Err code %04d", c)
+		return fmt.Sprintf("Status code %04d", c)
 	}
 }
 
