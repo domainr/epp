@@ -37,7 +37,7 @@ func TestResponseRoundTrip(t *testing.T) {
 			false,
 		},
 		{
-			`multiple codes`,
+			`multiple result codes`,
 			&epp.EPP{
 				Response: &epp.Response{
 					Results: []epp.Result{
@@ -53,6 +53,26 @@ func TestResponseRoundTrip(t *testing.T) {
 				},
 			},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><response><result><code>2004</code><message lang="en">Parameter value range error</message></result><result><code>2005</code><message lang="en">Parameter value syntax error</message></result><trID><clTRID></clTRID><svTRID></svTRID></trID></response></epp>`,
+			false,
+		},
+		{
+			`with extValue>reason`,
+			&epp.EPP{
+				Response: &epp.Response{
+					Results: []epp.Result{
+						{
+							Code:    epp.ErrBillingFailure,
+							Message: epp.ErrBillingFailure.Message(),
+							ExtensionValues: []epp.ExtensionValue{
+								{
+									Reason: epp.Message{Lang: "en", Value: "Command exceeds available balance"},
+								},
+							},
+						},
+					},
+				},
+			},
+			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><response><result><code>2104</code><message lang="en">Billing failure</message><extValue><reason lang="en">Command exceeds available balance</reason></extValue></result><trID><clTRID></clTRID><svTRID></svTRID></trID></response></epp>`,
 			false,
 		},
 		{
