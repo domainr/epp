@@ -16,7 +16,7 @@ func TestCommandRoundTrip(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			`empty <command> message`,
+			`empty <command>`,
 			&epp.EPP{Command: &epp.Command{}},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command></command></epp>`,
 			false,
