@@ -1,6 +1,6 @@
 package epp
 
-// EPP represents an <epp> message envelope as defined in RFC 5730.
+// EPP represents an <epp> element as defined in RFC 5730.
 // See https://www.rfc-editor.org/rfc/rfc5730.html.
 type EPP struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
