@@ -15,6 +15,8 @@ github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32/go.mod h1:9wM+0iRr9ahx58uY
 github.com/nbio/xml v0.0.0-20211014203712-dccdac7ed502/go.mod h1:Gxm91uHcm2tGopMmOefUHM6koiUsWvp/4FwYIJ9jo/k=
 github.com/nbio/xml v0.0.0-20211201183319-d6ca022aaad1 h1:U95PwWJmrD1iCwWSv2ZxFtyOfAkE1aLpoO7XHvcoazM=
 github.com/nbio/xml v0.0.0-20211201183319-d6ca022aaad1/go.mod h1:Gxm91uHcm2tGopMmOefUHM6koiUsWvp/4FwYIJ9jo/k=
+github.com/nbio/xml v0.0.0-20211203233926-213e87217328 h1:r2qjrHwFZbADThD/zsB6ARdzfkVyyseidffIOPlyHkU=
+github.com/nbio/xml v0.0.0-20211203233926-213e87217328/go.mod h1:Gxm91uHcm2tGopMmOefUHM6koiUsWvp/4FwYIJ9jo/k=
 github.com/nbio/xx v0.0.0-20211016162247-522295b80baa h1:97k42e9VIFpGssByqNkbgCN2aShfcs9OC4NSzkatpEI=
 github.com/nbio/xx v0.0.0-20211016162247-522295b80baa/go.mod h1:Ot5GE0TNFpVT69k/IFalGXyinlUN9FodpiM8FbqGU8Y=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=

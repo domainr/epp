@@ -60,19 +60,19 @@ func TestBool(t *testing.T) {
 		{
 			`Fred attribute`,
 			&T2{Fred: true},
-			`<example fred="1"></example>`,
+			`<example fred="1"/>`,
 			false,
 		},
 		{
 			`Jane attribute`,
 			&T2{Jane: true},
-			`<example fred="0" jane="1"></example>`,
+			`<example fred="0" jane="1"/>`,
 			false,
 		},
 		{
 			`Fred and Susan attributes`,
 			&T2{Fred: true, Susan: true},
-			`<example fred="1" susan="1"></example>`,
+			`<example fred="1" susan="1"/>`,
 			false,
 		},
 	}
