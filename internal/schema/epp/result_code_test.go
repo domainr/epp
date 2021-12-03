@@ -15,3 +15,13 @@ func TestResultCodeIsError(t *testing.T) {
 		}
 	}
 }
+
+func TestResultCodeIsFatal(t *testing.T) {
+	for c := epp.ResultCodeMin; c <= epp.ResultCodeMax; c++ {
+		got := c.IsFatal()
+		want := c >= 2500
+		if got != want {
+			t.Errorf("epp.ResultCode(%04d).IsFatal() = %t, want %t", c, got, want)
+		}
+	}
+}

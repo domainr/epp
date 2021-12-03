@@ -21,15 +21,15 @@ func (c ResultCode) MarshalText() ([]byte, error) {
 	return []byte(fmt.Sprintf("%04d", c)), nil
 }
 
+// IsError returns true if c represents an error code (>= 2000).
+func (c ResultCode) IsError() bool {
+	return c >= 2000
+}
+
 // IsFatal returns true if c represents an error code that closes the
 // connection.
 func (c ResultCode) IsFatal() bool {
 	return c >= 2500
-}
-
-// IsError returns true if c represents an error code (>= 2000).
-func (c ResultCode) IsError() bool {
-	return c >= 2000
 }
 
 // Error returns the text representation of c if c is an error, or an empty
