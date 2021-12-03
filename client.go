@@ -14,8 +14,12 @@ type Client interface {
 type client struct {
 	t Transport
 
-	greetingStored chan struct{}
-	greetingFunc   atomic.Value
+	// done is closed when the client receives a fatal error or the connection is closed.
+	done chan struct{}
+
+	// hasGreeting is closed when the initial <greeting> is received from the server and stored.
+	hasGreeting chan struct{}
+	greeting    atomic.Value
 }
 
 // NewClient returns an EPP client using t as transport.
@@ -27,32 +31,31 @@ func NewClient(t Transport) (Client, error) {
 
 func newClient(t Transport) (Client, error) {
 	c := &client{
-		t: t,
+		t:           t,
+		done:        make(chan struct{}),
+		hasGreeting: make(chan struct{}),
 	}
-	c.greetingFunc.Store(func(ctx context.Context) *epp.Greeting {
-		select {
-		case <-ctx.Done():
-			return nil
-		case <-c.greetingStored:
-			return c.greetingFunc.Load().(greetingFunc)(ctx)
-		}
-	})
 	return c, nil
 }
 
-func (c *client) storeGreeting(g *epp.Greeting) {
-	c.greetingFunc.Store(func(context.Context) *epp.Greeting {
-		return g
-	})
+func (c *client) setGreeting(g *epp.Greeting) {
+	c.greeting.Store(g)
 	select {
-	case <-c.greetingStored:
+	case <-c.hasGreeting:
 	default:
-		close(c.greetingStored)
+		close(c.hasGreeting)
 	}
 }
 
-func (c *client) greeting(ctx context.Context) *epp.Greeting {
-	return c.greetingFunc.Load().(greetingFunc)(ctx)
+func (c *client) waitForGreeting(ctx context.Context) *epp.Greeting {
+	g := c.greeting.Load()
+	if g != nil {
+		return g.(*epp.Greeting)
+	}
+	select {
+	case <-ctx.Done():
+		return nil
+	case <-c.hasGreeting:
+		return c.greeting.Load().(*epp.Greeting)
+	}
 }
-
-type greetingFunc func(context.Context) *epp.Greeting
