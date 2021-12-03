@@ -31,6 +31,6 @@ type ExtensionValue struct {
 
 // TransactionID represents an EPP server <trID> as defined in RFC 5730.
 type TransactionID struct {
-	ClientTransactionID string `xml:"clTRID"`
-	ServerTransactionID string `xml:"svTRID"`
+	Client string `xml:"clTRID"`
+	Server string `xml:"svTRID"`
 }

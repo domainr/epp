@@ -66,8 +66,8 @@ func TestResponseRoundTrip(t *testing.T) {
 						},
 					},
 					TransactionID: epp.TransactionID{
-						ClientTransactionID: "12345",
-						ServerTransactionID: "abcde",
+						Client: "12345",
+						Server: "abcde",
 					},
 				},
 			},
