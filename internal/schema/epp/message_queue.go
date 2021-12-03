@@ -1,7 +1,6 @@
 package epp
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/domainr/epp/internal/schema/std"
@@ -42,7 +41,6 @@ func (q *MessageQueue) MarshalXML(e *xml.Encoder, start xml.StartElement) error 
 			{Name: xml.Name{Local: "count"}, Value: strconv.FormatUint(uint64(q.Count), 10)},
 			{Name: xml.Name{Local: "id"}, Value: q.ID},
 		}
-		fmt.Printf("Start: %#v\n", start)
 		return e.EncodeToken(xml.SelfClosingElement(start))
 	}
 	type T MessageQueue
