@@ -9,11 +9,8 @@ import "fmt"
 type ResultCode uint16
 
 // Message returns a Message representation of c.
-func (c ResultCode) Message() *Message {
-	return &Message{
-		Lang:  "en",
-		Value: c.String(),
-	}
+func (c ResultCode) Message() Message {
+	return Message{Lang: "en", Value: c.String()}
 }
 
 // MarshalText implements encoding.TextMarshaler to print c as a 4-digit number.

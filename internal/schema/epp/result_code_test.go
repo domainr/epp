@@ -7,6 +7,16 @@ import (
 	"github.com/domainr/epp/internal/schema/epp"
 )
 
+func TestResultCodeMessage(t *testing.T) {
+	for c := epp.ResultCodeMin; c <= epp.ResultCodeMax; c++ {
+		got := c.Message()
+		want := epp.Message{Lang: "en", Value: c.String()}
+		if got != want {
+			t.Errorf("epp.ResultCode(%04d).Message() = %v, want %v", c, got, want)
+		}
+	}
+}
+
 func TestResultCodeIsError(t *testing.T) {
 	for c := epp.ResultCodeMin; c <= epp.ResultCodeMax; c++ {
 		got := c.IsError()

@@ -27,8 +27,8 @@ func TestResponseRoundTrip(t *testing.T) {
 				Response: &epp.Response{
 					Results: []epp.Result{
 						{
-							Code:    1000,
-							Message: epp.Message{Lang: "en", Value: "Command completed successfully"},
+							Code:    epp.Success,
+							Message: epp.Success.Message(),
 						},
 					},
 				},
@@ -42,12 +42,12 @@ func TestResponseRoundTrip(t *testing.T) {
 				Response: &epp.Response{
 					Results: []epp.Result{
 						{
-							Code:    2004,
-							Message: epp.Message{Lang: "en", Value: "Parameter value range error"},
+							Code:    epp.ErrParameterValueRangeError,
+							Message: epp.ErrParameterValueRangeError.Message(),
 						},
 						{
-							Code:    2005,
-							Message: epp.Message{Lang: "en", Value: "Parameter value syntax error"},
+							Code:    epp.ErrParameterValueSyntaxError,
+							Message: epp.ErrParameterValueSyntaxError.Message(),
 						},
 					},
 				},
@@ -61,8 +61,8 @@ func TestResponseRoundTrip(t *testing.T) {
 				Response: &epp.Response{
 					Results: []epp.Result{
 						{
-							Code:    1000,
-							Message: epp.Message{Lang: "en", Value: "Command completed successfully"},
+							Code:    epp.Success,
+							Message: epp.Success.Message(),
 						},
 					},
 					TransactionID: epp.TransactionID{
