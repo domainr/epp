@@ -4,9 +4,17 @@ import "fmt"
 
 // ResultCode represents a 4-digit EPP result code.
 // See https://tools.ietf.org/rfcmarkup?doc=5730#section-3.
-// A ResultCode can be used as an error value. Note: only result codes >= 2000
-// are considered errors.
+// A ResultCode can be used as an error value.
+// Note: only result codes >= 2000 are considered errors.
 type ResultCode uint16
+
+// Message returns a Message representation of c.
+func (c ResultCode) Message() *Message {
+	return &Message{
+		Lang:  "en",
+		Value: c.String(),
+	}
+}
 
 // MarshalText implements encoding.TextMarshaler to print c as a 4-digit number.
 func (c ResultCode) MarshalText() ([]byte, error) {
@@ -36,115 +44,115 @@ func (c ResultCode) Error() string {
 // String returns the English text representation of c.
 func (c ResultCode) String() string {
 	switch c {
-	case ResultSuccess:
+	case Success:
 		return "Command completed successfully"
-	case ResultSuccessPending:
+	case SuccessPending:
 		return "Command completed successfully; action pending"
-	case ResultSuccessNoMessages:
+	case SuccessNoMessages:
 		return "Command completed successfully; no messages"
-	case ResultSuccessAck:
+	case SuccessAck:
 		return "Command completed successfully; ack to dequeue"
-	case ResultSuccessEndingSession:
+	case SuccessEndingSession:
 		return "Command completed successfully; ending session"
-	case ResultUnknownCommand:
+	case ErrUnknownCommand:
 		return "Unknown command"
-	case ResultCommandSyntaxError:
+	case ErrCommandSyntaxError:
 		return "Command syntax error"
-	case ResultCommandUseError:
+	case ErrCommandUseError:
 		return "Command use error"
-	case ResultRequiredParameterMissing:
+	case ErrRequiredParameterMissing:
 		return "Required parameter missing"
-	case ResultParameterValueRangeError:
+	case ErrParameterValueRangeError:
 		return "Parameter value range error"
-	case ResultParameterValueSyntaxError:
+	case ErrParameterValueSyntaxError:
 		return "Parameter value syntax error"
-	case ResultUnimplementedVersion:
+	case ErrUnimplementedVersion:
 		return "Unimplemented protocol version"
-	case ResultUnimplementedCommand:
+	case ErrUnimplementedCommand:
 		return "Unimplemented command"
-	case ResultUnimplementedOption:
+	case ErrUnimplementedOption:
 		return "Unimplemented option"
-	case ResultUnimplementedExtension:
+	case ErrUnimplementedExtension:
 		return "Unimplemented extension"
-	case ResultBillingFailure:
+	case ErrBillingFailure:
 		return "Billing failure"
-	case ResultObjectNotEligbleForRenewal:
+	case ErrObjectNotEligbleForRenewal:
 		return "Object is not eligible for renewal"
-	case ResultObjectNotEligibleForTransfer:
+	case ErrObjectNotEligibleForTransfer:
 		return "Object is not eligible for transfer"
-	case ResultAuthenticationError:
+	case ErrAuthenticationError:
 		return "Authentication error"
-	case ResultAuthorizationError:
+	case ErrAuthorizationError:
 		return "Authorization error"
-	case ResultInvalidAuthorization:
+	case ErrInvalidAuthorization:
 		return "Invalid authorization information"
-	case ResultObjectPendingTransfer:
+	case ErrObjectPendingTransfer:
 		return "Object pending transfer"
-	case ResultObjectNotPendingTransfer:
+	case ErrObjectNotPendingTransfer:
 		return "Object not pending transfer"
-	case ResultObjectExists:
+	case ErrObjectExists:
 		return "Object exists"
-	case ResultObjectDoesNotExist:
+	case ErrObjectDoesNotExist:
 		return "Object does not exist"
-	case ResultObjectStatusProhibitsOperation:
+	case ErrObjectStatusProhibitsOperation:
 		return "Object status prohibits operation"
-	case ResultObjectAssociationProhibitsOperation:
+	case ErrObjectAssociationProhibitsOperation:
 		return "Object association prohibits operation"
-	case ResultParameterValuePolicyError:
+	case ErrParameterValuePolicyError:
 		return "Parameter value policy error"
-	case ResultUnimplementedObject:
+	case ErrUnimplementedObject:
 		return "Unimplemented object service"
-	case ResultDataManagementViolation:
+	case ErrDataManagementViolation:
 		return "Data management policy violation"
-	case ResultCommandFailed:
+	case ErrCommandFailed:
 		return "Command failed"
-	case ResultCommandFailedClosing:
+	case ErrCommandFailedClosing:
 		return "Command failed; server closing connection"
-	case ResultAuthenticationErrorClosing:
+	case ErrAuthenticationErrorClosing:
 		return "Authentication error; server closing connection"
-	case ResultSessionLimitExceeded:
+	case ErrSessionLimitExceeded:
 		return "Session limit exceeded; server closing connection"
 	default:
-		return fmt.Sprintf("Result code %04d", c)
+		return fmt.Sprintf("Err code %04d", c)
 	}
 }
 
 const (
 	// Success result codes
-	ResultSuccess              ResultCode = 1000
-	ResultSuccessPending       ResultCode = 1001
-	ResultSuccessNoMessages    ResultCode = 1300
-	ResultSuccessAck           ResultCode = 1301
-	ResultSuccessEndingSession ResultCode = 1500
+	Success              ResultCode = 1000
+	SuccessPending       ResultCode = 1001
+	SuccessNoMessages    ResultCode = 1300
+	SuccessAck           ResultCode = 1301
+	SuccessEndingSession ResultCode = 1500
 
 	// Error result codes
-	ResultUnknownCommand                      ResultCode = 2000
-	ResultCommandSyntaxError                  ResultCode = 2001
-	ResultCommandUseError                     ResultCode = 2002
-	ResultRequiredParameterMissing            ResultCode = 2003
-	ResultParameterValueRangeError            ResultCode = 2004
-	ResultParameterValueSyntaxError           ResultCode = 2005
-	ResultUnimplementedVersion                ResultCode = 2100
-	ResultUnimplementedCommand                ResultCode = 2101
-	ResultUnimplementedOption                 ResultCode = 2102
-	ResultUnimplementedExtension              ResultCode = 2103
-	ResultBillingFailure                      ResultCode = 2104
-	ResultObjectNotEligbleForRenewal          ResultCode = 2105
-	ResultObjectNotEligibleForTransfer        ResultCode = 2106
-	ResultAuthenticationError                 ResultCode = 2200
-	ResultAuthorizationError                  ResultCode = 2201
-	ResultInvalidAuthorization                ResultCode = 2202
-	ResultObjectPendingTransfer               ResultCode = 2300
-	ResultObjectNotPendingTransfer            ResultCode = 2301
-	ResultObjectExists                        ResultCode = 2302
-	ResultObjectDoesNotExist                  ResultCode = 2303
-	ResultObjectStatusProhibitsOperation      ResultCode = 2304
-	ResultObjectAssociationProhibitsOperation ResultCode = 2305
-	ResultParameterValuePolicyError           ResultCode = 2306
-	ResultUnimplementedObject                 ResultCode = 2307
-	ResultDataManagementViolation             ResultCode = 2308
-	ResultCommandFailed                       ResultCode = 2400
-	ResultCommandFailedClosing                ResultCode = 2500
-	ResultAuthenticationErrorClosing          ResultCode = 2501
-	ResultSessionLimitExceeded                ResultCode = 2502
+	ErrUnknownCommand                      ResultCode = 2000
+	ErrCommandSyntaxError                  ResultCode = 2001
+	ErrCommandUseError                     ResultCode = 2002
+	ErrRequiredParameterMissing            ResultCode = 2003
+	ErrParameterValueRangeError            ResultCode = 2004
+	ErrParameterValueSyntaxError           ResultCode = 2005
+	ErrUnimplementedVersion                ResultCode = 2100
+	ErrUnimplementedCommand                ResultCode = 2101
+	ErrUnimplementedOption                 ResultCode = 2102
+	ErrUnimplementedExtension              ResultCode = 2103
+	ErrBillingFailure                      ResultCode = 2104
+	ErrObjectNotEligbleForRenewal          ResultCode = 2105
+	ErrObjectNotEligibleForTransfer        ResultCode = 2106
+	ErrAuthenticationError                 ResultCode = 2200
+	ErrAuthorizationError                  ResultCode = 2201
+	ErrInvalidAuthorization                ResultCode = 2202
+	ErrObjectPendingTransfer               ResultCode = 2300
+	ErrObjectNotPendingTransfer            ResultCode = 2301
+	ErrObjectExists                        ResultCode = 2302
+	ErrObjectDoesNotExist                  ResultCode = 2303
+	ErrObjectStatusProhibitsOperation      ResultCode = 2304
+	ErrObjectAssociationProhibitsOperation ResultCode = 2305
+	ErrParameterValuePolicyError           ResultCode = 2306
+	ErrUnimplementedObject                 ResultCode = 2307
+	ErrDataManagementViolation             ResultCode = 2308
+	ErrCommandFailed                       ResultCode = 2400
+	ErrCommandFailedClosing                ResultCode = 2500
+	ErrAuthenticationErrorClosing          ResultCode = 2501
+	ErrSessionLimitExceeded                ResultCode = 2502
 )
