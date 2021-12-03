@@ -28,7 +28,7 @@ func TestEPPRoundTrip(t *testing.T) {
 			false,
 		},
 		{
-			`empty <hello> message`,
+			`<epp> with <hello> element`,
 			&epp.EPP{Hello: std.True},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><hello/></epp>`,
 			false,
