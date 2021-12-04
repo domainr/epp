@@ -1,4 +1,4 @@
-package epp
+package status
 
 // Code represents EPP status codes as a bitfield.
 // See https://tools.ietf.org/html/std69, https://tools.ietf.org/html/rfc3915,
