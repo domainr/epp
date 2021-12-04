@@ -4,14 +4,18 @@ package epp
 // EPP objects and extensions used for a connection.
 type Config struct {
 	// The name of the EPP server, sent in <greeting> messages.
-	// Only used for by the server.
+	// Only used for by the server. If empty, a reasonable default will be used.
 	ServerName string
 
-	// BCP 47 language code(s) for human-readable messages supported by an EPP client or server.
+	// Supported EPP version(s). Typically this should not be set
+	// by either a client or server. If nil, this will default to
+	// []string{"1.0"} (currently the only supported version).
+	Versions []string
+
+	// BCP 47 language code(s) for human-readable messages.
 	// For clients, this describes the desired language(s) in preferred order.
-	// If nil, the client will attempt to select "en". If the server
-	// does not support any of the client’s preferred languages, the first
-	// language advertised by the server will be selected.
+	// If the server does not support any of the client’s preferred languages,
+	// the first language advertised by the server will be selected.
 	// For servers, this describes its supported language(s).
 	// If nil, []string{"en"} will be used.
 	Languages []string
@@ -30,24 +34,6 @@ type Config struct {
 	Extensions []string
 
 	// EPP extension URIs that will be used by a client or server,
-	// regardless of whether the peer advertises it.
+	// whether or not the peer indicates support for it.
 	ForcedExtensions []string
-}
-
-// Copy returns a deep copy of c.
-func (c Config) Copy() Config {
-	c.Languages = copySlice(c.Languages)
-	c.Objects = copySlice(c.Objects)
-	c.Extensions = copySlice(c.Extensions)
-	c.ForcedExtensions = copySlice(c.ForcedExtensions)
-	return c
-}
-
-func copySlice(s []string) []string {
-	if s == nil {
-		return nil
-	}
-	dst := make([]string, len(s))
-	copy(dst, s)
-	return dst
 }
