@@ -2,7 +2,6 @@ package epp
 
 import (
 	"context"
-	"errors"
 	"sync/atomic"
 
 	"github.com/domainr/epp/internal/schema/epp"
@@ -65,6 +64,3 @@ func (c *client) waitForGreeting(ctx context.Context) (*epp.Greeting, error) {
 		return c.greeting.Load().(*epp.Greeting), nil
 	}
 }
-
-// ErrClosedConnection is the error used for read or write operations on a closed connection.
-var ErrClosedConnection = errors.New("epp: operation on closed connection")
