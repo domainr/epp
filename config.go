@@ -13,6 +13,7 @@ type Config struct {
 	// For clients, this is a list of extensions(s) the client wants to use in preferred order.
 	// If nil, a client will use the highest version of each supported extension advertised by the server.
 	// For servers, this is an advertised list of supported extension(s).
+	// If nil, a server will use a reasonable set of defaults.
 	Extensions []string
 
 	// EPP extension URIs that will be used by a client or server,
