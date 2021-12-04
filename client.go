@@ -14,6 +14,8 @@ type Client interface {
 type client struct {
 	t Transport
 
+	cfg Config
+
 	// done is closed when the client receives a fatal error or the connection is closed.
 	done chan struct{}
 
@@ -25,13 +27,14 @@ type client struct {
 // NewClient returns an EPP client using t as transport.
 // A Transport can be created from an io.Reader/Writer pair or a net.Conn,
 // typically a tls.Conn.
-func NewClient(t Transport) (Client, error) {
-	return newClient(t)
+func NewClient(t Transport, cfg Config) (Client, error) {
+	return newClient(t, cfg)
 }
 
-func newClient(t Transport) (Client, error) {
+func newClient(t Transport, cfg Config) (Client, error) {
 	c := &client{
 		t:           t,
+		cfg:         cfg.Copy(),
 		done:        make(chan struct{}),
 		hasGreeting: make(chan struct{}),
 	}
