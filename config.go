@@ -3,6 +3,19 @@ package epp
 // Config describes an EPP client or server configuration, including
 // EPP objects and extensions used for a connection.
 type Config struct {
+	// The name of the EPP server, sent in <greeting> messages.
+	// Only used for by the server.
+	ServerName string
+
+	// BCP 47 language code(s) for human-readable messages supported by an EPP client or server.
+	// For clients, this describes the desired language(s) in preferred order.
+	// If nil, the client will attempt to select "en". If the server
+	// does not support any of the client’s preferred languages, the first
+	// language advertised by the server will be selected.
+	// For servers, this describes its supported language(s).
+	// If nil, []string{"en"} will be used.
+	Languages []string
+
 	// Namespace URIs of EPP objects supported by a client or server.
 	// For clients, this describes the object type(s) the client wants to access.
 	// For servers, this describes the object type(s) the server allows clients to access.
@@ -23,11 +36,11 @@ type Config struct {
 
 // Copy returns a deep copy of c.
 func (c Config) Copy() Config {
-	return Config{
-		Objects:          copySlice(c.Objects),
-		Extensions:       copySlice(c.Extensions),
-		ForcedExtensions: copySlice(c.ForcedExtensions),
-	}
+	c.Languages = copySlice(c.Languages)
+	c.Objects = copySlice(c.Objects)
+	c.Extensions = copySlice(c.Extensions)
+	c.ForcedExtensions = copySlice(c.ForcedExtensions)
+	return c
 }
 
 func copySlice(s []string) []string {
