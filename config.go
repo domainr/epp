@@ -1,12 +1,10 @@
 package epp
 
+import "github.com/domainr/epp/internal/schema/epp"
+
 // Config describes an EPP client or server configuration, including
 // EPP objects and extensions used for a connection.
 type Config struct {
-	// The name of the EPP server, sent in <greeting> messages.
-	// Only used for by the server. If empty, a reasonable default will be used.
-	ServerName string
-
 	// Supported EPP version(s). Typically this should not be set
 	// by either a client or server. If nil, this will default to
 	// []string{"1.0"} (currently the only supported version).
@@ -35,5 +33,28 @@ type Config struct {
 
 	// EPP extension URIs that will be used by a client or server,
 	// whether or not the peer indicates support for it.
+	// This will always be nil when a configuration is read from a peer.
 	ForcedExtensions []string
+}
+
+func configFromGreeting(g *epp.Greeting) *Config {
+	c := &Config{}
+	// TODO: should epp.Greeting have getter and setter methods to access deeply-nested data?
+	if g.ServiceMenu != nil {
+		c.Versions = copySlice(g.ServiceMenu.Versions)
+		c.Objects = copySlice(g.ServiceMenu.Objects)
+		if g.ServiceMenu.ServiceExtension != nil {
+			c.Extensions = copySlice(g.ServiceMenu.ServiceExtension.Extensions)
+		}
+	}
+	return c
+}
+
+func copySlice(s []string) []string {
+	if s == nil {
+		return nil
+	}
+	dst := make([]string, len(s))
+	copy(dst, s)
+	return dst
 }
