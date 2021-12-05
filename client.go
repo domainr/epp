@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -17,11 +18,17 @@ type Client struct {
 
 	cfg *Config
 
+	newID func() string
+
 	// hasGreeting is closed when the initial <greeting> is received from the server and stored.
 	hasGreeting chan struct{}
 	greeting    atomic.Value
 
+	readOnce  sync.Once
 	responses chan (response)
+
+	m            sync.Mutex
+	transactions map[string]*transaction
 
 	// done is closed when the client receives a fatal error or the connection is closed.
 	done chan struct{}
@@ -36,10 +43,19 @@ func NewClient(t Transport, cfg *Config) (*Client, error) {
 
 func newClient(t Transport, cfg *Config) (*Client, error) {
 	c := &Client{
-		t:           t,
-		cfg:         cfg,
-		hasGreeting: make(chan struct{}),
-		done:        make(chan struct{}),
+		t:            t,
+		cfg:          cfg,
+		newID:        cfg.TransactionID,
+		hasGreeting:  make(chan struct{}),
+		transactions: make(map[string]*transaction),
+		done:         make(chan struct{}),
+	}
+	if c.newID == nil {
+		src, err := newSeqSource("")
+		if err != nil {
+			return nil, err
+		}
+		c.newID = src.ID
 	}
 	return c, nil
 }
@@ -155,4 +171,11 @@ func (c *Client) Close() error {
 		return closer.Close()
 	}
 	return nil
+}
+
+type transaction struct {
+	ctx      context.Context
+	deadline time.Time
+	res      *epp.Response
+	err      error
 }
