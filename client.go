@@ -2,6 +2,7 @@ package epp
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -24,11 +25,8 @@ type Client struct {
 	hasGreeting chan struct{}
 	greeting    atomic.Value
 
-	readOnce  sync.Once
-	responses chan (response)
-
 	m            sync.Mutex
-	transactions map[string]*transaction
+	transactions map[string]transaction
 
 	// done is closed when the client receives a fatal error or the connection is closed.
 	done chan struct{}
@@ -47,7 +45,7 @@ func newClient(t Transport, cfg *Config) (*Client, error) {
 		cfg:          cfg,
 		newID:        cfg.TransactionID,
 		hasGreeting:  make(chan struct{}),
-		transactions: make(map[string]*transaction),
+		transactions: make(map[string]transaction),
 		done:         make(chan struct{}),
 	}
 	if c.newID == nil {
@@ -57,31 +55,23 @@ func newClient(t Transport, cfg *Config) (*Client, error) {
 		}
 		c.newID = src.ID
 	}
+	go c.readLoop()
 	return c, nil
 }
 
-func (c *Client) setGreeting(g *epp.Greeting) {
-	c.greeting.Store(g)
-	select {
-	case <-c.hasGreeting:
-	default:
-		close(c.hasGreeting)
-	}
-}
-
-func (c *Client) waitForGreeting(ctx context.Context) (*epp.Greeting, error) {
-	g := c.greeting.Load()
-	if g != nil {
-		return g.(*epp.Greeting), nil
-	}
+// Close closes a client connection. If the Transport used by this client
+// implements io.Closer, Close will be called and any error returned.
+func (c *Client) Close() error {
 	select {
 	case <-c.done:
-		return nil, ErrClosedConnection
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case <-c.hasGreeting:
-		return c.greeting.Load().(*epp.Greeting), nil
+		return net.ErrClosed
+	default:
+		close(c.done)
 	}
+	if closer, ok := c.t.(io.Closer); ok {
+		return closer.Close()
+	}
+	return nil
 }
 
 // ServerConfig returns the server configuration described in a <greeting> message.
@@ -115,11 +105,21 @@ func (c *Client) ServerTime(ctx context.Context) (time.Time, error) {
 	return g.ServerDate.Time, nil
 }
 
+// newCommand returns a new epp.Command with a unique transaction ID.
+func (c *Client) newCommand() *epp.Command {
+	return &epp.Command{
+		ClientTransactionID: c.newID(),
+	}
+}
+
 // readLoop reads EPP messages from c.t and sends them to c.responses.
 // It closes c.responses before returning.
 // I/O errors are considered fatal and are returned.
 func (c *Client) readLoop() {
-	defer close(c.responses)
+	var err error
+	defer func() {
+		c.closeTransactions(err)
+	}()
 	for {
 		select {
 		case <-c.done:
@@ -127,17 +127,19 @@ func (c *Client) readLoop() {
 		default:
 		}
 
-		data, err := c.t.ReadDataUnit()
+		var data []byte
+		data, err = c.t.ReadDataUnit()
 		if err != nil {
-			c.responses <- response{err: err}
+			// TODO: log I/O errors.
 			return
 		}
 
 		var e epp.EPP
 		err = xml.Unmarshal(data, &e)
 		if err != nil {
-			c.responses <- response{err: err}
-			continue // TODO: should XML parsing errors be considered fatal?
+			// TODO: log XML parsing errors.
+			// TODO: should XML parsing errors be considered fatal?
+			continue
 		}
 
 		// TODO: this is not exactly conforming, as a valid <epp> message
@@ -146,36 +148,98 @@ func (c *Client) readLoop() {
 			c.setGreeting(e.Greeting)
 		}
 		if e.Response != nil {
-			c.responses <- response{res: e.Response}
+			c.processResponse(e.Response)
 		}
 
 		// TODO: log if server receives a <hello> or <command>.
 	}
 }
 
-type response struct {
-	res *epp.Response
-	err error
+func (c *Client) setGreeting(g *epp.Greeting) {
+	c.greeting.Store(g)
+	select {
+	case <-c.hasGreeting:
+	default:
+		close(c.hasGreeting)
+	}
 }
 
-// Close closes a client connection. If the Transport used by this client
-// implements io.Closer, Close will be called and any error returned.
-func (c *Client) Close() error {
+func (c *Client) waitForGreeting(ctx context.Context) (*epp.Greeting, error) {
+	g := c.greeting.Load()
+	if g != nil {
+		return g.(*epp.Greeting), nil
+	}
 	select {
 	case <-c.done:
-		return net.ErrClosed
-	default:
-		close(c.done)
+		return nil, ErrClosedConnection
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-c.hasGreeting:
+		return c.greeting.Load().(*epp.Greeting), nil
 	}
-	if closer, ok := c.t.(io.Closer); ok {
-		return closer.Close()
+}
+
+func (c *Client) processResponse(r *epp.Response) {
+	if r.TransactionID.Client == "" {
+		// TODO: log when server responds with an empty client transaction ID.
+		return
 	}
+	t, ok := c.popTransaction(r.TransactionID.Client)
+	if !ok {
+		// TODO: log when server responds with unknown transaction ID.
+		// TODO: keep abandoned transactions around for some period of time.
+		return
+	}
+	select {
+	case <-t.ctx.Done():
+		// TODO: log context cancellation error.
+		// TODO: keep abandoned transactions around for some period of time.
+	case t.c <- resErr{res: r}:
+	}
+}
+
+func (c *Client) closeTransactions(err error) {
+	c.m.Lock()
+	transactions := c.transactions
+	c.transactions = nil
+	c.m.Unlock()
+	for _, t := range transactions {
+		select {
+		case <-t.ctx.Done():
+			// TODO: log context cancellation error.
+			// TODO: keep abandoned transactions around for some period of time.
+		case t.c <- resErr{err: err}:
+		}
+	}
+}
+
+func (c *Client) pushTransaction(id string, t transaction) error {
+	c.m.Lock()
+	defer c.m.Unlock()
+	_, ok := c.transactions[id]
+	if ok {
+		return fmt.Errorf("epp: transaction already exists: %s", id)
+	}
+	c.transactions[id] = t
 	return nil
 }
 
+func (c *Client) popTransaction(id string) (transaction, bool) {
+	c.m.Lock()
+	defer c.m.Unlock()
+	t, ok := c.transactions[id]
+	if ok {
+		delete(c.transactions, id)
+	}
+	return t, ok
+}
+
 type transaction struct {
-	ctx      context.Context
-	deadline time.Time
-	res      *epp.Response
-	err      error
+	ctx context.Context
+	c   chan resErr
+}
+
+type resErr struct {
+	res *epp.Response
+	err error
 }
