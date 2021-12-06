@@ -32,6 +32,16 @@ type Client struct {
 	done chan struct{}
 }
 
+type transaction struct {
+	ctx context.Context
+	c   chan resErr
+}
+
+type resErr struct {
+	res *epp.Response
+	err error
+}
+
 // NewClient returns an EPP client from t and cfg.
 // A Transport can be created from an io.Reader/Writer pair or a net.Conn,
 // typically a tls.Conn. Once used, cfg should not be modified.
@@ -232,14 +242,4 @@ func (c *Client) popTransaction(id string) (transaction, bool) {
 		delete(c.transactions, id)
 	}
 	return t, ok
-}
-
-type transaction struct {
-	ctx context.Context
-	c   chan resErr
-}
-
-type resErr struct {
-	res *epp.Response
-	err error
 }
