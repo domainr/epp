@@ -1,6 +1,9 @@
 package epp
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // ErrClosedConnection indicates a read or write operation on a closed connection.
 var ErrClosedConnection = errors.New("epp: operation on closed connection")
@@ -16,3 +19,14 @@ var ErrNoResponse = errors.New("epp: missing <response>")
 
 // ErrUnexpectedResponse indicates an EPP message contained an unexpected <response> element.
 var ErrUnexpectedResponse = errors.New("epp: unexpected <response>")
+
+// ErrNoTransactionID indicates an EPP message did not contain an expected transaction ID.
+var ErrNoTransactionID = errors.New("epp: missing transaction ID")
+
+// TransactionIDError indicates an invalid transaction ID.
+type TransactionIDError string
+
+// Error implements the error interface.
+func (err TransactionIDError) Error() string {
+	return fmt.Sprintf("epp: invalid transaction ID: %q", string(err))
+}
