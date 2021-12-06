@@ -126,10 +126,10 @@ func (c *Client) newCommand() *epp.Command {
 
 // writeDataUnit writes a single EPP data unit to the underlying Transport.
 // Writes are synchronized, so it is safe to call this from multiple goroutines.
-func (c *Client) writeDataUnit(b []byte) error {
+func (c *Client) writeDataUnit(p []byte) error {
 	c.mWrite.Lock()
 	defer c.mWrite.Unlock()
-	return c.t.WriteDataUnit(b)
+	return c.t.WriteDataUnit(p)
 }
 
 // readLoop reads EPP messages from c.t and sends them to c.responses.

@@ -26,8 +26,8 @@ func (t *IO) ReadDataUnit() ([]byte, error) {
 }
 
 // WriteDataUnit writes a single EPP data unit to t or returns an error.
-func (t *IO) WriteDataUnit(b []byte) error {
-	return WriteDataUnit(t.W, b)
+func (t *IO) WriteDataUnit(p []byte) error {
+	return WriteDataUnit(t.W, p)
 }
 
 // Conn implements Transport using a net.Conn.
@@ -43,8 +43,8 @@ func (t *Conn) ReadDataUnit() ([]byte, error) {
 }
 
 // WriteDataUnit writes a single EPP data unit to t or returns an error.
-func (t *Conn) WriteDataUnit(b []byte) error {
-	return WriteDataUnit(t.Conn, b)
+func (t *Conn) WriteDataUnit(p []byte) error {
+	return WriteDataUnit(t.Conn, p)
 }
 
 // ReadDataUnit reads a single EPP data unit from r, returning the payload or an error.
@@ -63,21 +63,21 @@ func ReadDataUnit(r io.Reader) ([]byte, error) {
 		return nil, io.ErrUnexpectedEOF
 	}
 	n -= 4
-	b := make([]byte, n)
-	_, err = io.ReadAtLeast(r, b, int(n))
-	return b, err
+	p := make([]byte, n)
+	_, err = io.ReadAtLeast(r, p, int(n))
+	return p, err
 }
 
 // WriteDataUnit writes a single EPP data unit to w.
 // Bytes written are prefixed with 32-bit header specifying the total size
 // of the data unit (message + 4 byte header), in network (big-endian) order.
 // See http://www.ietf.org/rfc/rfc4934.txt for more information.
-func WriteDataUnit(w io.Writer, b []byte) error {
-	s := uint32(4 + len(b))
+func WriteDataUnit(w io.Writer, p []byte) error {
+	s := uint32(4 + len(p))
 	err := binary.Write(w, binary.BigEndian, s)
 	if err != nil {
 		return err
 	}
-	_, err = w.Write(b)
+	_, err = w.Write(p)
 	return err
 }
