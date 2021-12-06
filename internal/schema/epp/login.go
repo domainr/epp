@@ -5,7 +5,7 @@ package epp
 type Login struct {
 	ClientID    string   `xml:"clID"`
 	Password    string   `xml:"pw"`
-	NewPassword string   `xml:"newPW,omitempty"`
+	NewPassword *string  `xml:"newPW"`
 	Options     Options  `xml:"options"`
 	Services    Services `xml:"svcs"`
 }

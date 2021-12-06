@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/domainr/epp/internal/schema/epp"
+	"github.com/domainr/epp/internal/schema/std"
 	"github.com/domainr/epp/internal/schema/test"
 	"github.com/domainr/epp/ns"
 )
@@ -74,7 +75,7 @@ func TestLoginRoundTrip(t *testing.T) {
 					Login: &epp.Login{
 						ClientID:    "user",
 						Password:    "password",
-						NewPassword: "newpassword",
+						NewPassword: std.StringPointer("newpassword"),
 						Options: epp.Options{
 							Version: epp.Version,
 							Lang:    "en",
@@ -91,7 +92,7 @@ func TestLoginRoundTrip(t *testing.T) {
 				Command: &epp.Command{
 					Login: &epp.Login{
 						ClientID:    "user",
-						NewPassword: "newpassword",
+						NewPassword: std.StringPointer("newpassword"),
 						Options: epp.Options{
 							Version: epp.Version,
 							Lang:    "en",
