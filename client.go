@@ -15,7 +15,9 @@ import (
 
 // Client represents an EPP Client.
 type Client struct {
-	t Transport
+	// mWrite protects writes on t.
+	mWrite sync.Mutex
+	t      Transport
 
 	cfg *Config
 
@@ -25,8 +27,8 @@ type Client struct {
 	hasGreeting chan struct{}
 	greeting    atomic.Value
 
-	m            sync.Mutex
-	transactions map[string]transaction
+	mTransactions sync.Mutex
+	transactions  map[string]transaction
 
 	// done is closed when the client receives a fatal error or the connection is closed.
 	done chan struct{}
@@ -122,6 +124,14 @@ func (c *Client) newCommand() *epp.Command {
 	}
 }
 
+// writeDataUnit writes a single EPP data unit to the underlying Transport.
+// Writes are synchronized, so it is safe to call this from multiple goroutines.
+func (c *Client) writeDataUnit(b []byte) error {
+	c.mWrite.Lock()
+	defer c.mWrite.Unlock()
+	return c.t.WriteDataUnit(b)
+}
+
 // readLoop reads EPP messages from c.t and sends them to c.responses.
 // It closes c.responses before returning.
 // I/O errors are considered fatal and are returned.
@@ -209,10 +219,10 @@ func (c *Client) processResponse(r *epp.Response) {
 }
 
 func (c *Client) closeTransactions(err error) {
-	c.m.Lock()
+	c.mTransactions.Lock()
 	transactions := c.transactions
 	c.transactions = nil
-	c.m.Unlock()
+	c.mTransactions.Unlock()
 	for _, t := range transactions {
 		select {
 		case <-t.ctx.Done():
@@ -224,8 +234,8 @@ func (c *Client) closeTransactions(err error) {
 }
 
 func (c *Client) pushTransaction(id string, t transaction) error {
-	c.m.Lock()
-	defer c.m.Unlock()
+	c.mTransactions.Lock()
+	defer c.mTransactions.Unlock()
 	_, ok := c.transactions[id]
 	if ok {
 		return fmt.Errorf("epp: transaction already exists: %s", id)
@@ -235,8 +245,8 @@ func (c *Client) pushTransaction(id string, t transaction) error {
 }
 
 func (c *Client) popTransaction(id string) (transaction, bool) {
-	c.m.Lock()
-	defer c.m.Unlock()
+	c.mTransactions.Lock()
+	defer c.mTransactions.Unlock()
 	t, ok := c.transactions[id]
 	if ok {
 		delete(c.transactions, id)
