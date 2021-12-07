@@ -299,7 +299,7 @@ func (c *Client) popHello() (transaction, bool) {
 	return t, true
 }
 
-// pushCommand adds the <command> with this id to the map of in-flight commands.
+// pushCommand adds a <command> transaction to the map of in-flight commands.
 func (c *Client) pushCommand(id string, t transaction) error {
 	c.mCommands.Lock()
 	defer c.mCommands.Unlock()
@@ -311,7 +311,7 @@ func (c *Client) pushCommand(id string, t transaction) error {
 	return nil
 }
 
-// popCommand removes the <command> with this id from the map of in-flight commands.
+// popCommand removes a <command> transaction from the map of in-flight commands.
 func (c *Client) popCommand(id string) (transaction, bool) {
 	c.mCommands.Lock()
 	defer c.mCommands.Unlock()
