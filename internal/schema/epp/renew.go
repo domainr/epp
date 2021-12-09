@@ -5,3 +5,5 @@ package epp
 type Renew struct {
 	// TODO: DomainRenew *domain.Renew
 }
+
+func (Renew) eppCommand() {}

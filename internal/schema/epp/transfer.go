@@ -5,3 +5,5 @@ package epp
 type Transfer struct {
 	// TODO: DomainTransfer *domain.Transfer
 }
+
+func (Transfer) eppCommand() {}

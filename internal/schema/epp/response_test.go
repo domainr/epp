@@ -17,14 +17,14 @@ func TestResponseRoundTrip(t *testing.T) {
 	}{
 		{
 			`empty <response>`,
-			&epp.EPP{Response: &epp.Response{}},
+			&epp.EPP{Body: &epp.Response{}},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><response><trID><clTRID></clTRID><svTRID></svTRID></trID></response></epp>`,
 			false,
 		},
 		{
 			`simple code 1000`,
 			&epp.EPP{
-				Response: &epp.Response{
+				Body: &epp.Response{
 					Results: []epp.Result{
 						{
 							Code:    epp.Success,
@@ -39,7 +39,7 @@ func TestResponseRoundTrip(t *testing.T) {
 		{
 			`multiple result codes`,
 			&epp.EPP{
-				Response: &epp.Response{
+				Body: &epp.Response{
 					Results: []epp.Result{
 						{
 							Code:    epp.ErrParameterRange,
@@ -58,7 +58,7 @@ func TestResponseRoundTrip(t *testing.T) {
 		{
 			`with extValue>reason`,
 			&epp.EPP{
-				Response: &epp.Response{
+				Body: &epp.Response{
 					Results: []epp.Result{
 						{
 							Code:    epp.ErrBillingFailure,
@@ -78,7 +78,7 @@ func TestResponseRoundTrip(t *testing.T) {
 		{
 			`with transaction IDs`,
 			&epp.EPP{
-				Response: &epp.Response{
+				Body: &epp.Response{
 					Results: []epp.Result{
 						{
 							Code:    epp.Success,
@@ -97,7 +97,7 @@ func TestResponseRoundTrip(t *testing.T) {
 		{
 			`with basic <msgQ>`,
 			&epp.EPP{
-				Response: &epp.Response{
+				Body: &epp.Response{
 					MessageQueue: &epp.MessageQueue{Count: 5, ID: "67890"},
 				},
 			},
@@ -107,7 +107,7 @@ func TestResponseRoundTrip(t *testing.T) {
 		{
 			`with <msgQ> with date`,
 			&epp.EPP{
-				Response: &epp.Response{
+				Body: &epp.Response{
 					MessageQueue: &epp.MessageQueue{
 						Count: 5,
 						ID:    "67890",
@@ -121,7 +121,7 @@ func TestResponseRoundTrip(t *testing.T) {
 		{
 			`with full <msgQ>`,
 			&epp.EPP{
-				Response: &epp.Response{
+				Body: &epp.Response{
 					MessageQueue: &epp.MessageQueue{
 						Count: 5,
 						ID:    "67890",

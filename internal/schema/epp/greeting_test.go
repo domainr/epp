@@ -20,14 +20,14 @@ func TestGreetingRoundTrip(t *testing.T) {
 	}{
 		{
 			`empty <greeting>`,
-			&epp.EPP{Greeting: &epp.Greeting{}},
+			&epp.EPP{Body: &epp.Greeting{}},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><greeting></greeting></epp>`,
 			false,
 		},
 		{
 			`simple <greeting>`,
 			&epp.EPP{
-				Greeting: &epp.Greeting{
+				Body: &epp.Greeting{
 					ServerName: "Test EPP Server",
 					ServerDate: std.ParseTime("2000-01-01T00:00:00Z").Pointer(),
 				},
@@ -38,7 +38,7 @@ func TestGreetingRoundTrip(t *testing.T) {
 		{
 			`complex <greeting>`,
 			&epp.EPP{
-				Greeting: &epp.Greeting{
+				Body: &epp.Greeting{
 					ServerName: "Test EPP Server",
 					ServerDate: std.ParseTime("2000-01-01T00:00:00Z").Pointer(),
 					ServiceMenu: &epp.ServiceMenu{
@@ -55,7 +55,7 @@ func TestGreetingRoundTrip(t *testing.T) {
 		{
 			`complex <greeting> with complex <dcp>`,
 			&epp.EPP{
-				Greeting: &epp.Greeting{
+				Body: &epp.Greeting{
 					ServerName: "Test EPP Server",
 					ServerDate: std.ParseTime("2000-01-01T00:00:00Z").Pointer(),
 					ServiceMenu: &epp.ServiceMenu{
@@ -87,7 +87,7 @@ func TestGreetingRoundTrip(t *testing.T) {
 		{
 			`<greeting> with <dcp> with absolute expiry`,
 			&epp.EPP{
-				Greeting: &epp.Greeting{
+				Body: &epp.Greeting{
 					DCP: &epp.DCP{
 						Expiry: &epp.Expiry{
 							Absolute: std.ParseTime("2000-01-01T00:00:00Z").Pointer(),
@@ -101,7 +101,7 @@ func TestGreetingRoundTrip(t *testing.T) {
 		{
 			`complex <greeting> with extensions`,
 			&epp.EPP{
-				Greeting: &epp.Greeting{
+				Body: &epp.Greeting{
 					ServerName: "Test EPP Server",
 					ServerDate: std.ParseTime("2000-01-01T00:00:00Z").Pointer(),
 					ServiceMenu: &epp.ServiceMenu{

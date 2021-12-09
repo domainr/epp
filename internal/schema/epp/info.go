@@ -5,3 +5,5 @@ package epp
 type Info struct {
 	// TODO: DomainInfo *domain.Info
 }
+
+func (Info) eppCommand() {}

@@ -121,7 +121,7 @@ func (c *Client) Hello(ctx context.Context) error {
 	defer cancel()
 	c.pushHello(t)
 
-	err := c.write(&epp.EPP{Hello: true})
+	err := c.write(&epp.EPP{Body: &epp.Hello{}})
 	if err != nil {
 		return err
 	}
@@ -208,11 +208,9 @@ func (c *Client) handleReply(e *epp.EPP) error {
 	// TODO: this is not exactly conforming, as a valid <epp> message
 	// should not contain both a <greeting> and a <response> element.
 
-	// TODO: log if server receives a <hello> or <command>.
-
-	// Process <response>
-	if e.Response != nil {
-		id := e.Response.TransactionID.Client
+	switch body := e.Body.(type) {
+	case *epp.Response:
+		id := body.TransactionID.Client
 		if id == "" {
 			// TODO: log when server responds with an empty client transaction ID.
 			return TransactionIDError(id)
@@ -227,12 +225,10 @@ func (c *Client) handleReply(e *epp.EPP) error {
 		if err != nil {
 			return err
 		}
-	}
 
-	// Process <greeting>
-	if e.Greeting != nil {
+	case *epp.Greeting:
 		// Always store the last <greeting> received from the server.
-		c.greeting.Store(e.Greeting)
+		c.greeting.Store(body)
 
 		// Close hasGreeting this is the first <greeting> recieved.
 		select {
@@ -249,6 +245,12 @@ func (c *Client) handleReply(e *epp.EPP) error {
 				return err
 			}
 		}
+
+	case *epp.Hello:
+		// TODO: log if server receives a <hello> or <command>.
+
+	case *epp.Command:
+		// TODO: log if server receives a <hello> or <command>.
 	}
 
 	return nil

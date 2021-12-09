@@ -3,6 +3,9 @@ package epp
 // Response represents an EPP server <response> as defined in RFC 5730.
 // See https://www.rfc-editor.org/rfc/rfc5730.html#section-2.6.
 type Response struct {
+	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 response"`
+
+	// Results contain one or more results (success or failure) of an EPP command.
 	Results []Result `xml:"result,omitempty"`
 
 	// The OPTIONAL <msgQ> element describes messages queued for client
@@ -14,6 +17,8 @@ type Response struct {
 	// which the response is being returned.
 	TransactionID TransactionID `xml:"trID"`
 }
+
+func (Response) eppBody() {}
 
 // Result represents an EPP server <result> as defined in RFC 5730.
 type Result struct {

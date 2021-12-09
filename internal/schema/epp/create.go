@@ -6,3 +6,5 @@ type Create struct {
 	// TODO: DomainCreate *domain.Create
 	// TODO: HostCreate *host.Create
 }
+
+func (Create) eppCommand() {}

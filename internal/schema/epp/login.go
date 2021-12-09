@@ -3,12 +3,16 @@ package epp
 // Login represents an EPP <login> command as defined in RFC 5730.
 // See https://www.rfc-editor.org/rfc/rfc5730.html#section-2.9.1.1.
 type Login struct {
+	XMLName     struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 login"`
 	ClientID    string   `xml:"clID"`
 	Password    string   `xml:"pw"`
 	NewPassword *string  `xml:"newPW"`
 	Options     Options  `xml:"options"`
 	Services    Services `xml:"svcs"`
+	command
 }
+
+func (Login) eppCommand() {}
 
 // Options represent EPP login options as defined in RFC 5730.
 type Options struct {

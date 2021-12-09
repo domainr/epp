@@ -17,15 +17,15 @@ func TestCommandRoundTrip(t *testing.T) {
 	}{
 		{
 			`empty <command>`,
-			&epp.EPP{Command: &epp.Command{}},
+			&epp.EPP{Body: &epp.Command{}},
 			`<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command></command></epp>`,
 			false,
 		},
 		{
 			`empty <domain:check> command`,
 			&epp.EPP{
-				Command: &epp.Command{
-					Check: &epp.Check{
+				Body: &epp.Command{
+					Command: &epp.Check{
 						DomainCheck: &domain.Check{},
 					},
 				},
@@ -36,8 +36,8 @@ func TestCommandRoundTrip(t *testing.T) {
 		{
 			`single <domain:check> command`,
 			&epp.EPP{
-				Command: &epp.Command{
-					Check: &epp.Check{
+				Body: &epp.Command{
+					Command: &epp.Check{
 						DomainCheck: &domain.Check{
 							Names: []string{"example.com"},
 						},

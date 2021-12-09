@@ -6,3 +6,5 @@ type Update struct {
 	// TODO: DomainUpdate *domain.Update
 	// TODO: HostUpdate *host.Update
 }
+
+func (Update) eppCommand() {}

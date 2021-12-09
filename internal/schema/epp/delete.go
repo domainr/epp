@@ -6,3 +6,5 @@ type Delete struct {
 	// TODO: DomainDelete *domain.Delete
 	// TODO: HostDelete *host.Delete
 }
+
+func (Delete) eppCommand() {}

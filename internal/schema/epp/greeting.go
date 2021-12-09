@@ -7,11 +7,14 @@ import (
 
 // Greeting represents an EPP server <greeting> message as defined in RFC 5730.
 type Greeting struct {
+	XMLName     struct{}     `xml:"urn:ietf:params:xml:ns:epp-1.0 greeting"`
 	ServerName  string       `xml:"svID,omitempty"`
 	ServerDate  *std.Time    `xml:"svDate"`
 	ServiceMenu *ServiceMenu `xml:"svcMenu"`
 	DCP         *DCP         `xml:"dcp"`
 }
+
+func (Greeting) eppBody() {}
 
 // ServiceMenu represents an EPP <svcMenu> element as defined in RFC 5730.
 type ServiceMenu struct {
