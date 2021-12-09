@@ -14,6 +14,8 @@ type Command struct {
 
 func (Command) eppBody() {}
 
+// UnmarshalXML implements the xml.Unmarshaler interface.
+// It maps known EPP commands to their corresponding Go type.
 func (c *Command) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	type T Command
 	var v struct {

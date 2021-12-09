@@ -26,7 +26,7 @@ func TestCommandRoundTrip(t *testing.T) {
 			&epp.EPP{
 				Body: &epp.Command{
 					Command: &epp.Check{
-						DomainCheck: &domain.Check{},
+						Check: &domain.Check{},
 					},
 				},
 			},
@@ -38,7 +38,7 @@ func TestCommandRoundTrip(t *testing.T) {
 			&epp.EPP{
 				Body: &epp.Command{
 					Command: &epp.Check{
-						DomainCheck: &domain.Check{
+						Check: &domain.Check{
 							Names: []string{"example.com"},
 						},
 					},
