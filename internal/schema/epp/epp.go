@@ -6,12 +6,11 @@ import (
 
 // EPP represents an <epp> element as defined in RFC 5730.
 // See https://www.rfc-editor.org/rfc/rfc5730.html.
-//
-// Body is a pointer to a valid EPP child element:
-// <hello>, <greeting>, <command>, and <response>.
 type EPP struct {
 	XMLName struct{} `xml:"urn:ietf:params:xml:ns:epp-1.0 epp"`
-	Body    body
+
+	// Body is any valid EPP child element.
+	Body Body
 }
 
 func (e *EPP) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
@@ -38,6 +37,8 @@ func (e *EPP) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	return nil
 }
 
-type body interface {
+// Body represents a valid EPP body element:
+// <hello>, <greeting>, <command>, and <response>.
+type Body interface {
 	eppBody()
 }

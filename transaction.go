@@ -20,6 +20,6 @@ func newTransaction(ctx context.Context) (transaction, context.CancelFunc) {
 }
 
 type reply struct {
-	e   *epp.EPP
-	err error
+	body epp.Body
+	err  error
 }
