@@ -7,6 +7,8 @@ import (
 )
 
 // Transport is an interface that can read and write EPP data units.
+// A Transport can be created from an io.Reader/Writer pair or a net.Conn,
+// typically a tls.Conn.
 type Transport interface {
 	ReadDataUnit() ([]byte, error)
 	WriteDataUnit([]byte) error
@@ -26,6 +28,8 @@ func (t *IO) ReadDataUnit() ([]byte, error) {
 }
 
 // WriteDataUnit writes a single EPP data unit to t or returns an error.
+// If t.W implements io.Flusher, Flush will be called after writing
+// each EPP data unit.
 func (t *IO) WriteDataUnit(p []byte) error {
 	return WriteDataUnit(t.W, p)
 }

@@ -13,7 +13,12 @@ import (
 	"github.com/nbio/xml"
 )
 
-// Client represents an EPP Client.
+// Client represents an EPP client session.
+//
+// A Client is created from a Transport and a Config. Once opened, it it safe to
+// process EPP commands on a client until it is closed or encounters a fatal
+// error. Once closed, a Client cannot be reused. A Client is safe to use from
+// multiple goroutines.
 type Client struct {
 	// mWrite protects writes on t.
 	mWrite sync.Mutex
