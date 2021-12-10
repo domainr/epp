@@ -24,11 +24,7 @@ type Client struct {
 	mWrite sync.Mutex
 	t      Transport
 
-	cfg *Config
-
-	// newID is a function that generates unique client transaction IDs.
-	// It is copied from cfg, and set to a reasonable default if nil.
-	newID func() string
+	cfg Config
 
 	// greeting stores the most recently received <greeting> from the server.
 	greeting atomic.Value
@@ -47,30 +43,27 @@ type Client struct {
 }
 
 // NewClient returns an EPP client from t and cfg.
-// A Transport can be created from an io.Reader/Writer pair or a net.Conn,
-// typically a tls.Conn. Once used, cfg should not be modified.
-func NewClient(t Transport, cfg *Config) (*Client, error) {
-	return newClient(t, cfg)
-}
-
-func newClient(t Transport, cfg *Config) (*Client, error) {
-	c := &Client{
-		t:           t,
-		cfg:         cfg,
-		newID:       cfg.TransactionID,
-		hasGreeting: make(chan struct{}),
-		commands:    make(map[string]transaction),
-		done:        make(chan struct{}),
-	}
-	if c.newID == nil {
+func NewClient(t Transport, cfg Config) (*Client, error) {
+	if cfg.TransactionID == nil {
 		src, err := newSeqSource("")
 		if err != nil {
 			return nil, err
 		}
-		c.newID = src.ID
+		cfg.TransactionID = src.ID
 	}
+	c := newClient(t, cfg)
 	go c.readLoop()
 	return c, nil
+}
+
+func newClient(t Transport, cfg Config) *Client {
+	return &Client{
+		t:           t,
+		cfg:         cfg.Copy(),
+		hasGreeting: make(chan struct{}),
+		commands:    make(map[string]transaction),
+		done:        make(chan struct{}),
+	}
 }
 
 // Close closes a client connection. If the Transport used by this client
@@ -90,10 +83,10 @@ func (c *Client) Close() error {
 
 // ServerConfig returns the server configuration described in a <greeting> message.
 // Will block until the an initial <greeting> is received, or ctx is canceled.
-func (c *Client) ServerConfig(ctx context.Context) (*Config, error) {
+func (c *Client) ServerConfig(ctx context.Context) (Config, error) {
 	g, err := c.waitForGreeting(ctx)
 	if err != nil {
-		return nil, err
+		return Config{}, err
 	}
 	return configFromGreeting(g), nil
 }
@@ -145,7 +138,7 @@ func (c *Client) Hello(ctx context.Context) error {
 // newCommand returns a new epp.Command with a unique transaction ID.
 func (c *Client) newCommand() *epp.Command {
 	return &epp.Command{
-		ClientTransactionID: c.newID(),
+		ClientTransactionID: c.cfg.TransactionID(),
 	}
 }
 

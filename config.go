@@ -46,16 +46,27 @@ type Config struct {
 	TransactionID func() string
 }
 
-func configFromGreeting(g *epp.Greeting) *Config {
-	c := &Config{}
+func configFromGreeting(g *epp.Greeting) Config {
+	c := Config{}
 	// TODO: should epp.Greeting have getter and setter methods to access deeply-nested data?
 	if g.ServiceMenu != nil {
 		c.Versions = copySlice(g.ServiceMenu.Versions)
+		c.Languages = copySlice(g.ServiceMenu.Languages)
 		c.Objects = copySlice(g.ServiceMenu.Objects)
 		if g.ServiceMenu.ServiceExtension != nil {
 			c.Extensions = copySlice(g.ServiceMenu.ServiceExtension.Extensions)
 		}
 	}
+	return c
+}
+
+// Copy deep copy of c.
+func (c Config) Copy() Config {
+	c.Versions = copySlice(c.Versions)
+	c.Languages = copySlice(c.Languages)
+	c.Objects = copySlice(c.Objects)
+	c.Extensions = copySlice(c.Extensions)
+	c.ForcedExtensions = copySlice(c.ForcedExtensions)
 	return c
 }
 
