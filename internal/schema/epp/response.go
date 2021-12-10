@@ -12,9 +12,9 @@ type Response struct {
 	// retrieval.
 	MessageQueue *MessageQueue `xml:"msgQ"`
 
-	// The <trID> (transaction identifier) element contains the
-	// transaction identifier assigned by the server to the command for
-	// which the response is being returned.
+	// The <trID> (transaction identifier) element contains a client
+	// transaction ID of the command that elicited this response and a
+	// server transaction ID that uniquely identifies this response.
 	TransactionID TransactionID `xml:"trID"`
 }
 
