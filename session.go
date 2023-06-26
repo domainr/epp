@@ -14,7 +14,7 @@ func (c *Conn) Login(user, password, newPassword string) error {
 	}
 	res, err := c.readResponse()
 	if err != nil {
-		return nil
+		return err
 	}
 	// We always have a .Result in our non-pointer, but it might be meaningless.
 	// We might not have read anything.  We think that the worst case is we
