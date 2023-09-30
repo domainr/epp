@@ -15,8 +15,8 @@ func (c *Conn) CheckDomain(domains ...string) (*DomainCheckResponse, error) {
 }
 
 // CheckDomainExtensions allows specifying extension data for the following:
-//  - "neulevel:unspec": a string of the Key=Value data for the unspec tag
-//  - "launch:phase": a string of the launch phase
+//   - "neulevel:unspec": a string of the Key=Value data for the unspec tag
+//   - "launch:phase": a string of the launch phase
 func (c *Conn) CheckDomainExtensions(domains []string, extData map[string]string) (*DomainCheckResponse, error) {
 	x, err := encodeDomainCheck(&c.Greeting, domains, extData)
 	if err != nil {
@@ -306,11 +306,12 @@ func init() {
 		charges := c.Value.(*Response).DomainCheckResponse.Charges
 		charge := &charges[len(charges)-1]
 		className := strings.ToLower(string(c.CharData))
-		isDefault := strings.Contains(className, "default")
-		isNormal := strings.Contains(className, "normal")
-		isDiscount := strings.Contains(className, "discount")
-		//lint:ignore S1002 keep == false for clarity
-		if isDefault == false && isNormal == false && isDiscount == false {
+		switch {
+		case strings.Contains(className, "default"):
+		case strings.Contains(className, "normal"):
+		case strings.Contains(className, "discount"):
+		case strings.Contains(className, "standard"):
+		default:
 			charge.Category = "premium"
 		}
 		return nil
