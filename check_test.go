@@ -245,6 +245,11 @@ func TestScanCheckDomainResponseWithFee06(t *testing.T) {
 					<domain:name avail="1">good.space</domain:name>
 				</domain:cd>
 			</domain:chkData>
+			<domain:chkData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ietf:params:xml:ns:domain-1.0 domain-1.0.xsd" xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+			<domain:cd>
+				<domain:name avail="1">basic.tw</domain:name>
+			</domain:cd>
+		</domain:chkData>
 		</resData>
 		<extension>
 			<fee:chkData xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
@@ -255,6 +260,16 @@ func TestScanCheckDomainResponseWithFee06(t *testing.T) {
 					<fee:period unit="y">1</fee:period>
 					<fee:fee>100.00</fee:fee>
 					<fee:class>SPACE Tier 1</fee:class>
+				</fee:cd>
+			</fee:chkData>
+			<fee:chkData xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
+				<fee:cd>
+					<fee:name>basic.tw</fee:name>
+					<fee:currency>USD</fee:currency>
+					<fee:command>create</fee:command>
+					<fee:period unit="y">1</fee:period>
+					<fee:fee>15.30</fee:fee>
+					<fee:class>Standard Tier</fee:class>
 				</fee:cd>
 			</fee:chkData>
 		</extension>
@@ -271,14 +286,20 @@ func TestScanCheckDomainResponseWithFee06(t *testing.T) {
 	d := decoder(x)
 	err := IgnoreEOF(scanResponse.Scan(d, &res))
 	st.Expect(t, err, nil)
-	st.Expect(t, len(dcr.Checks), 1)
+	st.Expect(t, len(dcr.Checks), 2)
 	st.Expect(t, dcr.Checks[0].Domain, "good.space")
 	st.Expect(t, dcr.Checks[0].Available, true)
 	st.Expect(t, dcr.Checks[0].Reason, "")
-	st.Expect(t, len(dcr.Charges), 1)
+	st.Expect(t, dcr.Checks[1].Domain, "basic.tw")
+	st.Expect(t, dcr.Checks[1].Available, true)
+	st.Expect(t, dcr.Checks[1].Reason, "")
+	st.Expect(t, len(dcr.Charges), 2)
 	st.Expect(t, dcr.Charges[0].Domain, "good.space")
 	st.Expect(t, dcr.Charges[0].Category, "premium")
 	st.Expect(t, dcr.Charges[0].CategoryName, "")
+	st.Expect(t, dcr.Charges[1].Domain, "basic.tw")
+	st.Expect(t, dcr.Charges[1].Category, "")
+	st.Expect(t, dcr.Charges[1].CategoryName, "")
 }
 
 func TestScanCheckDomainResponseWithFee07(t *testing.T) {
