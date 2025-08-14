@@ -52,7 +52,6 @@ func (c *Conn) CheckDomainExtensions(domains []string, extData map[string]string
 	}
 
 	return &res.DomainCheckResponse, nil
-
 }
 
 func encodeDomainCheck(greeting *Greeting, domains []string, extData map[string]string) ([]byte, error) {
@@ -375,6 +374,33 @@ func init() {
 		if string(c.CharData) != "standard" {
 			charge.Category = "premium"
 		}
+		return nil
+	})
+
+	path = "epp > response > extension > " + ExtFee10 + " chkData"
+	scanResponse.MustHandleStartElement(path+">cd", func(c *xx.Context) error {
+		dcr := &c.Value.(*Response).DomainCheckResponse
+		dcr.Charges = append(dcr.Charges, DomainCharge{})
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>name", func(c *xx.Context) error {
+		charges := c.Value.(*Response).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		charge.Domain = string(c.CharData)
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>class", func(c *xx.Context) error {
+		charges := c.Value.(*Response).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		if string(c.CharData) != "standard" {
+			charge.Category = "premium"
+		}
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>command>fee", func(c *xx.Context) error {
+		charges := c.Value.(*Response).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		charge.CategoryName = c.Attr("", "description")
 		return nil
 	})
 
