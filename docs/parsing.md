@@ -18,7 +18,7 @@ Instead of trying to unmarshal the entire XML document at once, the scanner walk
 
 1.  **`scanResponse`**: This is the global instance of the `xx.Scanner`. It holds all the rules for parsing.
 
-2.  **Path-Based Matching**: Handlers are registered for specific XML paths. The path is a space-separated string representing the hierarchy of XML tags. For example, the path `epp > response > resData > domain:chkData > cd > name` matches the `<name>` element in the following structure:
+2.  **XPath-Based Matching**: Handlers are registered for specific [XPath](https://www.w3.org/TR/xpath-31/) expressions. The path is a space-separated string representing the hierarchy of XML tags. For example, the path `epp > response > resData > domain:chkData > cd > name` matches the `<name>` element in the following structure:
 
     ```xml
     <epp>
