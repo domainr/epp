@@ -35,7 +35,6 @@ Instead of trying to unmarshal the entire XML document at once, the scanner walk
     ```
     > **Note:** The `xx` scanner ignores XML namespace prefixes (like `domain:`), so they are not included in the path strings in the code.
 
-3.  **`init()` Function**: Go's `init()` functions are executed before any other code in the package. The `init()` function in `check.go` is the perfect place to perform the one-time setup of registering all the necessary parsing handlers with our global `scanResponse` instance.
 
 ### Example Walkthrough: Parsing a `fee-1.0` Extension
 
