@@ -481,4 +481,30 @@ func init() {
 
 		return nil
 	})
+
+	// Scan frnic-2.0 extension for reserved/forbidden attributes
+	path = "epp > response > extension > " + ExtFrnic20 + " ext > resData > chkData > domain > cd > name"
+	scanResponse.MustHandleCharData(path, func(c *xx.Context) error {
+		dcr := &c.Value.(*Response).DomainCheckResponse
+
+		// Read the reserved attribute and store it as a charge category
+		if c.AttrBool("", "reserved") {
+			charge := DomainCharge{
+				Domain:   string(c.CharData), // domain name from element text
+				Category: "reserved",
+			}
+			dcr.Charges = append(dcr.Charges, charge)
+		}
+
+		// Optionally handle forbidden attribute
+		if c.AttrBool("", "forbidden") {
+			charge := DomainCharge{
+				Domain:   string(c.CharData),
+				Category: "forbidden",
+			}
+			dcr.Charges = append(dcr.Charges, charge)
+		}
+
+		return nil
+	})
 }

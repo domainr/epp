@@ -79,6 +79,7 @@ const (
 	ExtNamestore  = "http://www.verisign-grs.com/epp/namestoreExt-1.1"
 	ExtNeulevel   = "urn:ietf:params:xml:ns:neulevel"
 	ExtNeulevel10 = "urn:ietf:params:xml:ns:neulevel-1.0"
+	ExtFrnic20    = "http://www.afnic.fr/xml/epp/frnic-2.0"
 )
 
 // ExtURNNames maps short extension names to their full URN.
@@ -100,6 +101,7 @@ var ExtURNNames = map[string]string{
 	"namestoreExt-1.1": ExtNamestore,
 	"neulevel":         ExtNeulevel,
 	"neulevel-1.0":     ExtNeulevel10,
+	"frnic-2.0":        ExtFrnic20,
 }
 
 // TODO: check if res.Greeting is not empty.

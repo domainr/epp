@@ -774,6 +774,103 @@ func TestScanCheckDomainResponsePriceExtension(t *testing.T) {
 	st.Expect(t, dcr.Charges[0].CategoryName, "")
 }
 
+func TestScanCheckDomainResponseFrnicExtension(t *testing.T) {
+	x := `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0" xmlns:domain="urn:ietf:params:xml:ns:domain-1.0" xmlns:frnic="http://www.afnic.fr/xml/epp/frnic-2.0">
+	<response>
+		<result code="1000">
+			<msg>Command completed successfully</msg>
+		</result>
+		<resData>
+			<domain:chkData>
+				<domain:cd>
+					<domain:name avail="1">frety.fr</domain:name>
+				</domain:cd>
+			</domain:chkData>
+		</resData>
+		<extension>
+			<frnic:ext>
+				<frnic:resData>
+					<frnic:chkData>
+						<frnic:domain>
+							<frnic:cd>
+								<frnic:name forbidden="0" reserved="1">frety.fr</frnic:name>
+								<frnic:rsvReason>City name</frnic:rsvReason>
+							</frnic:cd>
+						</frnic:domain>
+					</frnic:chkData>
+				</frnic:resData>
+			</frnic:ext>
+		</extension>
+		<trID>
+			<svTRID>EPP-8da5fca0-1cf7-4178-9813-82b3d892ebad</svTRID>
+		</trID>
+	</response>
+</epp>`
+
+	var res Response
+	dcr := &res.DomainCheckResponse
+
+	d := decoder(x)
+	err := IgnoreEOF(scanResponse.Scan(d, &res))
+	st.Expect(t, err, nil)
+	st.Expect(t, len(dcr.Checks), 1)
+	st.Expect(t, dcr.Checks[0].Domain, "frety.fr")
+	st.Expect(t, dcr.Checks[0].Available, true)
+	st.Expect(t, len(dcr.Charges), 1)
+	st.Expect(t, dcr.Charges[0].Domain, "frety.fr")
+	st.Expect(t, dcr.Charges[0].Category, "reserved")
+	st.Expect(t, dcr.Charges[0].CategoryName, "")
+}
+
+func TestScanCheckDomainResponseFrnicExtensionForbidden(t *testing.T) {
+	x := `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0" xmlns:domain="urn:ietf:params:xml:ns:domain-1.0" xmlns:frnic="http://www.afnic.fr/xml/epp/frnic-2.0">
+	<response>
+		<result code="1000">
+			<msg>Command completed successfully</msg>
+		</result>
+		<resData>
+			<domain:chkData>
+				<domain:cd>
+					<domain:name avail="0">forbidden-test.fr</domain:name>
+				</domain:cd>
+			</domain:chkData>
+		</resData>
+		<extension>
+			<frnic:ext>
+				<frnic:resData>
+					<frnic:chkData>
+						<frnic:domain>
+							<frnic:cd>
+								<frnic:name forbidden="1" reserved="0">forbidden-test.fr</frnic:name>
+							</frnic:cd>
+						</frnic:domain>
+					</frnic:chkData>
+				</frnic:resData>
+			</frnic:ext>
+		</extension>
+		<trID>
+			<svTRID>EPP-test-forbidden</svTRID>
+		</trID>
+	</response>
+</epp>`
+
+	var res Response
+	dcr := &res.DomainCheckResponse
+
+	d := decoder(x)
+	err := IgnoreEOF(scanResponse.Scan(d, &res))
+	st.Expect(t, err, nil)
+	st.Expect(t, len(dcr.Checks), 1)
+	st.Expect(t, dcr.Checks[0].Domain, "forbidden-test.fr")
+	st.Expect(t, dcr.Checks[0].Available, false)
+	st.Expect(t, len(dcr.Charges), 1)
+	st.Expect(t, dcr.Charges[0].Domain, "forbidden-test.fr")
+	st.Expect(t, dcr.Charges[0].Category, "forbidden")
+	st.Expect(t, dcr.Charges[0].CategoryName, "")
+}
+
 func BenchmarkEncodeDomainCheck(b *testing.B) {
 	domains := []string{"hello.com"}
 	for i := 0; i < b.N; i++ {
