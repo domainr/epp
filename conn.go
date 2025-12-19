@@ -1,6 +1,7 @@
 package epp
 
 import (
+	"bytes"
 	"encoding/binary"
 	"encoding/xml"
 	"io"
@@ -114,9 +115,19 @@ func (c *Conn) readResponse() (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	r := io.LimitedReader{R: c.Conn, N: int64(n)}
+
+	// Read the entire body
+	body := make([]byte, n)
+	_, err = io.ReadFull(c.Conn, body)
+	if err != nil {
+		return nil, err
+	}
+
+	logXML("<-- READ DATA UNIT -->", body)
+
 	res := &Response{}
-	err = IgnoreEOF(scanResponse.Scan(xml.NewDecoder(&r), res))
+	// Decode from the body
+	err = IgnoreEOF(scanResponse.Scan(xml.NewDecoder(bytes.NewReader(body)), res))
 	if err != nil {
 		return res, err
 	}

@@ -1,6 +1,13 @@
 package epp
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"strconv"
+)
+
+func xmlInt(i int) string {
+	return strconv.Itoa(i)
+}
 
 const (
 	// EPP defines the IETF URN for the EPP namespace.

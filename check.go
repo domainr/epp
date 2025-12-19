@@ -141,28 +141,36 @@ func encodeDomainCheck(greeting *Greeting, domains []string, extData map[string]
 		if supportsFeePhase {
 			feePhase = fmt.Sprintf(" phase=%q", extData["fee:phase"])
 		}
-		for _, domain := range domains {
-			switch feeURN {
-			case ExtFee09: // Version 0.9 changes the XML structure
-				buf.WriteString(`<fee:object objURI="urn:ietf:params:xml:ns:domain-1.0">`)
-				buf.WriteString(`<fee:objID element="name">`)
-				xml.EscapeText(buf, []byte(domain))
-				buf.WriteString(`</fee:objID>`)
-				buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
-				buf.WriteString(`</fee:object>`)
-			case ExtFee11: // https://tools.ietf.org/html/draft-brown-epp-fees-07#section-5.1.1
-				buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
-			case ExtFee21: // Version 0.21 changes the XML structure
-				buf.WriteString(`<fee:command name="create"/>`)
-			case ExtFee10:
-				buf.WriteString(`<fee:command name="create"/>`)
-			default:
-				buf.WriteString(`<fee:domain>`)
-				buf.WriteString(`<fee:name>`)
-				xml.EscapeText(buf, []byte(domain))
-				buf.WriteString(`</fee:name>`)
-				buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
-				buf.WriteString(`</fee:domain>`)
+
+		// ExtFee10 uses global commands on this server (and typically in fee-1.0 when not using objects)
+		if feeURN == ExtFee10 {
+			buf.WriteString(`<fee:command name="create"/>`)
+			buf.WriteString(`<fee:command name="renew"/>`)
+			buf.WriteString(`<fee:command name="restore"/>`)
+			buf.WriteString(`<fee:command name="transfer"/>`)
+		} else {
+			// Other versions iterate per domain (or we preserve existing behavior for them)
+			for _, domain := range domains {
+				switch feeURN {
+				case ExtFee09: // Version 0.9 changes the XML structure
+					buf.WriteString(`<fee:object objURI="urn:ietf:params:xml:ns:domain-1.0">`)
+					buf.WriteString(`<fee:objID element="name">`)
+					xml.EscapeText(buf, []byte(domain))
+					buf.WriteString(`</fee:objID>`)
+					buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
+					buf.WriteString(`</fee:object>`)
+				case ExtFee11: // https://tools.ietf.org/html/draft-brown-epp-fees-07#section-5.1.1
+					buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
+				case ExtFee21: // Version 0.21 changes the XML structure
+					buf.WriteString(`<fee:command name="create"/>`)
+				default:
+					buf.WriteString(`<fee:domain>`)
+					buf.WriteString(`<fee:name>`)
+					xml.EscapeText(buf, []byte(domain))
+					buf.WriteString(`</fee:name>`)
+					buf.WriteString(fmt.Sprintf(`<fee:command%s>create</fee:command>`, feePhase))
+					buf.WriteString(`</fee:domain>`)
+				}
 			}
 		}
 		buf.WriteString(`</fee:check>`)
@@ -212,11 +220,15 @@ type DomainCheck struct {
 }
 
 // DomainCharge represents various EPP charge and fee extension data.
-// FIXME: unpack into multiple types for different extensions.
 type DomainCharge struct {
-	Domain       string
-	Category     string
-	CategoryName string
+	Domain        string
+	Category      string
+	CategoryName  string
+	CreatePrice   string
+	RenewPrice    string
+	RestorePrice  string
+	TransferPrice string
+	Currency      string
 }
 
 func init() {
@@ -400,7 +412,27 @@ func init() {
 	scanResponse.MustHandleCharData(path+">cd>command>fee", func(c *xx.Context) error {
 		charges := c.Value.(*Response).DomainCheckResponse.Charges
 		charge := &charges[len(charges)-1]
-		charge.CategoryName = c.Attr("", "description")
+		if charge.CategoryName == "" {
+			charge.CategoryName = c.Attr("", "description") // Fallback
+		}
+
+		cmdName := c.Parent.Attr("", "name")
+		switch cmdName {
+		case "create":
+			charge.CreatePrice = string(c.CharData)
+		case "renew":
+			charge.RenewPrice = string(c.CharData)
+		case "restore":
+			charge.RestorePrice = string(c.CharData)
+		case "transfer":
+			charge.TransferPrice = string(c.CharData)
+		}
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">cd>currency", func(c *xx.Context) error {
+		charges := c.Value.(*Response).DomainCheckResponse.Charges
+		charge := &charges[len(charges)-1]
+		charge.Currency = string(c.CharData)
 		return nil
 	})
 

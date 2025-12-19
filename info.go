@@ -141,22 +141,87 @@ func encodeVerisignDomainInfo(buf *bytes.Buffer, domain string) error {
 	return nil
 }
 
-//lint:ignore U1000 keeping around for reference
-func encodeVerisignContactInfo(buf *bytes.Buffer, contact string) error {
-	buf.Reset()
-	buf.WriteString(xmlCommandPrefix)
+// ContactInfo retrieves info for a contact.
+// https://tools.ietf.org/html/rfc5733#section-3.1.2
+func (c *Conn) ContactInfo(id string, auth string, extData map[string]string) (*ContactInfoResponse, error) {
+	x, err := encodeContactInfo(&c.Greeting, id, auth, extData)
+	if err != nil {
+		return nil, err
+	}
+	err = c.writeRequest(x)
+	if err != nil {
+		return nil, err
+	}
+	res, err := c.readResponse()
+	if err != nil {
+		return nil, err
+	}
+	return &res.ContactInfoResponse, nil
+}
+
+func encodeContactInfo(greeting *Greeting, id string, auth string, extData map[string]string) ([]byte, error) {
+	buf := bytes.NewBufferString(xmlCommandPrefix)
 	buf.WriteString(`<info><contact:info xmlns:contact="urn:ietf:params:xml:ns:contact-1.0"><contact:id>`)
-	xml.EscapeText(buf, []byte(contact))
-	buf.WriteString(`</contact:id></contact:info></info>`)
-	buf.WriteString(`<extension>`)
-	buf.WriteString(`<namestoreExt:namestoreExt xmlns:namestoreExt="http://www.verisign-grs.com/epp/namestoreExt-1.1">`)
-	buf.WriteString(`<namestoreExt:subProduct>`)
-	buf.WriteString(`com`)
-	buf.WriteString(`</namestoreExt:subProduct>`)
-	buf.WriteString(`</namestoreExt:namestoreExt>`)
-	buf.WriteString(`</extension>`)
+	xml.EscapeText(buf, []byte(id))
+	buf.WriteString(`</contact:id>`)
+
+	if auth != "" {
+		buf.WriteString(`<contact:authInfo><contact:pw>`)
+		xml.EscapeText(buf, []byte(auth))
+		buf.WriteString(`</contact:pw></contact:authInfo>`)
+	}
+
+	buf.WriteString(`</contact:info></info>`)
 	buf.WriteString(xmlCommandSuffix)
-	return nil
+	return buf.Bytes(), nil
+}
+
+// ContactInfoResponse represents an EPP response for a contact info request.
+type ContactInfoResponse struct {
+	ID     string       // <contact:id>
+	ROID   string       // <contact:roid>
+	Status []string     // <contact:status>
+	Postal []PostalInfo // <contact:postalInfo>
+	Voice  string       // <contact:voice>
+	Fax    string       // <contact:fax>
+	Email  string       // <contact:email>
+	ClID   string       // <contact:clID>
+	CrID   string       // <contact:crID>
+	UpID   string       // <contact:upID>
+	CrDate time.Time    // <contact:crDate>
+	UpDate time.Time    // <contact:upDate>
+	TrDate time.Time    // <contact:trDate>
+}
+
+func init() {
+	path := "epp > response > resData > " + ObjContact + " infData"
+	scanResponse.MustHandleCharData(path+">id", func(c *xx.Context) error {
+		cir := &c.Value.(*Response).ContactInfoResponse
+		cir.ID = string(c.CharData)
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">roid", func(c *xx.Context) error {
+		cir := &c.Value.(*Response).ContactInfoResponse
+		cir.ROID = string(c.CharData)
+		return nil
+	})
+	scanResponse.MustHandleStartElement(path+">status", func(c *xx.Context) error {
+		cir := &c.Value.(*Response).ContactInfoResponse
+		cir.Status = append(cir.Status, c.Attr("", "s"))
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">email", func(c *xx.Context) error {
+		cir := &c.Value.(*Response).ContactInfoResponse
+		cir.Email = string(c.CharData)
+		return nil
+	})
+	scanResponse.MustHandleCharData(path+">crDate", func(c *xx.Context) error {
+		cir := &c.Value.(*Response).ContactInfoResponse
+		var err error
+		cir.CrDate, err = time.Parse(time.RFC3339, string(c.CharData))
+		return err
+	})
+	// Add other fields as needed, keeping it minimal for now based on CLI usage
 }
 
 /*
