@@ -39,6 +39,18 @@ for _, r := range dcr.Checks {
 }
 ```
 
+## CLI
+
+The repo also includes a small CLI in `cmd/epp` for interacting with an EPP server using credentials from `~/.epp/credentials`:
+
+- `epp check <domain>...`
+- `epp create domain ...`
+- `epp renew domain ...`
+- `epp restore domain ...`
+- `epp info domain|contact ...`
+- `epp delete domain|contact ...`
+- `epp transfer domain <request|query|approve|reject|cancel> [options] <domain>`
+
 ## Todo
 
 - [X] Tests
