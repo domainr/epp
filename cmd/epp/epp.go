@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/domainr/epp"
+	epp "github.com/onasunnymorning/eppclient"
 	"github.com/wsxiaoys/terminal/color"
 )
 
