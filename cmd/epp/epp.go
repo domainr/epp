@@ -38,6 +38,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "  renew   Renew a domain\n")
 		fmt.Fprintf(os.Stderr, "  restore Restore a domain (RGP)\n")
 		fmt.Fprintf(os.Stderr, "  transfer Transfer a domain\n")
+		fmt.Fprintf(os.Stderr, "  raw     Send raw XML from a file or stdin\n")
 		fmt.Fprintf(os.Stderr, "  info    Get domain info\n")
 		fmt.Fprintf(os.Stderr, "\nOptions:\n")
 		flag.PrintDefaults()
@@ -116,6 +117,8 @@ func main() {
 		runRestore(conn, subArgs)
 	case "transfer":
 		runTransfer(conn, subArgs)
+	case "raw":
+		runRaw(conn, subArgs)
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", cmd)
 		flag.Usage()
@@ -188,6 +191,11 @@ func checkUsage(cmd string, args []string) {
 		sub := args[0]
 		if sub != "domain" {
 			fmt.Fprintf(os.Stderr, "Unknown transfer type: %s. Use 'domain'.\n", sub)
+			os.Exit(1)
+		}
+	case "raw":
+		if len(args) == 0 {
+			fmt.Fprintln(os.Stderr, "Usage: epp raw <file>")
 			os.Exit(1)
 		}
 	}
@@ -604,6 +612,29 @@ func runTransferDomain(c *epp.Conn, args []string) {
 			fmt.Printf("Expiry: %s\n", res.ExDate.Format(time.RFC3339))
 		}
 	}
+}
+
+func runRaw(c *epp.Conn, args []string) {
+	if len(args) == 0 {
+		fmt.Fprintln(os.Stderr, "Usage: epp raw <file>")
+		os.Exit(1)
+	}
+
+	var data []byte
+	var err error
+
+	filename := args[0]
+	if filename == "-" {
+		data, err = ioutil.ReadAll(os.Stdin)
+	} else {
+		data, err = ioutil.ReadFile(filename)
+	}
+	fatalif(err)
+
+	res, err := c.Raw(data)
+	fatalif(err)
+
+	fmt.Printf("%s\n", string(res))
 }
 
 func logif(err error) bool {

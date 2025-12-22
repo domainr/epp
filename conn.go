@@ -137,6 +137,38 @@ func (c *Conn) readResponse() (*Response, error) {
 	return res, err
 }
 
+// Raw writes xml to the connection and returns the raw response bytes.
+func (c *Conn) Raw(xml []byte) ([]byte, error) {
+	err := c.writeRequest(xml)
+	if err != nil {
+		return nil, err
+	}
+	return c.ReadRaw()
+}
+
+// ReadRaw reads a single EPP data unit from c and returns the raw bytes.
+func (c *Conn) ReadRaw() ([]byte, error) {
+	c.mRead.Lock()
+	defer c.mRead.Unlock()
+	if c.Timeout > 0 {
+		c.Conn.SetReadDeadline(time.Now().Add(c.Timeout))
+	}
+	n, err := readDataUnitHeader(c.Conn)
+	if err != nil {
+		return nil, err
+	}
+
+	// Read the entire body
+	body := make([]byte, n)
+	_, err = io.ReadFull(c.Conn, body)
+	if err != nil {
+		return nil, err
+	}
+
+	logXML("<-- READ DATA UNIT -->", body)
+	return body, nil
+}
+
 // writeDataUnit writes x to w.
 // Bytes written are prefixed with 32-bit header specifying the total size
 // of the data unit (message + 4 byte header), in network (big-endian) order.
