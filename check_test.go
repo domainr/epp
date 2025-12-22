@@ -645,6 +645,22 @@ func TestScanCheckDomainResponseWithFee10(t *testing.T) {
 	st.Expect(t, dcr.Checks[0].Domain, "example.sport")
 	st.Expect(t, dcr.Checks[0].Available, true)
 	st.Expect(t, dcr.Checks[0].Reason, "")
+	st.Expect(t, len(dcr.Charges), 1)
+	st.Expect(t, dcr.Charges[0].CreatePrice, "300.00")
+	st.Expect(t, dcr.Charges[0].CategoryName, "domain creation in phase 'open'")
+}
+
+func TestEncodeDomainCheckFee10(t *testing.T) {
+	var greeting Greeting
+	greeting.Extensions = []string{ExtFee10}
+	x, err := encodeDomainCheck(&greeting, []string{"example.com"}, nil)
+	st.Expect(t, err, nil)
+	expected := `<?xml version="1.0" encoding="UTF-8"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"><command><check><domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"><domain:name>example.com</domain:name></domain:check></check><extension><fee:check xmlns:fee="urn:ietf:params:xml:ns:epp:fee-1.0"><fee:command name="create"/><fee:command name="renew"/><fee:command name="restore"/><fee:command name="transfer"/></fee:check></extension></command></epp>`
+	st.Expect(t, string(x), expected)
+	var v struct{}
+	err = xml.Unmarshal(x, &v)
+	st.Expect(t, err, nil)
 }
 
 func TestScanCheckDomainResponseWithPremiumAttribute(t *testing.T) {

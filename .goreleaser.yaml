@@ -1,0 +1,47 @@
+# .goreleaser.yaml
+# See https://goreleaser.com for documentation
+
+version: 2
+
+builds:
+  - main: ./cmd/epp
+    binary: epp
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+brews:
+  - name: epp
+    description: "EPP command-line tool"
+    homepage: "https://github.com/onasunnymorning/eppclient"
+    folder: Formula
+    tap:
+      owner: onasunnymorning
+      name: homebrew-tap
+    install: |
+      bin.install "epp"

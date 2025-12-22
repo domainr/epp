@@ -4,5 +4,3 @@ github.com/nbio/xx v0.0.0-20240429160905-7032719db059 h1:DAaTXNrne4YhPmC3HtPT8Ne
 github.com/nbio/xx v0.0.0-20240429160905-7032719db059/go.mod h1:zxiZL149EB/Sa7WMGlyYaSqS8mRU1vFA2hkE5Jz4+HI=
 github.com/wsxiaoys/terminal v0.0.0-20160513160801-0940f3fc43a0 h1:3UeQBvD0TFrlVjOeLOBz+CPAI8dnbqNSVwUwRrkp7vQ=
 github.com/wsxiaoys/terminal v0.0.0-20160513160801-0940f3fc43a0/go.mod h1:IXCdmsXIht47RaVFLEdVnh1t+pgYtTAhQGj73kz+2DM=
-golang.org/x/net v0.48.0 h1:zyQRTTrjc33Lhh0fBgT/H3oZq9WuvRR5gPC70xpDiQU=
-golang.org/x/net v0.48.0/go.mod h1:+ndRgGjkh8FGtu1w1FGbEC31if4VrNVMuKTgcAAnQRY=
