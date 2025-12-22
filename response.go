@@ -12,8 +12,8 @@ type Response struct {
 	// Additions for new commands
 	DomainCreateResponse
 	DomainRenewResponse
-	DomainUpdateResponse
 	DomainTransferResponse
+	DomainUpdateResponse
 	ContactCreateResponse
 	ContactInfoResponse
 }

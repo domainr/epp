@@ -35,9 +35,9 @@ func main() {
 		fmt.Fprintf(os.Stderr, "\nCommands:\n")
 		fmt.Fprintf(os.Stderr, "  check   Check domain availability\n")
 		fmt.Fprintf(os.Stderr, "  create  Create a domain\n")
-		fmt.Fprintf(os.Stderr, "  transfer Transfer a domain\n")
 		fmt.Fprintf(os.Stderr, "  renew   Renew a domain\n")
 		fmt.Fprintf(os.Stderr, "  restore Restore a domain (RGP)\n")
+		fmt.Fprintf(os.Stderr, "  transfer Transfer a domain\n")
 		fmt.Fprintf(os.Stderr, "  info    Get domain info\n")
 		fmt.Fprintf(os.Stderr, "\nOptions:\n")
 		flag.PrintDefaults()
@@ -75,6 +75,9 @@ func main() {
 	cmd := args[0]
 	subArgs := args[1:]
 
+	// Check usage before connecting
+	checkUsage(cmd, subArgs)
+
 	cfg, err := loadConfig(profileName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error loading credentials for profile %q: %v\n", profileName, err)
@@ -107,16 +110,86 @@ func main() {
 		runDelete(conn, subArgs)
 	case "create":
 		runCreate(conn, subArgs)
-	case "transfer":
-		runTransfer(conn, subArgs)
 	case "renew":
 		runRenew(conn, subArgs)
 	case "restore":
 		runRestore(conn, subArgs)
+	case "transfer":
+		runTransfer(conn, subArgs)
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", cmd)
 		flag.Usage()
 		os.Exit(1)
+	}
+}
+
+func checkUsage(cmd string, args []string) {
+	switch cmd {
+	case "check":
+		if len(args) == 0 {
+			fmt.Fprintln(os.Stderr, "Usage: epp check <domain>...")
+			os.Exit(1)
+		}
+	case "info":
+		if len(args) == 0 {
+			fmt.Fprintln(os.Stderr, "Usage: epp info <domain|contact> [options]")
+			os.Exit(1)
+		}
+		sub := args[0]
+		if sub != "domain" && sub != "contact" {
+			fmt.Fprintf(os.Stderr, "Unknown info type: %s. Use 'domain' or 'contact'.\n", sub)
+			os.Exit(1)
+		}
+	case "delete":
+		if len(args) == 0 {
+			fmt.Fprintln(os.Stderr, "Usage: epp delete <domain|contact> [options]")
+			os.Exit(1)
+		}
+		sub := args[0]
+		if sub != "domain" && sub != "contact" {
+			fmt.Fprintf(os.Stderr, "Unknown delete type: %s. Use 'domain' or 'contact'.\n", sub)
+			os.Exit(1)
+		}
+	case "create":
+		if len(args) == 0 {
+			fmt.Fprintln(os.Stderr, "Usage: epp create <domain|contact> [options]")
+			os.Exit(1)
+		}
+		sub := args[0]
+		if sub != "domain" && sub != "contact" {
+			fmt.Fprintf(os.Stderr, "Unknown create type: %s. Use 'domain' or 'contact'.\n", sub)
+			os.Exit(1)
+		}
+	case "renew":
+		if len(args) == 0 {
+			fmt.Fprintln(os.Stderr, "Usage: epp renew <domain> [options]")
+			os.Exit(1)
+		}
+		sub := args[0]
+		if sub != "domain" {
+			fmt.Fprintf(os.Stderr, "Unknown renewal type: %s. Use 'domain'.\n", sub)
+			os.Exit(1)
+		}
+	case "restore":
+		if len(args) == 0 {
+			fmt.Fprintln(os.Stderr, "Usage: epp restore <domain> [options]")
+			os.Exit(1)
+		}
+		sub := args[0]
+		if sub != "domain" {
+			fmt.Fprintf(os.Stderr, "Unknown restore type: %s. Use 'domain'.\n", sub)
+			os.Exit(1)
+		}
+	case "transfer":
+		if len(args) == 0 {
+			fmt.Fprintln(os.Stderr, "Usage: epp transfer <domain> [options]")
+			os.Exit(1)
+		}
+		sub := args[0]
+		if sub != "domain" {
+			fmt.Fprintf(os.Stderr, "Unknown transfer type: %s. Use 'domain'.\n", sub)
+			os.Exit(1)
+		}
 	}
 }
 
@@ -190,11 +263,6 @@ func runCheck(c *epp.Conn, args []string) {
 }
 
 func runInfo(c *epp.Conn, args []string) {
-	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "Usage: epp info <domain|contact> [options]")
-		os.Exit(1)
-	}
-
 	cmd := args[0]
 	subArgs := args[1:]
 
@@ -245,11 +313,6 @@ func runInfoContact(c *epp.Conn, args []string) {
 }
 
 func runDelete(c *epp.Conn, args []string) {
-	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "Usage: epp delete <domain|contact> [options]")
-		os.Exit(1)
-	}
-
 	cmd := args[0]
 	subArgs := args[1:]
 
@@ -285,11 +348,6 @@ func runDeleteContact(c *epp.Conn, args []string) {
 }
 
 func runCreate(c *epp.Conn, args []string) {
-	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "Usage: epp create <domain|contact> [options]")
-		os.Exit(1)
-	}
-
 	cmd := args[0]
 	subArgs := args[1:]
 
@@ -404,11 +462,6 @@ func runCreateContact(c *epp.Conn, args []string) {
 }
 
 func runRenew(c *epp.Conn, args []string) {
-	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "Usage: epp renew <domain> [options]")
-		os.Exit(1)
-	}
-
 	cmd := args[0]
 	subArgs := args[1:]
 
@@ -472,11 +525,6 @@ func runRenewDomain(c *epp.Conn, args []string) {
 }
 
 func runRestore(c *epp.Conn, args []string) {
-	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "Usage: epp restore <domain> [options]")
-		os.Exit(1)
-	}
-
 	cmd := args[0]
 	subArgs := args[1:]
 
@@ -500,6 +548,62 @@ func runRestoreDomain(c *epp.Conn, args []string) {
 	_, err := c.RestoreDomain(args[0], nil)
 	fatalif(err)
 	color.Printf("@{g}Domain %s restored!\n", args[0])
+}
+
+func runTransfer(c *epp.Conn, args []string) {
+	cmd := args[0]
+	subArgs := args[1:]
+
+	switch cmd {
+	case "domain":
+		runTransferDomain(c, subArgs)
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown transfer type: %s. Use 'domain'.\n", cmd)
+		os.Exit(1)
+	}
+}
+
+func runTransferDomain(c *epp.Conn, args []string) {
+	fs := flag.NewFlagSet("transfer domain", flag.ExitOnError)
+	op := fs.String("op", "query", "transfer operation (query, request, approve, reject, cancel)")
+	auth := fs.String("auth", "", "auth info")
+	period := fs.Int("period", 1, "registration period in years (optional for request)")
+	fee := fs.String("fee", "", "fee amount")
+	currency := fs.String("currency", "", "fee currency")
+	fs.Parse(args)
+
+	if fs.NArg() == 0 {
+		fmt.Fprintln(os.Stderr, "Usage: epp transfer domain [-op op] [-auth code] [-period N] [-fee amount] [-currency code] <domain>")
+		os.Exit(1)
+	}
+
+	domain := fs.Arg(0)
+
+	var extData map[string]string
+	if *fee != "" {
+		extData = make(map[string]string)
+		extData["fee:fee"] = *fee
+		if *currency != "" {
+			extData["fee:currency"] = *currency
+		}
+	}
+
+	res, err := c.TransferDomain(*op, domain, *period, "y", *auth, extData)
+	fatalif(err)
+
+	color.Printf("@{g}Domain %s %s operation successful!\n", domain, *op)
+	if res != nil {
+		fmt.Printf("Status: %s\n", res.Status)
+		if !res.REDate.IsZero() {
+			fmt.Printf("Requested: %s by %s\n", res.REDate.Format(time.RFC3339), res.REID)
+		}
+		if !res.ACDate.IsZero() {
+			fmt.Printf("Acted: %s by %s\n", res.ACDate.Format(time.RFC3339), res.ACID)
+		}
+		if !res.ExDate.IsZero() {
+			fmt.Printf("Expiry: %s\n", res.ExDate.Format(time.RFC3339))
+		}
+	}
 }
 
 func logif(err error) bool {
