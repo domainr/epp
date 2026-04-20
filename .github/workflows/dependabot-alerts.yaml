@@ -1,0 +1,26 @@
+name: Dependabot Alerts
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight
+
+jobs:
+  check-dependabot:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check for Dependabot failures
+        run: |
+          # Get yesterday's date
+          YESTERDAY=$(date -u -d '1 day ago' +%Y-%m-%dT%H:%M:%SZ)
+
+          # Query for failed Dependabot runs
+          FAILURES=$(curl -s \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs?actor=dependabot[bot]&status=failure&created=>=$YESTERDAY")
+
+          # Parse and alert if failures found
+          if [ "$(echo $FAILURES | jq '.total_count')" -gt 0 ]; then
+            echo "Found Dependabot failures!"
+            echo $FAILURES | jq '.workflow_runs[] | {name, html_url, created_at}'
+            # Add your alerting logic here (Slack, email, etc.)
+          fi
